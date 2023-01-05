@@ -4,7 +4,32 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+    children: [
+      {
+        name: 'Home',
+        path: '/',
+        component: () => import('pages/IndexPage.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        name: 'Auth',
+        path: '/auth',
+        component: () => import('pages/AuthPage.vue'),
+        meta: {
+          requiresAuth: false,
+        },
+      },
+      {
+        name: 'Logout',
+        path: '/logout',
+        component: () => import('pages/LogoutPage.vue'),
+        meta: {
+          requiresAuth: false,
+        },
+      },
+    ],
   },
 
   // Always leave this as last one,

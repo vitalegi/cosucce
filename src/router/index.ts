@@ -5,6 +5,7 @@ import {
   createWebHashHistory,
   createWebHistory,
 } from 'vue-router';
+import { isAuthenticated } from 'boot/firebase';
 
 import routes from './routes';
 
@@ -32,6 +33,22 @@ export default route(function (/* { store, ssrContext } */) {
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
     history: createHistory(process.env.VUE_ROUTER_BASE),
+  });
+
+  Router.beforeEach((to, from, next) => {
+    if (!to.meta.requiresAuth) {
+      console.log('login page');
+      next();
+      return;
+    }
+    isAuthenticated().then((authenticated) => {
+      if (authenticated) {
+        console.log('authenticated');
+        next();
+        return;
+      }
+      next({ name: 'Auth' });
+    });
   });
 
   return Router;
