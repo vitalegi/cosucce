@@ -1,18 +1,25 @@
 package it.vitalegi.budget.resource;
 
-import java.security.Principal;
-
+import it.vitalegi.budget.auth.AuthenticationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/app")
+@RequestMapping("/user")
 public class UserResource {
 
-	@GetMapping(path = "/test")
-	public String test(Principal principal) {
-		return principal.getName();
-	}
+    @Autowired
+    AuthenticationService authenticationService;
 
+    @GetMapping(path = "/name")
+    public String getName() {
+        return authenticationService.getName();
+    }
+
+    @GetMapping(path = "/id")
+    public String getId() {
+        return authenticationService.getId();
+    }
 }
