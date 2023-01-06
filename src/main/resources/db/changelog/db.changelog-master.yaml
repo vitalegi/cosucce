@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: changelog-20230106-001.xml
+      relativeToChangelogFile: true
