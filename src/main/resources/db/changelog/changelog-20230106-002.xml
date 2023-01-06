@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <changeSet author="vitalegi" id="20230106-002">
+        <createTable tableName="board_entry">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" unique="true"/>
+            </column>
+            <column name="boardId" type="UUID"/>
+            <column name="ownerId" type="VARCHAR(255)"/>
+            <column name="creationDate" type="TIMESTAMP"/>
+            <column name="lastUpdate" type="TIMESTAMP"/>
+            <column name="date" type="DATE"/>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="amount" type="CURRENCY"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="vitalegi" id="20230106-002-board_entry-fk_board">
+        <addForeignKeyConstraint baseTableName="board_entry"
+                                 baseColumnNames="boardId"
+                                 constraintName="fk_board_entry_board"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedTableName="board"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

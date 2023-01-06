@@ -6,6 +6,8 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Log4j2
 @Aspect
 @Component
@@ -14,13 +16,14 @@ public class PerformanceAspect {
     @Around(value = "@target(Performance) && within(it.vitalegi..*)")
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
+        LocalDateTime now = LocalDateTime.now();
         try {
             Object out = joinPoint.proceed();
-            log.info("target={}, time={}, status=OK", getName((joinPoint)), time(start));
+            log.info("target={}, time={}, start={}, status=OK", getName((joinPoint)), time(start), now);
             return out;
         } catch (Throwable e) {
             Throwable root = root(e);
-            log.info("target={}, time={}, status=KO, e={}, e_msg={}, root={}, root_msg={}", getName((joinPoint)), time(start), exName(e), e.getMessage(), exName(root), root.getMessage());
+            log.info("target={}, time={}, start={}, status=KO, e={}, e_msg={}, root={}, root_msg={}", getName((joinPoint)), time(start), now, exName(e), e.getMessage(), exName(root), root.getMessage());
             throw e;
         }
     }

@@ -2,12 +2,20 @@ package it.vitalegi.budget.board.mapper;
 
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.entity.BoardEntity;
-import org.springframework.beans.BeanUtils;
+import it.vitalegi.budget.util.ObjectUtil;
+import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
+@Service
 public class BoardMapper {
-    public static Board entity2dto(BoardEntity entity) {
-        Board dto = new Board();
-        BeanUtils.copyProperties(entity, dto);
-        return dto;
+    public Board map(BoardEntity source) {
+        Board out = ObjectUtil.copy(source, new Board());
+        return out;
+    }
+
+    public BoardEntity map(Board source) {
+        BoardEntity out = ObjectUtil.copy(source, new BoardEntity());
+        return out;
     }
 }
