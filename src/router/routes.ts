@@ -7,7 +7,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         name: 'Home',
-        path: '/',
+        path: '/tmp',
         component: () => import('pages/IndexPage.vue'),
         meta: {
           requiresAuth: true,
@@ -28,6 +28,23 @@ const routes: RouteRecordRaw[] = [
         meta: {
           requiresAuth: false,
         },
+      },
+      {
+        name: 'Boards',
+        path: '/',
+        component: () => import('pages/BoardsPage.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        name: 'ViewBoard',
+        path: '/board/:boardId',
+        component: () => import('pages/BoardPage.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+        props: true,
       },
     ],
   },
