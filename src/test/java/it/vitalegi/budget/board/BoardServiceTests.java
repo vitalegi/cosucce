@@ -25,7 +25,6 @@ public class BoardServiceTests {
     final static long USER_ID = 1;
 
     BoardService service;
-    AuthenticationService authenticationService;
 
     BoardRepository repository;
 
@@ -35,13 +34,8 @@ public class BoardServiceTests {
     void initTest() {
         service = new BoardService();
 
-        authenticationService = mock(AuthenticationService.class);
-
-        service = new BoardService();
-        service.authenticationService = authenticationService;
-
         repository = mock(BoardRepository.class);
-        service.repository = repository;
+        service.boardRepository = repository;
 
         mapper = mock(BoardMapper.class);
         service.mapper = mapper;

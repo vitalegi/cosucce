@@ -46,4 +46,8 @@ public class UserService {
     public User getCurrentUser() {
         return mapper.map(getCurrentUserEntity());
     }
+
+    public UserEntity getUserEntity(long id) {
+        return userRepository.findById(id).get();
+    }
 }

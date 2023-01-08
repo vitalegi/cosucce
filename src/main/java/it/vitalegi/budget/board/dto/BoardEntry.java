@@ -14,7 +14,7 @@ public class BoardEntry {
     LocalDate date;
     LocalDateTime creationDate;
     LocalDateTime lastUpdate;
-    String ownerId;
+    long ownerId;
     String category;
     String description;
     BigDecimal amount;

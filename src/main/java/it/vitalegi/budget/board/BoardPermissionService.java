@@ -26,20 +26,29 @@ public class BoardPermissionService {
     @Autowired
     BoardRepository boardRepository;
 
-    public boolean hasGrant(User user, UUID boardId, BoardGrant grant) {
+    public boolean hasGrant(long userId, UUID boardId, BoardGrant grant) {
         Optional<BoardEntity> board = boardRepository.findById(boardId);
         if (board.isEmpty()) {
             return false;
         }
         UserEntity owner = board.get().getOwner();
-        if (owner.getId() == user.getId()) {
+        if (owner.getId() == userId) {
             return true;
         }
         return false;
     }
+    public boolean hasGrant(User user, UUID boardId, BoardGrant grant) {
+        return hasGrant(user.getId(), boardId, grant);
+    }
 
     public void checkGrant(UUID boardId, BoardGrant grant) {
         if (!hasGrant(userService.getCurrentUser(), boardId, grant)) {
+            throw new PermissionException("board", boardId.toString(), grant.name());
+        }
+    }
+
+    public void checkGrant(UserEntity user, UUID boardId, BoardGrant grant) {
+        if (!hasGrant(user.getId(), boardId, grant)) {
             throw new PermissionException("board", boardId.toString(), grant.name());
         }
     }
