@@ -19,7 +19,7 @@ public class BoardMapperTests {
 
     @Test
     void test_map() {
-        BoardEntity entity = BoardMock.newBoardEntity("name", "owner");
+        BoardEntity entity = BoardMock.newBoardEntity("name", 1);
         Board dto = mapper.map(entity);
         assertEquals(entity, mapper.map(dto));
     }

@@ -9,7 +9,7 @@ import java.util.UUID;
 public class Board {
     UUID id;
     String name;
-    String ownerId;
+    long ownerId;
     LocalDateTime creationDate;
     LocalDateTime lastUpdate;
 }

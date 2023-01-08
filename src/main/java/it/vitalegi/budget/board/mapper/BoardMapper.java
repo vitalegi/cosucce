@@ -5,12 +5,11 @@ import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.util.ObjectUtil;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 public class BoardMapper {
     public Board map(BoardEntity source) {
         Board out = ObjectUtil.copy(source, new Board());
+        out.setOwnerId(source.getOwner().getId());
         return out;
     }
 

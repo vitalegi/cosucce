@@ -25,5 +25,12 @@ mvn clean package
 mvn spring-boot:run
 
 ./mvnw spring-boot:run
+```
 
+## Generate Database Schema
+
+<https://docs.liquibase.com/start/install/liquibase-windows.html>
+
+```
+liquibase "--url=jdbc:h2:./liquibase;DB_CLOSE_ON_EXIT=FALSE" "--username=sa" "--password=" "--driver=org.h2.Driver" "--changelog-file=dbchangelog.xml" generate-changelog
 ```

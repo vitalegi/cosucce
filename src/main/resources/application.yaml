@@ -15,14 +15,16 @@ spring:
     username: sa
     password: ''
   liquibase:
+    enabled: true
     change-log: 'classpath:db/changelog/db.changelog-master.yaml'
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+      # ddl-auto: update
 
 security:
   cors:
     allowedOrigins: http://localhost:9000
-    allowedMethods: GET, POST, OPTIONS
+    allowedMethods: GET, POST, PUT
     allowCredentials: true
     allowedHeaders: Content-Type, Access-Control-Request-Method, Access-Control-Allow-Credentials, Access-Control-Allow-Origin, Access-Control-Allow-Headers, x-requested-with, Authorization, origin, accept

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthenticationService {
 
-    public String getId() {
+    public String getUid() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication.getName();
     }

@@ -9,14 +9,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class BoardServiceTests {
 
     final static String BOARD = "board";
-    final static String USER_ID = "user1";
+    final static long USER_ID = 1;
 
     BoardService service;
     AuthenticationService authenticationService;
@@ -30,7 +36,6 @@ public class BoardServiceTests {
         service = new BoardService();
 
         authenticationService = mock(AuthenticationService.class);
-        when(authenticationService.getId()).thenReturn(USER_ID);
 
         service = new BoardService();
         service.authenticationService = authenticationService;
@@ -56,7 +61,7 @@ public class BoardServiceTests {
         verify(repository).save(entity.capture());
         BoardEntity repositoryInput = entity.getValue();
         assertEquals(BOARD, repositoryInput.getName());
-        assertEquals(USER_ID, repositoryInput.getOwnerId());
+        assertEquals(USER_ID, repositoryInput.getOwner().getId());
         assertNull(repositoryInput.getId());
         assertNotNull(repositoryInput.getCreationDate());
         assertNotNull(repositoryInput.getLastUpdate());
