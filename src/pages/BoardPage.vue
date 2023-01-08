@@ -81,6 +81,7 @@ const boardEntriesColumns = [
     name: 'date',
     required: true,
     label: 'Data',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     field: (row: any) => (row.date as Date).toLocaleDateString(),
     align: 'left',
     sortable: true,

@@ -7,6 +7,7 @@ export default class Board {
   creationDate = new Date();
   lastUpdate = new Date();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static fromJson(json: any): Board {
     const out = new Board();
     out.id = asString(json.id);

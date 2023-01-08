@@ -65,7 +65,7 @@ async function onSubmit() {
       password.value
     );
     const user = userCredential.user;
-    await userService.notifyAccess();
+    await userService.getUser();
     console.log(`Created user ${user.email}`);
     await sendEmailVerification(user);
     console.log('Email verification sent');

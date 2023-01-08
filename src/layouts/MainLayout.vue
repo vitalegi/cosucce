@@ -20,7 +20,9 @@
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label header> Le tue board </q-item-label>
+        <q-item-label header tag="router-link" to="/">
+          Le tue board
+        </q-item-label>
 
         <q-item
           v-for="board in boards"

@@ -1,8 +1,9 @@
+import UserData from 'src/models/UserData';
 import api from './BackendService';
 
 export class UserService {
-  notifyAccess = async (): Promise<void> => {
-    await api.get('/user', null);
+  getUser = async (): Promise<UserData> => {
+    return await api.get('/user', null);
   };
 }
 

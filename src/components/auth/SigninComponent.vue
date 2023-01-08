@@ -55,7 +55,7 @@ async function onSubmit() {
       email.value,
       password.value
     );
-    await userService.notifyAccess();
+    await userService.getUser();
     const user = userCredential.user;
     console.log(`Logged in as ${user.email}`);
     router.push('/');
