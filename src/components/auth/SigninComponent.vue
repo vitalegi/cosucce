@@ -37,6 +37,7 @@
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import userService from 'src/integrations/UserService';
 
 const firebaseErrors = new Map<string, string>();
 firebaseErrors.set('auth/invalid-email', 'E-Mail non valida');
@@ -54,6 +55,7 @@ async function onSubmit() {
       email.value,
       password.value
     );
+    await userService.notifyAccess();
     const user = userCredential.user;
     console.log(`Logged in as ${user.email}`);
     router.push('/');

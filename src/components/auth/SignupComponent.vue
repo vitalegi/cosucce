@@ -45,6 +45,7 @@ import {
 } from 'firebase/auth';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import userService from 'src/integrations/UserService';
 
 const firebaseErrors = new Map<string, string>();
 firebaseErrors.set('auth/email-already-in-use', 'E-Mail già in uso');
@@ -64,6 +65,7 @@ async function onSubmit() {
       password.value
     );
     const user = userCredential.user;
+    await userService.notifyAccess();
     console.log(`Created user ${user.email}`);
     await sendEmailVerification(user);
     console.log('Email verification sent');

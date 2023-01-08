@@ -11,12 +11,10 @@
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title>
-          Quasar App <router-link to="/">home</router-link> |
-          <router-link to="/auth">auth</router-link> |
-          <router-link to="/tmp">tmp</router-link>
+        <q-toolbar-title class="title">
+          <router-link to="/">Budget</router-link>
         </q-toolbar-title>
-        <div>Quasar v{{ $q.version }}</div>
+        <router-link to="/logout">Esci</router-link>
       </q-toolbar>
     </q-header>
 
@@ -29,7 +27,7 @@
           :key="board.id"
           clickable
           tag="router-link"
-          :to="board.id"
+          :to="`/board/${board.id}`"
         >
           <q-item-section>
             <q-item-label>{{ board.name }}</q-item-label>
@@ -61,3 +59,26 @@ function toggleLeftDrawer() {
 const boards = ref(new Array<Board>());
 boardService.getBoards().then((b) => boards.value.push(...b));
 </script>
+
+<style lang="scss" scoped>
+.title {
+  a {
+    color: inherit;
+  }
+  a:link {
+    text-decoration: none;
+  }
+
+  a:visited {
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: none;
+  }
+
+  a:active {
+    text-decoration: none;
+  }
+}
+</style>

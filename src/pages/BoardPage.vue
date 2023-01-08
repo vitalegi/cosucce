@@ -1,13 +1,39 @@
 <template>
   <q-page>
-    <q-table
-      :dense="true"
-      :title="board.name"
-      :rows="boardEntries"
-      :columns="boardEntriesColumns"
-      row-key="name"
-      :binary-state-sort="true"
-    />
+    <div class="q-pa-md row">
+      <div class="q-pa-xs col-12 row">
+        <div class="text-h6">{{ board.name }}</div>
+        <q-space />
+        <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
+      </div>
+      <div class="q-pa-xs col-12">
+        <q-card>
+          <q-card-section>
+            <div class="text-subtitle2">Recap</div>
+          </q-card-section>
+          <q-separator />
+          <q-card-section>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          </q-card-section>
+        </q-card>
+      </div>
+      <div class="q-pa-xs col-12">
+        <q-card>
+          <q-card-section>
+            <div class="text-subtitle2">Dati</div>
+          </q-card-section>
+          <q-separator />
+          <q-table
+            :dense="true"
+            :flat="true"
+            :rows="boardEntries"
+            :columns="boardEntriesColumns"
+            row-key="name"
+            :binary-state-sort="true"
+          />
+        </q-card>
+      </div>
+    </div>
   </q-page>
 </template>
 
@@ -16,6 +42,7 @@ import { ref, watch } from 'vue';
 import boardService from 'src/integrations/BoardService';
 import Board from 'src/models/Board';
 import BoardEntry from 'src/models/BoardEntry';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
   boardId: {
@@ -23,6 +50,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+const router = useRouter();
 
 const board = ref(new Board());
 const boardEntries = ref(new Array<BoardEntry>());
@@ -42,6 +71,10 @@ watch(
     loadData(newBoardId);
   }
 );
+
+const addNewBoardEntry = (): void => {
+  router.push(`/board/${props.boardId}/add`);
+};
 
 const boardEntriesColumns = [
   {
