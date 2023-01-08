@@ -8,7 +8,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserMapper {
     public User map(UserEntity source) {
-        return ObjectUtil.copy(source, new User());
+        User dto = new User();
+        dto.setId(source.getId());
+        dto.setUsername(source.getUsername());
+        dto.setUid(source.getUid());
+        return dto;
     }
 
     public UserEntity map(User source) {
