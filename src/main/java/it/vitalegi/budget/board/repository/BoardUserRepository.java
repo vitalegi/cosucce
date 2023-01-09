@@ -3,6 +3,7 @@ package it.vitalegi.budget.board.repository;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
 import it.vitalegi.budget.board.entity.BoardUserEntity;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,7 @@ import java.util.UUID;
 public interface BoardUserRepository extends CrudRepository<BoardUserEntity, Long> {
 
     List<BoardUserEntity> findByBoard_Id(UUID boardId);
+
+    @Query("SELECT bu FROM BoardUser bu WHERE bu.board.id=:boardId AND bu.user.id=:userId")
+    BoardUserEntity findUserBoard(UUID boardId, long userId);
 }

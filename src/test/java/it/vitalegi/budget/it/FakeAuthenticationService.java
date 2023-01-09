@@ -15,12 +15,7 @@ import org.springframework.stereotype.Service;
 public class FakeAuthenticationService extends AuthenticationService {
     public String getUid() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info(">>>>>>>>> {}", authentication);
-        log.info(">>>>>>>>> {}", authentication.getPrincipal());
-        log.info(">>>>>>>>> {}", authentication.getAuthorities());
-        log.info(">>>>>>>>> {}", authentication.getCredentials());
         User user = (User) authentication.getPrincipal();
-        log.info("UID={}, name={}, verified={}", user.getUsername(), getName(), isVerified());
         return user.getUsername();
     }
 

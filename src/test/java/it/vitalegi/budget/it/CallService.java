@@ -25,11 +25,10 @@ public class CallService {
         }
     }
 
-    public <E> List<E> jsonPayloadList(ResultActions actions, Class<E> clazz) {
+    public <E> List<E> jsonPayloadList(ResultActions actions, TypeReference<List<E>> ref) {
         try {
             String payload = actions.andReturn().getResponse().getContentAsString();
-            return objectMapper.readValue(payload, new TypeReference<List<E>>() {
-            });
+            return objectMapper.readValue(payload, ref);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

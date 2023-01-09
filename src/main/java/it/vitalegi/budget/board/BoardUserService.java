@@ -9,7 +9,7 @@ import it.vitalegi.budget.board.mapper.BoardUserMapper;
 import it.vitalegi.budget.board.repository.BoardUserRepository;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
-import it.vitalegi.budget.user.dto.User;
+import it.vitalegi.budget.user.UserService;
 import it.vitalegi.budget.user.entity.UserEntity;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +24,13 @@ import java.util.stream.Collectors;
 @Log4j2
 @Service
 public class BoardUserService {
+
+    @Autowired
+    UserService userService;
     @Autowired
     BoardUserRepository boardUserRepository;
     @Autowired
     BoardPermissionService boardPermissionService;
-
     @Autowired
     BoardUserMapper boardUserMapper;
 
@@ -42,22 +44,27 @@ public class BoardUserService {
     public BoardUserEntity addBoardUserEntity(BoardEntity board, UserEntity user, BoardUserRole role) {
         boardPermissionService.checkGrant(board.getId(), BoardGrant.EDIT_BOARD);
         List<BoardUserEntity> entries = boardUserRepository.findByBoard_Id(board.getId());
-
-        List<BoardUserEntity> existingEntries = entries.stream().filter(e -> e.getUser().equals(user)) //
-                .filter(e -> e.getRole().equals(role.name())) //
-                .collect(Collectors.toList());
-        if (!existingEntries.isEmpty()) {
-            log.info("Record already present {}", existingEntries);
+        UserEntity currentUser = userService.getCurrentUserEntity();
+        if (user.getId() == currentUser.getId()) {
+            throw new IllegalArgumentException("Cannot change self role");
         }
-
-        BoardUserEntity entity = new BoardUserEntity();
-        entity.setBoard(board);
-        entity.setUser(user);
-        entity.setRole(role.name());
-        return boardUserRepository.save(entity);
+        List<BoardUserEntity> rolesOfUser = entries.stream().filter(e -> e.getUser().equals(user)) //
+                .collect(Collectors.toList());
+        if (rolesOfUser.isEmpty()) {
+            BoardUserEntity entity = new BoardUserEntity();
+            entity.setBoard(board);
+            entity.setUser(user);
+            entity.setRole(role.name());
+            return boardUserRepository.save(entity);
+        } else {
+            BoardUserEntity entity = rolesOfUser.get(0);
+            entity.setRole(role.name());
+            return boardUserRepository.save(entity);
+        }
     }
 
     public BoardUser addBoardUser(BoardEntity board, UserEntity user, BoardUserRole role) {
-        return boardUserMapper.mapUser(addBoardUserEntity(board, user, role));
+        BoardUserEntity entry = addBoardUserEntity(board, user, role);
+        return boardUserMapper.map(entry);
     }
 }

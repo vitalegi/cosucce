@@ -14,8 +14,7 @@ import java.util.UUID;
 @Repository
 public interface BoardRepository extends CrudRepository<BoardEntity, UUID> {
 
-    //@Query("SELECT b FROM Board b WHERE b.owner.id=:userId")
-    //List<BoardEntity> findByOwnerId2(@Param("userId") long ownerId);
+    @Query("SELECT b FROM Board b INNER JOIN b.boardUsers bu WHERE bu.user.id=:userId")
+    List<BoardEntity> findVisibleBoards(@Param("userId") long ownerId);
 
-    List<BoardEntity> findByOwner_Id(@Param("userId") long ownerId);
 }

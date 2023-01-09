@@ -4,11 +4,14 @@ import it.vitalegi.budget.auth.BoardGrant;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.entity.BoardEntity;
+import it.vitalegi.budget.board.entity.BoardUserEntity;
 import it.vitalegi.budget.board.mapper.BoardMapper;
 import it.vitalegi.budget.board.repository.BoardRepository;
+import it.vitalegi.budget.board.repository.BoardUserRepository;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
 import it.vitalegi.budget.user.UserService;
+import it.vitalegi.budget.user.entity.UserEntity;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +32,7 @@ public class BoardService {
     BoardRepository boardRepository;
 
     @Autowired
-    BoardUserService boardUserService;
+    BoardUserRepository boardUserRepository;
 
     @Autowired
     UserService userService;
@@ -42,27 +45,36 @@ public class BoardService {
 
     @Transactional
     public Board addBoard(String name) {
+        UserEntity user = userService.getCurrentUserEntity();
         BoardEntity board = new BoardEntity();
         board.setName(name);
-        board.setOwner(userService.getCurrentUserEntity());
+        board.setOwner(user);
         LocalDateTime now = LocalDateTime.now();
         board.setCreationDate(now);
         board.setLastUpdate(now);
         BoardEntity out = boardRepository.save(board);
+        log.info("Board is created. Board={}, User={}", out.getId(), user.getId());
 
-        boardUserService.addBoardUserEntity(board, userService.getCurrentUserEntity(), BoardUserRole.OWNER);
-
+        BoardUserEntity entity = new BoardUserEntity();
+        entity.setBoard(board);
+        entity.setUser(userService.getCurrentUserEntity());
+        entity.setRole(BoardUserRole.OWNER.name());
+        boardUserRepository.save(entity);
+        log.info("User is owner of board. Board={}, User={}", out.getId(), user.getId());
         return mapper.map(out);
     }
 
     public Board getBoard(UUID id) {
+        return mapper.map(getBoardEntity(id));
+    }
+
+    public BoardEntity getBoardEntity(UUID id) {
         boardPermissionService.checkGrant(id, BoardGrant.VIEW);
-        BoardEntity board = boardRepository.findById(id).get();
-        return mapper.map(board);
+        return boardRepository.findById(id).get();
     }
 
     public List<Board> getVisibleBoards() {
-        Iterable<BoardEntity> boards = boardRepository.findByOwner_Id(userService.getCurrentUser().getId());
+        Iterable<BoardEntity> boards = boardRepository.findVisibleBoards(userService.getCurrentUser().getId());
         return StreamSupport.stream(boards.spliterator(), false).map(mapper::map).collect(Collectors.toList());
     }
 }

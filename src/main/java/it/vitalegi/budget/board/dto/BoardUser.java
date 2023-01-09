@@ -1,5 +1,6 @@
 package it.vitalegi.budget.board.dto;
 
+import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.user.dto.User;
 import it.vitalegi.budget.user.entity.UserEntity;
@@ -14,5 +15,5 @@ import java.util.List;
 @Data
 public class BoardUser {
     User user;
-    List<String> roles;
+    BoardUserRole role;
 }

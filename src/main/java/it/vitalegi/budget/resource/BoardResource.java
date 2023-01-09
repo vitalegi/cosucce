@@ -6,8 +6,11 @@ import it.vitalegi.budget.board.BoardUserService;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardUser;
+import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
+import it.vitalegi.budget.user.UserService;
+import it.vitalegi.budget.user.entity.UserEntity;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +35,8 @@ public class BoardResource {
     BoardEntryService boardEntryService;
     @Autowired
     BoardUserService boardUserService;
+    @Autowired
+    UserService userService;
 
     @PutMapping()
     public Board addBoard(@RequestBody Board board) {
@@ -51,6 +56,13 @@ public class BoardResource {
     @PutMapping("/{boardId}/entry")
     public BoardEntry addBoardEntry(@PathVariable("boardId") UUID boardId, @RequestBody BoardEntry boardEntry) {
         return boardEntryService.addBoardEntry(boardId, boardEntry);
+    }
+
+    @PutMapping("/{boardId}/user/{userId}")
+    public BoardUser addBoardUser(@PathVariable("boardId") UUID boardId, @PathVariable("userId") long userId, @RequestBody BoardUser boardUser) {
+        BoardEntity board = boardService.getBoardEntity(boardId);
+        UserEntity user = userService.getUserEntity(userId);
+        return boardUserService.addBoardUser(board, user, boardUser.getRole());
     }
 
     @GetMapping("/{boardId}/entries")
