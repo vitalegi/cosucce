@@ -9,7 +9,7 @@ public class PermissionException extends RuntimeException {
     String permission;
 
     public PermissionException(String entity, String id, String permission) {
-        super();
+        super("Missing permission " + permission + " to work on entity " + entity);
         this.entity = entity;
         this.id = id;
         this.permission = permission;
