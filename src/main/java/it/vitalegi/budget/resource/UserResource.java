@@ -1,6 +1,5 @@
 package it.vitalegi.budget.resource;
 
-import it.vitalegi.budget.auth.AuthenticationService;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
 import it.vitalegi.budget.user.UserService;

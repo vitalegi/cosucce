@@ -43,6 +43,7 @@ public class UserService {
         String uid = authenticationService.getUid();
         return userRepository.findByUid(uid);
     }
+
     public User getCurrentUser() {
         return mapper.map(getCurrentUserEntity());
     }

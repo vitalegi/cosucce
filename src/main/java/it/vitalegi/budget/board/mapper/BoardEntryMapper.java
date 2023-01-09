@@ -1,6 +1,5 @@
 package it.vitalegi.budget.board.mapper;
 
-import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
 import it.vitalegi.budget.util.ObjectUtil;

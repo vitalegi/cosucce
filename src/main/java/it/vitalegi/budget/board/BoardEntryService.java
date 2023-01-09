@@ -85,7 +85,7 @@ public class BoardEntryService {
 
     public List<String> getCategories(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardGrant.VIEW);
-        List<String> categories= boardEntryRepository.findCategories(boardId);
+        List<String> categories = boardEntryRepository.findCategories(boardId);
         categories.sort((a, b) -> a.compareTo(b));
         return categories;
     }

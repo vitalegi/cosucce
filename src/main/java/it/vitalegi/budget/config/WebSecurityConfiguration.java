@@ -25,11 +25,6 @@ import java.util.List;
 @Log4j2
 public class WebSecurityConfiguration {
 
-    @Autowired
-    private RestTemplateBuilder restTemplateBuilder;
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Value("${security.cors.allowedOrigins}")
     List<String> allowedOrigins;
     @Value("${security.cors.allowedMethods}")
@@ -38,6 +33,10 @@ public class WebSecurityConfiguration {
     Boolean allowCredentials;
     @Value("${security.cors.allowedHeaders}")
     List<String> allowedHeaders;
+    @Autowired
+    private RestTemplateBuilder restTemplateBuilder;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

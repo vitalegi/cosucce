@@ -1,8 +1,6 @@
 package it.vitalegi.budget.board.repository;
 
 import it.vitalegi.budget.board.entity.BoardEntity;
-import it.vitalegi.budget.user.dto.User;
-import it.vitalegi.budget.user.entity.UserEntity;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

@@ -1,6 +1,5 @@
 package it.vitalegi.budget.board;
 
-import it.vitalegi.budget.auth.AuthenticationService;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.mapper.BoardMapper;
@@ -12,7 +11,6 @@ import org.mockito.ArgumentCaptor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -59,7 +57,7 @@ public class BoardServiceTests {
         assertNull(repositoryInput.getId());
         assertNotNull(repositoryInput.getCreationDate());
         assertNotNull(repositoryInput.getLastUpdate());
-        assertTrue(repositoryInput.getCreationDate().equals(repositoryInput.getLastUpdate()));
+        assertEquals(repositoryInput.getCreationDate(), repositoryInput.getLastUpdate());
 
         // verify that output is correct
         assertEquals(mapperMock, board);

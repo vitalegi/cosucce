@@ -3,7 +3,6 @@ package it.vitalegi.budget.board.entity;
 import it.vitalegi.budget.user.entity.UserEntity;
 import lombok.Data;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
@@ -15,8 +14,8 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 @Data
-@Entity(name="BoardUser")
-@Table(name="board_user")
+@Entity(name = "BoardUser")
+@Table(name = "board_user")
 public class BoardUserEntity {
 
     @Id
