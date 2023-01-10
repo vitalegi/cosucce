@@ -1,8 +1,6 @@
 package it.vitalegi.budget.resource;
 
-import it.vitalegi.budget.board.BoardEntryService;
 import it.vitalegi.budget.board.BoardService;
-import it.vitalegi.budget.board.BoardUserService;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardUser;
@@ -32,10 +30,6 @@ public class BoardResource {
     @Autowired
     BoardService boardService;
     @Autowired
-    BoardEntryService boardEntryService;
-    @Autowired
-    BoardUserService boardUserService;
-    @Autowired
     UserService userService;
 
     @PutMapping()
@@ -55,29 +49,29 @@ public class BoardResource {
 
     @PutMapping("/{boardId}/entry")
     public BoardEntry addBoardEntry(@PathVariable("boardId") UUID boardId, @RequestBody BoardEntry boardEntry) {
-        return boardEntryService.addBoardEntry(boardId, boardEntry);
+        return boardService.addBoardEntry(boardId, boardEntry);
     }
 
     @PutMapping("/{boardId}/user/{userId}")
     public BoardUser addBoardUser(@PathVariable("boardId") UUID boardId, @PathVariable("userId") long userId, @RequestBody BoardUser boardUser) {
         BoardEntity board = boardService.getBoardEntity(boardId);
         UserEntity user = userService.getUserEntity(userId);
-        return boardUserService.addBoardUser(board, user, boardUser.getRole());
+        return boardService.addBoardUser(board, user, boardUser.getRole());
     }
 
     @GetMapping("/{boardId}/entries")
     public List<BoardEntry> getBoardEntries(@PathVariable("boardId") UUID boardId) {
-        return boardEntryService.getBoardEntries(boardId);
+        return boardService.getBoardEntries(boardId);
     }
 
     @GetMapping("/{boardId}/users")
     public List<BoardUser> getBoardUsers(@PathVariable("boardId") UUID boardId) {
-        return boardUserService.getBoardUsers(boardId);
+        return boardService.getBoardUsers(boardId);
     }
 
 
     @GetMapping("/{boardId}/categories")
     public List<String> getBoardCategories(@PathVariable("boardId") UUID boardId) {
-        return boardEntryService.getCategories(boardId);
+        return boardService.getCategories(boardId);
     }
 }

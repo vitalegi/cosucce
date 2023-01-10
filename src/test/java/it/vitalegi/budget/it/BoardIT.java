@@ -6,16 +6,17 @@ import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardUser;
+import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.user.dto.User;
+import it.vitalegi.budget.user.repository.UserRepository;
 import lombok.extern.log4j.Log4j2;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -71,7 +72,7 @@ public class BoardIT {
         User user = accessOk(auth, USER1);
         Board board1 = addBoardOk(auth, "board1", user.getId());
         Board board = getBoardOk(auth, board1.getId().toString());
-        validateBoard("board1", user.getId(), board1.getId(), board);
+        validateBoard("board1", board1.getId(), board);
     }
 
     @DisplayName("getBoard, I'm a member, I should see the board")
@@ -86,7 +87,7 @@ public class BoardIT {
 
         addBoardUserOk(auth1, board1.getId(), user2.getId(), BoardUserRole.MEMBER);
         Board board = getBoardOk(auth2, board1.getId().toString());
-        validateBoard("board1", user1.getId(), board1.getId(), board);
+        validateBoard("board1", board1.getId(), board);
     }
 
     @DisplayName("getBoard, I'm not part of the board, it should fail")
@@ -126,8 +127,8 @@ public class BoardIT {
         assertEquals(2, boards.size());
         Board out1 = boards.stream().filter(b -> b.getId().equals(board1.getId())).findFirst().orElseThrow(() -> new NoSuchElementException("Missing board1"));
         Board out2 = boards.stream().filter(b -> b.getId().equals(board2.getId())).findFirst().orElseThrow(() -> new NoSuchElementException("Missing board2"));
-        validateBoard(board1.getName(), board1.getOwnerId(), board1.getId(), out1);
-        validateBoard(board2.getName(), board2.getOwnerId(), board2.getId(), out2);
+        validateBoard(board1.getName(), board1.getId(), out1);
+        validateBoard(board2.getName(), board2.getId(), out2);
     }
 
     @DisplayName("addBoardEntry, I'm the owner, I should see the board")
@@ -347,7 +348,7 @@ public class BoardIT {
 
     Board addBoardOk(RequestPostProcessor auth, String boardName, Long ownerId) throws Exception {
         Board board = cs.jsonPayload(addBoard(auth, boardName).andExpect(ok()), Board.class);
-        validateBoard(boardName, ownerId, null, board);
+        validateBoard(boardName, null, board);
         return board;
     }
 
@@ -362,16 +363,13 @@ public class BoardIT {
                 .content(cs.toJson(request)));
     }
 
-    void validateBoard(String name, Long ownerId, UUID boardId, Board actual) {
+    void validateBoard(String name, UUID boardId, Board actual) {
         assertNotNull(actual.getId());
         if (boardId != null) {
             assertEquals(boardId, actual.getId());
         }
         if (name != null) {
             assertEquals(name, actual.getName());
-        }
-        if (ownerId != null) {
-            assertEquals(ownerId.longValue(), actual.getOwnerId());
         }
         assertNotNull(actual.getLastUpdate());
         assertNotNull(actual.getCreationDate());

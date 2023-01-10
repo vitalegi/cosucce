@@ -1,5 +1,6 @@
 package it.vitalegi.budget.board.entity;
 
+import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.user.entity.UserEntity;
 import lombok.Data;
 import org.hibernate.annotations.Type;
@@ -35,10 +36,6 @@ public class BoardEntity {
 
     @NotNull
     String name;
-    @NotNull
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk__board__user__owner_id"))
-    UserEntity owner;
     LocalDateTime creationDate;
     LocalDateTime lastUpdate;
 }

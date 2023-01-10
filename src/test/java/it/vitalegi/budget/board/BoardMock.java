@@ -12,7 +12,6 @@ public class BoardMock {
         BoardEntity entity = new BoardEntity();
         entity.setId(UUID.randomUUID());
         entity.setName(name);
-        entity.setOwner(UserMock.createUser(ownerId));
         LocalDateTime now = LocalDateTime.now();
         entity.setLastUpdate(now);
         entity.setCreationDate(now);

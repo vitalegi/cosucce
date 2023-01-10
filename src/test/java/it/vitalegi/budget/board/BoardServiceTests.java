@@ -53,7 +53,6 @@ public class BoardServiceTests {
         verify(repository).save(entity.capture());
         BoardEntity repositoryInput = entity.getValue();
         assertEquals(BOARD, repositoryInput.getName());
-        assertEquals(USER_ID, repositoryInput.getOwner().getId());
         assertNull(repositoryInput.getId());
         assertNotNull(repositoryInput.getCreationDate());
         assertNotNull(repositoryInput.getLastUpdate());
