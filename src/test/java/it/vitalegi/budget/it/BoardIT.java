@@ -30,6 +30,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -195,7 +196,8 @@ public class BoardIT {
 
         RequestPostProcessor auth2 = mockAuth.user(USER2);
         User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+        BoardUser userRole = addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+        validateBoardUser(user2.getId(), BoardUserRole.MEMBER, userRole);
 
         RequestPostProcessor auth3 = mockAuth.user(USER3);
         User user3 = accessOk(auth3, USER3);
@@ -205,6 +207,53 @@ public class BoardIT {
     @DisplayName("addBoardUser, I'm not a member, assignment should fail")
     @Test
     void test_addBoardUser_notMember_shouldFail() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        addBoardUser(auth2, board.getId(), user2.getId(), BoardUserRole.MEMBER).andExpect(error403());
+    }
+
+    @DisplayName("getBoardUsers, I'm the owner, should work")
+    @Test
+    void test_getBoardUsers_owner_shouldWork() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        BoardUser userRole = addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+        validateBoardUser(user2.getId(), BoardUserRole.MEMBER, userRole);
+
+        List<BoardUser> users = getBoardUsersOk(auth1, board.getId());
+        assertEquals(2, users.size());
+        assertEquals(BoardUserRole.OWNER, users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst().orElseThrow(() -> new NoSuchElementException("User1 not found")).getRole());
+        assertEquals(BoardUserRole.MEMBER, users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst().orElseThrow(() -> new NoSuchElementException("User2 not found")).getRole());
+    }
+
+    @DisplayName("getBoardUsers, I'm a member, should work")
+    @Test
+    void test_getBoardUsers_member_shouldWork() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+
+        List<BoardUser> users = getBoardUsersOk(auth2, board.getId());
+        assertEquals(2, users.size());
+        assertEquals(BoardUserRole.OWNER, users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst().orElseThrow(() -> new NoSuchElementException("User1 not found")).getRole());
+        assertEquals(BoardUserRole.MEMBER, users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst().orElseThrow(() -> new NoSuchElementException("User2 not found")).getRole());
+    }
+
+    @DisplayName("getBoardUsers, I'm not a member, should fail")
+    @Test
+    void test_getBoardUsers_notMember_shouldFail() throws Exception {
         RequestPostProcessor auth1 = mockAuth.user(USER1);
         User user1 = accessOk(auth1, USER1);
         Board board = addBoardOk(auth1, "board1", user1.getId());
@@ -268,6 +317,22 @@ public class BoardIT {
         addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT", null);
         addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT", null);
         getBoardEntries(auth3, board.getId()).andExpect(error403());
+    }
+
+    @DisplayName("getCategories, should retrieve all entries")
+    @Test
+    void test_getCategories_shouldWork() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT1", null);
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT2", null);
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT2", null);
+        List<String> entries = getCategoriesOk(auth1, board.getId());
+        assertEquals(2, entries.size());
+        assertTrue(entries.stream().anyMatch(c -> c.equals("CAT1")));
+        assertTrue(entries.stream().anyMatch(c -> c.equals("CAT2")));
     }
 
     User accessOk(RequestPostProcessor user, String uid) throws Exception {
@@ -377,6 +442,26 @@ public class BoardIT {
                 .with(user) //
                 .contentType(MediaType.APPLICATION_JSON) //
                 .content(cs.toJson(request)));
+    }
+
+    List<BoardUser> getBoardUsersOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getBoardUsers(auth, boardId).andExpect(ok()), new TypeReference<List<BoardUser>>() {
+        });
+    }
+
+    ResultActions getBoardUsers(RequestPostProcessor user, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/users") //
+                .with(user));
+    }
+
+    List<String> getCategoriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getCategories(auth, boardId).andExpect(ok()), new TypeReference<List<String>>() {
+        });
+    }
+
+    ResultActions getCategories(RequestPostProcessor user, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/categories") //
+                .with(user));
     }
 
     ResultMatcher ok() {
