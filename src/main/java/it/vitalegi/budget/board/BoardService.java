@@ -52,21 +52,20 @@ public class BoardService {
     @Transactional
     public Board addBoard(String name) {
         UserEntity owner = userService.getCurrentUserEntity();
-        UserEntity user = userService.getCurrentUserEntity();
         BoardEntity board = new BoardEntity();
         board.setName(name);
         LocalDateTime now = LocalDateTime.now();
         board.setCreationDate(now);
         board.setLastUpdate(now);
         BoardEntity out = boardRepository.save(board);
-        log.info("Board is created. Board={}, User={}", out.getId(), user.getId());
+        log.info("Board is created. Board={}, User={}", out.getId(), owner.getId());
 
         BoardUserEntity entity = new BoardUserEntity();
         entity.setBoard(board);
         entity.setUser(owner);
         entity.setRole(BoardUserRole.OWNER.name());
         boardUserRepository.save(entity);
-        log.info("User is owner of board. Board={}, User={}", out.getId(), user.getId());
+        log.info("User is owner of board. Board={}, User={}", out.getId(), owner.getId());
         return mapper.map(out);
     }
 

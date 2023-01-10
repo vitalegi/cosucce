@@ -4,6 +4,9 @@ import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.mapper.BoardMapper;
 import it.vitalegi.budget.board.repository.BoardRepository;
+import it.vitalegi.budget.board.repository.BoardUserRepository;
+import it.vitalegi.budget.user.UserService;
+import it.vitalegi.budget.user.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -28,6 +31,10 @@ public class BoardServiceTests {
 
     BoardMapper mapper;
 
+    UserService userService;
+
+    BoardUserRepository boardUserRepository;
+
     @BeforeEach
     void initTest() {
         service = new BoardService();
@@ -37,6 +44,12 @@ public class BoardServiceTests {
 
         mapper = mock(BoardMapper.class);
         service.mapper = mapper;
+
+        userService = mock(UserService.class);
+        service.userService = userService;
+
+        boardUserRepository = mock(BoardUserRepository.class);
+        service.boardUserRepository = boardUserRepository;
     }
 
     @Test
@@ -46,7 +59,9 @@ public class BoardServiceTests {
         Board mapperMock = BoardMock.emptyBoard();
         when(repository.save(any())).thenReturn(saveMock);
         when(mapper.map(eq(saveMock))).thenReturn(mapperMock);
-
+        UserEntity ownerEntity = new UserEntity();
+        ownerEntity.setId(USER_ID);
+        when(userService.getCurrentUserEntity()).thenReturn(ownerEntity);
         Board board = service.addBoard(BOARD);
 
         // verify that repository is called properly

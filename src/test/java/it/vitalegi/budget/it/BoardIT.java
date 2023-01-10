@@ -41,7 +41,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Log4j2
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 @ActiveProfiles("test")
 public class BoardIT {
 
@@ -56,6 +55,20 @@ public class BoardIT {
 
     @Autowired
     CallService cs;
+
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    BoardRepository boardRepository;
+
+    @BeforeEach
+    void init() {
+        log.info("Initialize database, erase user data. Boards={}, Users={}", boardRepository.count(), userRepository.count());
+        boardRepository.deleteAll();
+        userRepository.deleteAll();
+        assertEquals(0, boardRepository.count());
+        assertEquals(0, userRepository.count());
+    }
 
     @DisplayName("addBoard should create a new board")
     @Test
