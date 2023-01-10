@@ -8,6 +8,7 @@ import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.user.dto.User;
 import lombok.extern.log4j.Log4j2;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -54,6 +55,7 @@ public class BoardIT {
     @Autowired
     CallService cs;
 
+    @DisplayName("addBoard should create a new board")
     @Test
     void test_addBoard_shouldCreateBoard() throws Exception {
         RequestPostProcessor auth = mockAuth.user(USER1);
@@ -61,6 +63,7 @@ public class BoardIT {
         addBoardOk(auth, "board1", user.getId());
     }
 
+    @DisplayName("getBoard, I'm the owner, I should see the board")
     @Test
     void test_getBoard_owned_shouldReturnBoard() throws Exception {
         RequestPostProcessor auth = mockAuth.user(USER1);
@@ -70,7 +73,7 @@ public class BoardIT {
         validateBoard("board1", user.getId(), board1.getId(), board);
     }
 
-
+    @DisplayName("getBoard, I'm a member, I should see the board")
     @Test
     void test_getBoard_member_shouldReturnBoard() throws Exception {
         RequestPostProcessor auth1 = mockAuth.user(USER1);
@@ -85,6 +88,7 @@ public class BoardIT {
         validateBoard("board1", user1.getId(), board1.getId(), board);
     }
 
+    @DisplayName("getBoard, I'm not part of the board, it should fail")
     @Test
     void test_getBoard_notMember_shouldFail() throws Exception {
         RequestPostProcessor auth1 = mockAuth.user(USER1);
@@ -97,7 +101,7 @@ public class BoardIT {
         getBoard(auth2, board1.getId().toString()).andExpect(error403());
     }
 
-
+    @DisplayName("getBoards, multiple cases (owner, member, not a member)")
     @Test
     void test_getBoards_shouldReturnBoards() throws Exception {
         RequestPostProcessor auth1 = mockAuth.user(USER1);
@@ -125,7 +129,7 @@ public class BoardIT {
         validateBoard(board2.getName(), board2.getOwnerId(), board2.getId(), out2);
     }
 
-
+    @DisplayName("addBoardEntry, I'm the owner, I should see the board")
     @Test
     void test_addBoardEntry_owner_shouldCreateEntry() throws Exception {
         RequestPostProcessor auth = mockAuth.user(USER1);
@@ -135,6 +139,7 @@ public class BoardIT {
         validateBoardEntry(board.getId(), user.getId(), LocalDate.now(), new BigDecimal("100.15"), "CATEGORY", "description", entry);
     }
 
+    @DisplayName("addBoardEntry, I'm a member, I should see the board")
     @Test
     void test_addBoardEntry_member_shouldCreateEntry() throws Exception {
         RequestPostProcessor auth1 = mockAuth.user(USER1);
@@ -149,6 +154,7 @@ public class BoardIT {
         validateBoardEntry(board1.getId(), user2.getId(), LocalDate.now(), new BigDecimal("100.15"), "CATEGORY", "description", entry);
     }
 
+    @DisplayName("addBoardEntry, I'm not a member, it should fail")
     @Test
     void test_addBoardEntry_notMember_shouldFail() throws Exception {
         RequestPostProcessor auth1 = mockAuth.user(USER1);
@@ -163,6 +169,7 @@ public class BoardIT {
     }
 
 
+    @DisplayName("addBoardUser, I'm the owner, assignment should work")
     @Test
     void test_addBoardUser_owner_shouldAssign() throws Exception {
         RequestPostProcessor auth1 = mockAuth.user(USER1);
@@ -179,6 +186,7 @@ public class BoardIT {
         validateBoardUser(user2.getId(), BoardUserRole.OWNER, userRole);
     }
 
+    @DisplayName("addBoardUser, I'm a member, assignment should work")
     @Test
     void test_addBoardUser_member_shouldFail() throws Exception {
         RequestPostProcessor auth1 = mockAuth.user(USER1);
@@ -194,6 +202,7 @@ public class BoardIT {
         addBoardUser(auth2, board.getId(), user3.getId(), BoardUserRole.MEMBER).andExpect(error403());
     }
 
+    @DisplayName("addBoardUser, I'm not a member, assignment should fail")
     @Test
     void test_addBoardUser_notMember_shouldFail() throws Exception {
         RequestPostProcessor auth1 = mockAuth.user(USER1);
@@ -205,6 +214,61 @@ public class BoardIT {
         addBoardUser(auth2, board.getId(), user2.getId(), BoardUserRole.MEMBER).andExpect(error403());
     }
 
+    @DisplayName("getBoardEntries, I'm the owner, should retrieve all entries")
+    @Test
+    void test_getBoardEntries_owner_shouldWork() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+
+        BoardUser userRole = addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+        validateBoardUser(user2.getId(), BoardUserRole.MEMBER, userRole);
+        log.info("User2 is assigned to the board");
+
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT", null);
+        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT", null);
+        List<BoardEntry> entries = getBoardEntriesOk(auth1, board.getId());
+        assertEquals(2, entries.size());
+    }
+
+    @DisplayName("getBoardEntries, I'm a member, should retrieve all entries")
+    @Test
+    void test_getBoardEntries_member_shouldWork() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT", null);
+        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT", null);
+        List<BoardEntry> entries = getBoardEntriesOk(auth2, board.getId());
+        assertEquals(2, entries.size());
+    }
+
+    @DisplayName("getBoardEntries, I'm not a member, should fail")
+    @Test
+    void test_getBoardEntries_notMember_shouldFail() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        addBoardUser(auth2, board.getId(), user2.getId(), BoardUserRole.MEMBER).andExpect(error403());
+
+        RequestPostProcessor auth3 = mockAuth.user(USER3);
+        User user3 = accessOk(auth3, USER3);
+
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT", null);
+        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT", null);
+        getBoardEntries(auth3, board.getId()).andExpect(error403());
+    }
 
     User accessOk(RequestPostProcessor user, String uid) throws Exception {
         User out = cs.jsonPayload(access(user).andExpect(ok()), User.class);
@@ -288,6 +352,17 @@ public class BoardIT {
                 .with(user) //
                 .contentType(MediaType.APPLICATION_JSON) //
                 .content(cs.toJson(request)));
+    }
+
+    List<BoardEntry> getBoardEntriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getBoardEntries(auth, boardId).andExpect(ok()), new TypeReference<List<BoardEntry>>() {
+        });
+    }
+
+    ResultActions getBoardEntries(RequestPostProcessor user, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/entries") //
+                .with(user) //
+        );
     }
 
     BoardUser addBoardUserOk(RequestPostProcessor auth, UUID boardId, Long userId, BoardUserRole role) throws Exception {
