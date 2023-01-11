@@ -1,14 +1,12 @@
 <template>
   <q-page>
-    {{ date }} - {{ author }} - {{ category }} - {{ description }} -
-    {{ amount }}
-    <div class="q-pa-md">
+    <div class="q-pa-md row justify-center">
       <q-form
         @submit="onSubmit"
-        class="q-gutter-y-md column"
-        style="max-width: 300px"
+        class="col-12 q-gutter-y-md column"
+        style="max-width: 500px"
       >
-        <q-date v-model="date" />
+        <q-date class="self-center" v-model="date" />
         <q-select
           label="Autore"
           outlined
