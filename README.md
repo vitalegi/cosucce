@@ -37,6 +37,8 @@ npm run format
 ### Build the app for production
 
 ```bash
+$env:VUE_APP_BACKEND='https://MY-WEBSITE.COM';
+$env:VUE_APP_FIREBASE_PUBLIC_CONFIG='{ FIREBASE-KEY }';
 quasar build
 ```
 
