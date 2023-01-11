@@ -10,7 +10,7 @@
     </parent>
     <groupId>it.vitalegi</groupId>
     <artifactId>budget</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <name>budget</name>
     <description>Budget Backend</description>
     <properties>
@@ -68,6 +68,10 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
         </dependency>
     </dependencies>
 

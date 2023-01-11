@@ -6,7 +6,7 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: https://www.googleapis.com/service_accounts/v1/jwk/securetoken%40system.gserviceaccount.com
-          issuer-uri: https://securetoken.google.com/budget-c1ab6
+          issuer-uri: https://securetoken.google.com/budget-auth-71712
           jws-algorithm: RS256
 
   # database access
