@@ -20,7 +20,12 @@ mvn clean package
 ## Run
 
 ```bash
-mvn spring-boot:run
+$env:DATASOURCE_URL = 'jdbc:postgresql://localhost:5432/budget'
+$env:DATASOURCE_USERNAME = 'postgres'
+$env:DATASOURCE_PASSWORD = 'postgres'
+$env:DATASOURCE_PASSWORD = 'postgres'
+$env:CORS_ALLOWED_ORIGINS = 'http://localhost:9000'
+java -jar "-Dspring.profiles.active=prod" ./target/budget-0.0.1-SNAPSHOT.jar
 
 ./mvnw spring-boot:run
 ```
@@ -105,4 +110,10 @@ mvn versions:set "-DgenerateBackupPoms=false" "-DnewVersion=${VERSION}"
 docker build -t vitalegi/budget-be:${VERSION} .
 docker push vitalegi/budget-be:${VERSION}
 flyctl deploy --image vitalegi/budget-be:${VERSION}
+```
+
+### Autoscaling
+
+```
+flyctl autoscale set min=0 max=1
 ```
