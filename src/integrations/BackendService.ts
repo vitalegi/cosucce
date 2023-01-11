@@ -1,7 +1,10 @@
 import axios, { Method } from 'axios';
 import { getUser } from 'src/boot/firebase';
 
-const BASE_PATH = 'http://localhost:8080';
+const baseUrl = process.env.VUE_APP_BACKEND;
+if (baseUrl === undefined) {
+  throw Error('Missing baseUrl configuration');
+}
 
 class BackendService {
   exchange = async (
@@ -13,7 +16,7 @@ class BackendService {
     const user = await getUser();
     const idToken = await user?.getIdToken();
     const out = await axios.request({
-      url: `${BASE_PATH}${url}`,
+      url: `${baseUrl}${url}`,
       params: queryParams,
       method: method,
       headers: { Authorization: `Bearer ${idToken}` },
