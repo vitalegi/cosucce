@@ -10,7 +10,6 @@ import it.vitalegi.budget.exception.PermissionException;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
 import it.vitalegi.budget.user.UserService;
-import it.vitalegi.budget.user.dto.User;
 import it.vitalegi.budget.user.entity.UserEntity;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +22,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static it.vitalegi.budget.auth.BoardGrant.EDIT_BOARD;
-import static it.vitalegi.budget.auth.BoardGrant.EDIT_BOARD_ENTRY;
-import static it.vitalegi.budget.auth.BoardGrant.EDIT_BOARD_USER_ROLE;
-import static it.vitalegi.budget.auth.BoardGrant.VIEW;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_EDIT;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_EDIT;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_USER_ROLE_EDIT;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_VIEW;
 import static it.vitalegi.budget.board.constant.BoardUserRole.MEMBER;
 import static it.vitalegi.budget.board.constant.BoardUserRole.OWNER;
 
@@ -39,8 +38,8 @@ public class BoardPermissionService {
 
     static {
         RBAC = new HashMap<>();
-        RBAC.put(OWNER, Arrays.asList(VIEW, EDIT_BOARD, EDIT_BOARD_ENTRY, EDIT_BOARD_USER_ROLE));
-        RBAC.put(MEMBER, Arrays.asList(VIEW, EDIT_BOARD_ENTRY));
+        RBAC.put(OWNER, Arrays.asList(BOARD_VIEW, BOARD_EDIT, BOARD_ENTRY_EDIT, BOARD_USER_ROLE_EDIT));
+        RBAC.put(MEMBER, Arrays.asList(BOARD_VIEW, BOARD_ENTRY_EDIT));
     }
 
     @Autowired
@@ -51,12 +50,8 @@ public class BoardPermissionService {
     BoardUserRepository boardUserRepository;
 
 
-    public boolean hasGrant(User user, UUID boardId, BoardGrant grant) {
-        return hasGrant(user.getId(), boardId, grant);
-    }
-
     public void checkGrant(UUID boardId, BoardGrant grant) {
-        if (!hasGrant(userService.getCurrentUser(), boardId, grant)) {
+        if (!hasGrant(userService.getCurrentUser().getId(), boardId, grant)) {
             throw new PermissionException("board", boardId.toString(), grant.name());
         }
     }
@@ -67,7 +62,7 @@ public class BoardPermissionService {
         }
     }
 
-    public boolean hasGrant(long userId, UUID boardId, BoardGrant grant) {
+    protected boolean hasGrant(long userId, UUID boardId, BoardGrant grant) {
         Optional<BoardEntity> board = boardRepository.findById(boardId);
         if (board.isEmpty()) {
             return false;
@@ -75,12 +70,8 @@ public class BoardPermissionService {
         BoardUserEntity role = boardUserRepository.findUserBoard(boardId, userId);
         if (role != null) {
             BoardUserRole userRole = BoardUserRole.valueOf(role.getRole());
-            return hasGrant(userRole, grant);
+            return RBAC.get(userRole).contains(grant);
         }
         return false;
-    }
-
-    protected boolean hasGrant(BoardUserRole role, BoardGrant permission) {
-        return RBAC.get(role).contains(permission);
     }
 }

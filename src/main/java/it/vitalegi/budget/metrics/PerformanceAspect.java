@@ -19,11 +19,11 @@ public class PerformanceAspect {
         LocalDateTime now = LocalDateTime.now();
         try {
             Object out = joinPoint.proceed();
-            log.info("target={}, time={}, start={}, status=OK", getName((joinPoint)), time(start), now);
+            log.info("target={}, time={}, status=OK", getName((joinPoint)), time(start));
             return out;
         } catch (Throwable e) {
             Throwable root = root(e);
-            log.info("target={}, time={}, start={}, status=KO, e={}, e_msg={}, root={}, root_msg={}", getName((joinPoint)), time(start), now, exName(e), e.getMessage(), exName(root), root.getMessage());
+            log.error("target={}, time={}, status=KO, e={}, e_msg={}, root={}, root_msg={}", getName((joinPoint)), time(start), exName(e), e.getMessage(), exName(root), root.getMessage());
             throw e;
         }
     }

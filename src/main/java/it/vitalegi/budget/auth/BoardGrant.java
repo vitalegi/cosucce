@@ -1,9 +1,6 @@
 package it.vitalegi.budget.auth;
 
 public enum BoardGrant {
-    VIEW,
-    EDIT_BOARD,
-    EDIT_BOARD_ENTRY,
-
-    EDIT_BOARD_USER_ROLE
+    BOARD_VIEW, BOARD_EDIT, BOARD_ENTRY_EDIT,
+    BOARD_USER_ROLE_EDIT
 }

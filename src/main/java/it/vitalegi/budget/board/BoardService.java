@@ -75,7 +75,7 @@ public class BoardService {
     }
 
     public BoardEntity getBoardEntity(UUID id) {
-        boardPermissionService.checkGrant(id, BoardGrant.VIEW);
+        boardPermissionService.checkGrant(id, BoardGrant.BOARD_VIEW);
         return boardRepository.findById(id).get();
     }
 
@@ -87,33 +87,34 @@ public class BoardService {
     }
 
     public BoardEntry addBoardEntry(UUID boardId, BoardEntry boardEntry) {
-        log.info("Check if current user can edit a board.");
-        boardPermissionService.checkGrant(boardId, BoardGrant.EDIT_BOARD_ENTRY);
+        UserEntity user = userService.getCurrentUserEntity();
+        boardPermissionService.checkGrant(user, boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        log.info("Current user can edit board entries");
 
-        log.info("Check if owner user can access the board.");
-        UserEntity owner = userService.getUserEntity(boardEntry.getOwnerId());
-        boardPermissionService.checkGrant(owner, boardId, BoardGrant.VIEW);
+        UserEntity author = userService.getUserEntity(boardEntry.getOwnerId());
+        boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        log.info("Author {} can edit board entries", author.getId());
 
-        log.info("Users are allowed, proceed.");
+        BoardEntity board = boardRepository.findById(boardId).get();
 
         BoardEntryEntity entry = new BoardEntryEntity();
-        entry.setBoard(boardRepository.findById(boardId).get());
+        entry.setBoard(board);
         entry.setDate(boardEntry.getDate());
         LocalDateTime now = LocalDateTime.now();
         entry.setCreationDate(now);
         entry.setLastUpdate(now);
-        entry.setOwner(owner);
+        entry.setOwner(author);
         entry.setCategory(boardEntry.getCategory());
         entry.setDescription(boardEntry.getDescription());
         entry.setAmount(boardEntry.getAmount());
         BoardEntryEntity newEntry = boardEntryRepository.save(entry);
-        log.info("Created boardEntry. board={}, ownerId={}, entryId={}", boardId, owner.getId(), newEntry.getId());
+        log.info("Created boardEntry. board={}, ownerId={}, entryId={}", boardId, author.getId(), newEntry.getId());
         return mapper.map(newEntry);
     }
 
     @Transactional
     public BoardEntry updateBoardEntry(UUID boardId, BoardEntry boardEntry) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.EDIT_BOARD_ENTRY);
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
 
         BoardEntryEntity entry = boardEntryRepository.findById(boardId).get();
         entry.setDate(boardEntry.getDate());
@@ -129,20 +130,20 @@ public class BoardService {
 
 
     public List<BoardEntry> getBoardEntries(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.VIEW);
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
         List<BoardEntryEntity> entries = boardEntryRepository.findByBoardId(boardId);
         return StreamSupport.stream(entries.spliterator(), false).map(mapper::map).collect(Collectors.toList());
     }
 
     public List<String> getCategories(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.VIEW);
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
         List<String> categories = boardEntryRepository.findCategories(boardId);
         categories.sort((a, b) -> a.compareTo(b));
         return categories;
     }
 
     public List<BoardUser> getBoardUsers(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.VIEW);
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
         List<BoardUserEntity> boardUsers = boardUserRepository.findByBoard_Id(boardId);
         return mapper.map(boardUsers);
     }
@@ -155,7 +156,7 @@ public class BoardService {
 
     @Transactional
     public BoardUserEntity addBoardUserEntity(BoardEntity board, UserEntity user, BoardUserRole role) {
-        boardPermissionService.checkGrant(board.getId(), BoardGrant.EDIT_BOARD_USER_ROLE);
+        boardPermissionService.checkGrant(board.getId(), BoardGrant.BOARD_USER_ROLE_EDIT);
         UserEntity currentUser = userService.getCurrentUserEntity();
         if (user.getId() == currentUser.getId()) {
             throw new IllegalArgumentException("Cannot change self role");
