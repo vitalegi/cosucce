@@ -71,7 +71,6 @@ public class BoardService {
 
     public Board getBoard(UUID id) {
         BoardEntity board = getBoardEntity(id);
-        List<BoardUserEntity> entries = boardUserRepository.findByBoard_Id(id);
         return mapper.map(board);
     }
 
@@ -107,7 +106,9 @@ public class BoardService {
         entry.setCategory(boardEntry.getCategory());
         entry.setDescription(boardEntry.getDescription());
         entry.setAmount(boardEntry.getAmount());
-        return mapper.map(boardEntryRepository.save(entry));
+        BoardEntryEntity newEntry = boardEntryRepository.save(entry);
+        log.info("Created boardEntry. board={}, ownerId={}, entryId={}", boardId, owner.getId(), newEntry.getId());
+        return mapper.map(newEntry);
     }
 
     @Transactional
@@ -121,14 +122,15 @@ public class BoardService {
         entry.setCategory(boardEntry.getCategory());
         entry.setDescription(boardEntry.getDescription());
         entry.setAmount(boardEntry.getAmount());
-        return mapper.map(boardEntryRepository.save(entry));
+        BoardEntryEntity newEntry = boardEntryRepository.save(entry);
+        log.info("Updated boardEntry. board={}, ownerId={}, entryId={}", boardId, boardEntry.getOwnerId(), newEntry.getId());
+        return mapper.map(newEntry);
     }
 
 
     public List<BoardEntry> getBoardEntries(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardGrant.VIEW);
         List<BoardEntryEntity> entries = boardEntryRepository.findByBoardId(boardId);
-        log.info("entries: {}/{}. {}", entries.size(), entries);
         return StreamSupport.stream(entries.spliterator(), false).map(mapper::map).collect(Collectors.toList());
     }
 
@@ -145,32 +147,34 @@ public class BoardService {
         return mapper.map(boardUsers);
     }
 
-    @Transactional
-    public BoardUserEntity addBoardUserEntity(BoardEntity board, UserEntity user, BoardUserRole role) {
-        boardPermissionService.checkGrant(board.getId(), BoardGrant.EDIT_BOARD);
-        List<BoardUserEntity> entries = boardUserRepository.findByBoard_Id(board.getId());
-        UserEntity currentUser = userService.getCurrentUserEntity();
-        if (user.getId() == currentUser.getId()) {
-            throw new IllegalArgumentException("Cannot change self role");
-        }
-        List<BoardUserEntity> rolesOfUser = entries.stream().filter(e -> e.getUser().equals(user)) //
-                .collect(Collectors.toList());
-        if (rolesOfUser.isEmpty()) {
-            BoardUserEntity entity = new BoardUserEntity();
-            entity.setBoard(board);
-            entity.setUser(user);
-            entity.setRole(role.name());
-            return boardUserRepository.save(entity);
-        } else {
-            BoardUserEntity entity = rolesOfUser.get(0);
-            entity.setRole(role.name());
-            return boardUserRepository.save(entity);
-        }
-    }
 
     public BoardUser addBoardUser(BoardEntity board, UserEntity user, BoardUserRole role) {
         BoardUserEntity entry = addBoardUserEntity(board, user, role);
         return mapper.map(entry);
     }
 
+    @Transactional
+    public BoardUserEntity addBoardUserEntity(BoardEntity board, UserEntity user, BoardUserRole role) {
+        boardPermissionService.checkGrant(board.getId(), BoardGrant.EDIT_BOARD_USER_ROLE);
+        UserEntity currentUser = userService.getCurrentUserEntity();
+        if (user.getId() == currentUser.getId()) {
+            throw new IllegalArgumentException("Cannot change self role");
+        }
+        List<BoardUserEntity> entries = boardUserRepository.findByBoard_Id(board.getId());
+        List<BoardUserEntity> rolesOfUser = entries.stream().filter(e -> e.getUser().equals(user)) //
+                .collect(Collectors.toList());
+        if (rolesOfUser.isEmpty()) {
+            log.info("ADD_BOARD_USER board={}, user={}, owner={}, role={}", board.getId(), user.getId(), currentUser.getId(), role);
+            BoardUserEntity entity = new BoardUserEntity();
+            entity.setBoard(board);
+            entity.setUser(user);
+            entity.setRole(role.name());
+            return boardUserRepository.save(entity);
+        } else {
+            log.info("UPDATE_BOARD_USER board={}, user={}, owner={}, role={}", board.getId(), user.getId(), currentUser.getId(), role);
+            BoardUserEntity entity = rolesOfUser.get(0);
+            entity.setRole(role.name());
+            return boardUserRepository.save(entity);
+        }
+    }
 }

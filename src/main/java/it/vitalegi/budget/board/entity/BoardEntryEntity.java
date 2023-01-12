@@ -1,7 +1,8 @@
 package it.vitalegi.budget.board.entity;
 
 import it.vitalegi.budget.user.entity.UserEntity;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.CascadeType;
@@ -16,9 +17,11 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Entity(name = "BoardEntry")
 @Table(name = "board_entry")
 public class BoardEntryEntity {
@@ -36,13 +39,32 @@ public class BoardEntryEntity {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_entry__board__board_id"))
     BoardEntity board;
 
-    @NotNull
-    LocalDate date;
+    @NotNull LocalDate date;
     LocalDateTime creationDate;
     LocalDateTime lastUpdate;
-    @NotNull
-    String category;
+    @NotNull String category;
     String description;
-    @NotNull
-    BigDecimal amount;
+    @NotNull BigDecimal amount;
+
+    @Override
+    public int hashCode() {
+        if (id == null) {
+            return 0;
+        }
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        BoardEntryEntity other = (BoardEntryEntity) obj;
+        return Objects.equals(id, other.getId());
+    }
+    @Override
+    public String toString() {
+        return this.getClass().getName() + "(" + getId() + ")";
+    }
+
 }
