@@ -10,7 +10,7 @@
     </parent>
     <groupId>it.vitalegi</groupId>
     <artifactId>budget</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
     <name>budget</name>
     <description>Budget Backend</description>
     <properties>
@@ -72,6 +72,11 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.6.14</version>
         </dependency>
     </dependencies>
 

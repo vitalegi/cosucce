@@ -40,16 +40,16 @@ public class WebSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors().and().authorizeHttpRequests().anyRequest().authenticated();
+        http.cors().and()//
+                .authorizeHttpRequests().antMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml", "/swagger-ui/*").permitAll().and() //
+                .authorizeHttpRequests().anyRequest().authenticated();
         http.oauth2ResourceServer().jwt();
         return http.build();
     }
 
     Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
-        JwtAuthenticationConverter jwtAuthenticationConverter =
-                new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter
-                (new GrantedAuthoritiesExtractor());
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new GrantedAuthoritiesExtractor());
         return jwtAuthenticationConverter;
     }
 

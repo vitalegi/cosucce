@@ -38,6 +38,14 @@ java -jar "-Dspring.profiles.active=prod" ./target/budget-0.0.1-SNAPSHOT.jar
 liquibase "--url=jdbc:h2:./liquibase;DB_CLOSE_ON_EXIT=FALSE" "--username=sa" "--password=" "--driver=org.h2.Driver" "--changelog-file=dbchangelog.xml" generate-changelog
 ```
 
+## OpenApi definition
+
+| Description  | Local                                                       | Prod                                                                     |
+|--------------|-------------------------------------------------------------|--------------------------------------------------------------------------|
+| OpenApi WEB  | [/swagger-ui/](http://localhost:8080/swagger-ui/index.html) | [/swagger-ui/](https://purple-breeze-8455.fly.dev/swagger-ui/index.html) |
+| OpenApi JSON | [/v3/api-docs](http://localhost:8080/v3/api-docs)           | [/v3/api-docs](https://purple-breeze-8455.fly.dev/v3/api-docs)           |
+| OpenApi YAML | [/v3/api-docs.yaml](http://localhost:8080/v3/api-docs.yaml) | [/v3/api-docs.yaml](https://purple-breeze-8455.fly.dev/v3/api-docs.yaml) |
+
 ## Release
 
 ### Prerequisites
@@ -100,7 +108,7 @@ flyctl deploy --image vitalegi/budget-be:0.3
 ### Complete deploy script
 
 ```
-$VERSION='0.3'
+$VERSION='0.4'
 $env:M2_HOME = 'C:\a\software\apache-maven-3.8.7-java11'
 $env:JAVA_HOME = 'C:\Program Files\Java\jdk-11.0.16.1'
 $env:PATH = $env:M2_HOME + '\bin;' + $env:JAVA_HOME + '\bin;' + $env:PATH
@@ -115,5 +123,5 @@ flyctl deploy --image vitalegi/budget-be:${VERSION}
 ### Autoscaling
 
 ```
-flyctl autoscale set min=0 max=1
+flyctl autoscale set min=1 max=1
 ```

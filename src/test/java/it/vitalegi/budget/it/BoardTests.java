@@ -78,6 +78,12 @@ public class BoardTests {
         addBoardOk(auth, "board1", user.getId());
     }
 
+    @DisplayName("getBoard, I'm unauthorized, should fail")
+    @Test
+    void test_getBoard_unknown_shouldReturnBoard() throws Exception {
+        mockMvc.perform(get("/user")).andExpect(status().isUnauthorized());
+    }
+
     @DisplayName("getBoard, I'm the owner, I should see the board")
     @Test
     void test_getBoard_owned_shouldReturnBoard() throws Exception {
