@@ -5,3 +5,6 @@ databaseChangeLog:
   - include:
       file: changelog-00002.xml
       relativeToChangelogFile: true
+  - include:
+      file: changelog-00003.xml
+      relativeToChangelogFile: true

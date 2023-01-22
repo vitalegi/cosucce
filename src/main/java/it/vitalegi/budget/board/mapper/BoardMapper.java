@@ -3,9 +3,11 @@ package it.vitalegi.budget.board.mapper;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
+import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
+import it.vitalegi.budget.board.entity.BoardSplitEntity;
 import it.vitalegi.budget.board.entity.BoardUserEntity;
 import it.vitalegi.budget.user.mapper.UserMapper;
 import it.vitalegi.budget.util.ObjectUtil;
@@ -59,6 +61,13 @@ public class BoardMapper {
         BoardUser dto = new BoardUser();
         dto.setUser(userMapper.map(entity.getUser()));
         dto.setRole(BoardUserRole.valueOf(entity.getRole()));
+        return dto;
+    }
+
+    public BoardSplit map(BoardSplitEntity entity) {
+        BoardSplit dto = ObjectUtil.copy(entity, new BoardSplit());
+        dto.setBoardId(entity.getId());
+        dto.setUserId(entity.getUser().getId());
         return dto;
     }
 }

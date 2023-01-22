@@ -20,6 +20,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+
+      # if you want to use liquibase
+      # ddl-auto: validate
+
+      # if you want to let spring data update the db schema
       # ddl-auto: update
 
 security:

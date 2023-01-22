@@ -1,17 +1,23 @@
 package it.vitalegi.budget.board;
 
 import it.vitalegi.budget.auth.BoardGrant;
+import it.vitalegi.budget.board.analysis.AggregatedAnalysisService;
+import it.vitalegi.budget.board.analysis.dto.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
+import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
+import it.vitalegi.budget.board.entity.BoardSplitEntity;
 import it.vitalegi.budget.board.entity.BoardUserEntity;
 import it.vitalegi.budget.board.mapper.BoardMapper;
 import it.vitalegi.budget.board.repository.BoardEntryRepository;
 import it.vitalegi.budget.board.repository.BoardRepository;
+import it.vitalegi.budget.board.repository.BoardSplitRepository;
 import it.vitalegi.budget.board.repository.BoardUserRepository;
+import it.vitalegi.budget.board.repository.util.BoardEntryGroupByMonthUserCategory;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
 import it.vitalegi.budget.user.UserService;
@@ -21,10 +27,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Performance(Type.SERVICE)
@@ -36,6 +46,8 @@ public class BoardService {
     BoardRepository boardRepository;
     @Autowired
     BoardEntryRepository boardEntryRepository;
+    @Autowired
+    BoardSplitRepository boardSplitRepository;
 
     @Autowired
     BoardUserRepository boardUserRepository;
@@ -48,6 +60,9 @@ public class BoardService {
 
     @Autowired
     BoardPermissionService boardPermissionService;
+
+    @Autowired
+    AggregatedAnalysisService aggregatedAnalysisService;
 
     @Transactional
     public Board addBoard(String name) {
@@ -178,4 +193,74 @@ public class BoardService {
             return boardUserRepository.save(entity);
         }
     }
+
+    @Transactional
+    public BoardSplit addBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_EDIT);
+        BoardEntity boardEntity = getBoardEntity(boardId);
+        log.info("User can work on this board");
+        BoardUserEntity user = boardUserRepository.findUserBoard(boardId, userId);
+        if (user == null) {
+            throw new IllegalArgumentException("User " + userId + " is not part of the board");
+        }
+        log.info("Requested user is part of the board");
+
+        UserEntity userEntity = userService.getUserEntity(userId);
+        BoardSplitEntity boardSplitEntity = new BoardSplitEntity();
+        boardSplitEntity.setUser(userEntity);
+        boardSplitEntity.setBoard(boardEntity);
+        boardSplitEntity.setFromMonth(fromMonth);
+        boardSplitEntity.setFromYear(fromYear);
+        boardSplitEntity.setToMonth(toMonth);
+        boardSplitEntity.setToYear(toYear);
+        boardSplitEntity.setValue1(value);
+
+        BoardSplitEntity out = boardSplitRepository.save(boardSplitEntity);
+        log.info("board split rule created. Board={}, rule={}", boardId, out.getId());
+        return mapper.map(out);
+    }
+
+    public List<MonthlyUserAnalysis> getBoardAnalysisByMonthUser(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        List<BoardEntryGroupByMonthUserCategory> entries = boardEntryRepository.getAggregatedBoardEntriesByMonthUserCategory(boardId);
+        List<BoardSplit> splits = doGetBoardSplits(boardId);
+        return aggregatedAnalysisService.getBoardAnalysisByMonthUser(entries, splits);
+    }
+
+    public List<BoardSplit> getBoardSplits(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        return doGetBoardSplits(boardId);
+    }
+    protected List<BoardSplit> doGetBoardSplits(UUID boardId) {
+        List<BoardSplitEntity> entries = boardSplitRepository.findByBoardId(boardId);
+        if (!entries.isEmpty()) {
+            return entries.stream().map(e -> mapper.map(e)).collect(Collectors.toList());
+        }
+        log.info("There are no entries, use an even split");
+
+        List<BoardUserEntity> boardUsers = boardUserRepository.findByBoard_Id(boardId);
+        BigDecimal ratio = BigDecimal.ONE.divide(BigDecimal.valueOf(boardUsers.size()), 2, RoundingMode.FLOOR);
+
+        List<BoardSplit> out = boardUsers.stream().map(u -> {
+                    BoardSplit boardSplit = new BoardSplit();
+                    boardSplit.setUserId(u.getUser().getId());
+                    boardSplit.setBoardId(boardId);
+                    boardSplit.setValue1(ratio);
+                    return boardSplit;
+                }).sorted(Comparator.comparing(BoardSplit::getValue1))//
+                .collect(Collectors.toList());
+
+        BigDecimal sum = sum(out.stream().map(BoardSplit::getValue1));
+        if (sum.equals(BigDecimal.ONE)) {
+            return out;
+        }
+        log.info("Splits sum is not 100%, round up the highest value");
+        out.get(0).setValue1(out.get(0).getValue1().add(BigDecimal.ONE.subtract(sum)));
+        return out;
+    }
+
+    protected BigDecimal sum(Stream<BigDecimal> values) {
+        return values.reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+    }
+
 }

@@ -2,9 +2,12 @@ package it.vitalegi.budget.it;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import it.vitalegi.budget.board.analysis.dto.MonthlyUserAnalysis;
+import it.vitalegi.budget.board.analysis.dto.UserAmount;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
+import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.user.dto.User;
@@ -25,6 +28,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -34,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,7 +60,6 @@ public class BoardTests {
 
     @Autowired
     CallService cs;
-
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -355,6 +359,85 @@ public class BoardTests {
         assertTrue(entries.stream().anyMatch(c -> c.equals("CAT2")));
     }
 
+
+    @DisplayName("addBoardSplit, I'm the owner, should create split")
+    @Test
+    void test_addBoardSplit_owner_shouldCreateSplit() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+
+        BoardSplit s1 = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("1"));
+        BoardSplit s2 = addBoardSplitOk(auth1, board.getId(), user1.getId(), 2022, 01, 2022, 02, new BigDecimal("0.5"));
+        BoardSplit s3 = addBoardSplitOk(auth1, board.getId(), user2.getId(), 2022, 01, null, null, new BigDecimal("0.5"));
+        BoardSplit s4 = addBoardSplitOk(auth1, board.getId(), user2.getId(), null, null, 2022, 02, new BigDecimal("0.5"));
+        List<BoardSplit> splits = getBoardSplitsOk(auth1, board.getId());
+        validateBoardSplits(Arrays.asList(s1, s2, s3, s4), splits);
+    }
+
+    @DisplayName("addBoardSplit, I'm a member, should fail")
+    @Test
+    void test_addBoardSplit_member_shouldFail() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+
+        addBoardSplit(auth2, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("1")) //
+                .andExpect(error403());
+    }
+
+    @DisplayName("addBoardSplit, I'm not a member, should fail")
+    @Test
+    void test_addBoardSplit_notMember_shouldFail() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+
+        addBoardSplit(auth2, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("1")) //
+                .andExpect(error403());
+    }
+
+    @DisplayName("getBoardAggregatedData, part of the board, should retrieve aggregated data")
+    @Test
+    void test_getBoardAggregatedData() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2023, 1, 05), new BigDecimal("1"), "CAT1", null);
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2023, 2, 05), new BigDecimal("1"), "CAT1", null);
+        addBoardEntry(auth1, board.getId(), user2.getId(), LocalDate.of(2023, 2, 05), new BigDecimal("1"), "CAT1", null);
+
+        addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("0.5"));
+        addBoardSplitOk(auth1, board.getId(), user2.getId(), null, null, null, null, new BigDecimal("0.5"));
+
+        List<MonthlyUserAnalysis> analysys = getBoardAnalysisMonthUserOk(auth1, board.getId());
+        assertEquals(2, analysys.size());
+        validateMonthlyUserAnalysis(2023, 01, Arrays.asList( //
+                        userAmount(user1.getId(), "1", "0.5"), //
+                        userAmount(user2.getId(), "0", "0.5")) //
+                , analysys.get(0));
+        validateMonthlyUserAnalysis(2023, 02, Arrays.asList( //
+                        userAmount(user1.getId(), "1", "1"), //
+                        userAmount(user2.getId(), "1", "1")) //
+                , analysys.get(1));
+    }
+
     User accessOk(RequestPostProcessor user, String uid) throws Exception {
         User out = cs.jsonPayload(access(user).andExpect(ok()), User.class);
         validateUser(null, uid, out);
@@ -375,7 +458,7 @@ public class BoardTests {
         Board request = new Board();
         request.setName(name);
 
-        return mockMvc.perform(put("/board") //
+        return mockMvc.perform(post("/board") //
                 .with(csrf()) //
                 .with(user) //
                 .contentType(MediaType.APPLICATION_JSON) //
@@ -429,7 +512,7 @@ public class BoardTests {
         request.setCategory(category);
         request.setDate(date);
 
-        return mockMvc.perform(put("/board/" + boardId + "/entry") //
+        return mockMvc.perform(post("/board/" + boardId + "/entry") //
                 .with(csrf()) //
                 .with(user) //
                 .contentType(MediaType.APPLICATION_JSON) //
@@ -454,7 +537,7 @@ public class BoardTests {
     ResultActions addBoardUser(RequestPostProcessor user, UUID boardId, Long userId, BoardUserRole role) throws Exception {
         BoardUser request = new BoardUser();
         request.setRole(role);
-        return mockMvc.perform(put("/board/" + boardId + "/user/" + userId) //
+        return mockMvc.perform(post("/board/" + boardId + "/user/" + userId) //
                 .with(csrf()) //
                 .with(user) //
                 .contentType(MediaType.APPLICATION_JSON) //
@@ -481,6 +564,57 @@ public class BoardTests {
                 .with(user));
     }
 
+    BoardSplit addBoardSplitOk(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
+        return cs.jsonPayload(addBoardSplit(auth, boardId, userId, fromYear, fromMonth, toYear, toMonth, value1).andExpect(ok()), BoardSplit.class);
+    }
+
+    ResultActions addBoardSplit(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
+        BoardSplit request = new BoardSplit();
+        request.setBoardId(boardId);
+        request.setUserId(userId);
+        request.setFromYear(fromYear);
+        request.setFromMonth(fromMonth);
+        request.setToYear(toYear);
+        request.setToMonth(toMonth);
+        request.setValue1(value1);
+
+        return mockMvc.perform(post("/board/" + boardId + "/split") //
+                .with(csrf()) //
+                .with(auth) //
+                .contentType(MediaType.APPLICATION_JSON) //
+                .content(cs.toJson(request)));
+    }
+
+    List<BoardSplit> getBoardSplitsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getBoardSplits(auth, boardId).andExpect(ok()), new TypeReference<List<BoardSplit>>() {
+        });
+    }
+
+    ResultActions getBoardSplits(RequestPostProcessor user, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/splits") //
+                .with(user) //
+        );
+    }
+
+    List<MonthlyUserAnalysis> getBoardAnalysisMonthUserOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getBoardAnalysisMonthUser(auth, boardId).andExpect(ok()), new TypeReference<List<MonthlyUserAnalysis>>() {
+        });
+    }
+
+    ResultActions getBoardAnalysisMonthUser(RequestPostProcessor user, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/analysis/month-user") //
+                .with(user) //
+        );
+    }
+
+    UserAmount userAmount(long userId, String actual, String expected) {
+        UserAmount obj = new UserAmount();
+        obj.setUserId(userId);
+        obj.setActual(new BigDecimal(actual));
+        obj.setExpected(new BigDecimal(expected));
+        return obj;
+    }
+
     ResultMatcher ok() {
         return status().isOk();
     }
@@ -505,5 +639,43 @@ public class BoardTests {
     void validateBoardUser(Long userId, BoardUserRole role, BoardUser actual) {
         assertEquals(userId, actual.getUser().getId());
         assertEquals(role, actual.getRole());
+    }
+
+    void validateBoardSplits(List<BoardSplit> expected, List<BoardSplit> actual) {
+        assertEquals(expected.size(), actual.size());
+        expected.forEach(e -> {
+            BoardSplit actualEntry = actual.stream().filter(a -> a.getId().equals(e.getId())).findFirst().orElseThrow(() -> new NoSuchElementException("Missing entry for " + e));
+            validateBoardSplit(e.getBoardId(), e.getUserId(), e.getFromYear(), e.getFromMonth(), e.getToYear(), e.getToMonth(), e.getValue1(), actualEntry);
+        });
+    }
+
+    void validateBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1, BoardSplit actual) {
+        assertEquals(boardId, actual.getBoardId());
+        assertEquals(userId, actual.getUserId());
+        assertEquals(fromYear, actual.getFromYear());
+        assertEquals(fromMonth, actual.getFromMonth());
+        assertEquals(toYear, actual.getToYear());
+        assertEquals(toMonth, actual.getToMonth());
+        assertEquals(0, value1.compareTo(actual.getValue1()));
+    }
+
+    void validateMonthlyUserAnalysis(int year, int month, List<UserAmount> users, MonthlyUserAnalysis actual) {
+        assertEquals(year, actual.getYear());
+        assertEquals(month, actual.getMonth());
+        assertEquals(users, actual.getUsers());
+    }
+
+    void validateUserAmounts(List<UserAmount> expected, List<UserAmount> actual) {
+        assertEquals(expected.size(), actual.size());
+        expected.forEach(e -> {
+            UserAmount actualEntry = actual.stream().filter(a -> a.getUserId() == e.getUserId()).findFirst().orElseThrow(() -> new NoSuchElementException("Missing entry for " + e));
+            validateUserAmount(e, actualEntry);
+        });
+    }
+
+    void validateUserAmount(UserAmount expected, UserAmount actual) {
+        assertEquals(expected.getUserId(), actual.getUserId());
+        assertEquals(0, expected.getExpected().compareTo(actual.getExpected()));
+        assertEquals(0, expected.getActual().compareTo(actual.getActual()));
     }
 }

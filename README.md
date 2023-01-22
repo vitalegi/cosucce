@@ -38,6 +38,13 @@ java -jar "-Dspring.profiles.active=prod" ./target/budget-0.0.1-SNAPSHOT.jar
 liquibase "--url=jdbc:h2:./liquibase;DB_CLOSE_ON_EXIT=FALSE" "--username=sa" "--password=" "--driver=org.h2.Driver" "--changelog-file=dbchangelog.xml" generate-changelog
 ```
 
+## Check differences between 2 databases
+
+```
+$oldDb=./db/00002/liquibase
+liquibase "--changelog-file=dbchangelog.xml" "--url=jdbc:h2:${oldDb};DB_CLOSE_ON_EXIT=FALSE" "--username=sa" "--password=" "--referenceUrl=jdbc:h2:./liquibase;DB_CLOSE_ON_EXIT=FALSE" "--referenceUsername=sa" "--referencePassword=" diff-changelog
+```
+
 ## OpenApi definition
 
 | Description  | Local                                                       | Prod                                                                     |

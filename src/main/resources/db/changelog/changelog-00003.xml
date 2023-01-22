@@ -1,0 +1,47 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <changeSet author="vitalegi" id="1674408775328-9">
+        <createTable tableName="BOARD_SPLIT">
+            <column name="ID" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="CONSTRAINT_65"/>
+            </column>
+            <column name="FROM_MONTH" type="INT"/>
+            <column name="FROM_YEAR" type="INT"/>
+            <column name="TO_MONTH" type="INT"/>
+            <column name="TO_YEAR" type="INT"/>
+            <column name="VALUE1" type="numeric(19, 2)"/>
+            <column name="BOARD_ID" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="USER_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="vitalegi" id="1674408775328-10">
+        <createIndex indexName="FK__BOARD_SPLIT__BOARD__BOARD_ID_INDEX_6" tableName="BOARD_SPLIT">
+            <column name="BOARD_ID"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="vitalegi" id="1674408775328-11">
+        <createIndex indexName="FK__BOARD_SPLIT__USER__OWNER_ID_INDEX_6" tableName="BOARD_SPLIT">
+            <column name="USER_ID"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="vitalegi" id="1674408775328-12">
+        <addForeignKeyConstraint baseColumnNames="BOARD_ID" baseTableName="BOARD_SPLIT"
+                                 constraintName="FK__BOARD_SPLIT__BOARD__BOARD_ID" deferrable="false"
+                                 initiallyDeferred="false" onDelete="CASCADE" onUpdate="CASCADE"
+                                 referencedColumnNames="ID" referencedTableName="BOARD" validate="true"/>
+    </changeSet>
+    <changeSet author="vitalegi" id="1674408775328-13">
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="BOARD_SPLIT"
+                                 constraintName="FK__BOARD_SPLIT__USER__OWNER_ID" deferrable="false"
+                                 initiallyDeferred="false" onDelete="CASCADE" onUpdate="CASCADE"
+                                 referencedColumnNames="ID" referencedTableName="USER_DATA" validate="true"/>
+    </changeSet>
+</databaseChangeLog>
