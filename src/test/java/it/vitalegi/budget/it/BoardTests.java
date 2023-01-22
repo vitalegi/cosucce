@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -429,12 +428,12 @@ public class BoardTests {
         List<MonthlyUserAnalysis> analysys = getBoardAnalysisMonthUserOk(auth1, board.getId());
         assertEquals(2, analysys.size());
         validateMonthlyUserAnalysis(2023, 01, Arrays.asList( //
-                        userAmount(user1.getId(), "1", "0.5"), //
-                        userAmount(user2.getId(), "0", "0.5")) //
+                        userAmount(user1.getId(), "1", "0.5", "-0.5"), //
+                        userAmount(user2.getId(), "0", "0.5", "0.5")) //
                 , analysys.get(0));
         validateMonthlyUserAnalysis(2023, 02, Arrays.asList( //
-                        userAmount(user1.getId(), "1", "1"), //
-                        userAmount(user2.getId(), "1", "1")) //
+                        userAmount(user1.getId(), "1", "1", "0"), //
+                        userAmount(user2.getId(), "1", "1", "0")) //
                 , analysys.get(1));
     }
 
@@ -607,11 +606,12 @@ public class BoardTests {
         );
     }
 
-    UserAmount userAmount(long userId, String actual, String expected) {
+    UserAmount userAmount(long userId, String actual, String expected, String cumulatedCredit) {
         UserAmount obj = new UserAmount();
         obj.setUserId(userId);
         obj.setActual(new BigDecimal(actual));
         obj.setExpected(new BigDecimal(expected));
+        obj.setCumulatedCredit(new BigDecimal(cumulatedCredit));
         return obj;
     }
 

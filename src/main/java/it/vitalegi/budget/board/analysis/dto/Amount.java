@@ -9,6 +9,7 @@ public class Amount {
 
     BigDecimal actual;
     BigDecimal expected;
+    BigDecimal cumulatedCredit;
 
     public synchronized void addActual(BigDecimal value) {
         actual = actual.add(value);

@@ -32,9 +32,13 @@ public class AggregatedAnalysisService {
         LocalDate firstDate = entries.stream().map(this::date).min(LocalDate::compareTo).orElseThrow(() -> new IllegalArgumentException("Cannot find a valid date"));
         LocalDate lastDate = entries.stream().map(this::date).max(LocalDate::compareTo).orElseThrow(() -> new IllegalArgumentException("Cannot find a valid date"));
 
-        return months(firstDate, lastDate).stream() //
+        List<MonthlyUserAnalysis> analysis = months(firstDate, lastDate).stream() //
                 .map(date -> analyzeByMonthUser(date, entries, splits)) //
                 .collect(Collectors.toList());
+
+        computeCumulativeCredit(analysis);
+        
+        return analysis;
     }
 
     protected MonthlyUserAnalysis analyzeByMonthUser(LocalDate referenceMonth, List<BoardEntryGroupByMonthUserCategory> entries, List<BoardSplit> splits) {
@@ -159,5 +163,21 @@ public class AggregatedAnalysisService {
 
     protected boolean isDefaultSplit(BoardSplit split) {
         return split.getFromYear() == null && split.getFromMonth() == null && split.getToYear() == null && split.getToMonth() == null;
+    }
+
+    protected void computeCumulativeCredit(List<MonthlyUserAnalysis> analysis) {
+        List<Long> userIds = analysis.get(0).getUsers().stream().map(UserAmount::getUserId).collect(Collectors.toList());
+
+        userIds.forEach(userId -> computeCumulativeCredit(analysis, userId));
+    }
+
+    protected void computeCumulativeCredit(List<MonthlyUserAnalysis> analysis, long userId) {
+        BigDecimal cumulatedCredit = BigDecimal.ZERO;
+        for (MonthlyUserAnalysis entry : analysis) {
+            UserAmount userEntry = entry.getUsers().stream().filter(u -> u.getUserId() == userId).findFirst().orElseThrow(() -> new NullPointerException("Cannot find user " + userId));
+            BigDecimal credit = userEntry.getActual().subtract(userEntry.getExpected());
+            cumulatedCredit = cumulatedCredit.add(credit);
+            userEntry.setCumulatedCredit(cumulatedCredit);
+        }
     }
 }

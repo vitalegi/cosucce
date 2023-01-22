@@ -48,8 +48,8 @@ public class AggregatedAnalysisServiceTests {
         assertEquals(1, analysis.size());
         MonthlyUserAnalysis entry = validateAndGetMonthlyUserAnalysis(2023, 1, 0, analysis);
         assertEquals(2, entry.getUsers().size());
-        validateUserAmount(entry, 1, "1", "1");
-        validateUserAmount(entry, 2, "1", "1");
+        validateUserAmount(entry, 1, "1", "1", "0");
+        validateUserAmount(entry, 2, "1", "1", "0");
     }
 
     @DisplayName("getAnalysisByMonth should return the list of expenses, actual and expected, by user, by month, using the default split")
@@ -67,8 +67,8 @@ public class AggregatedAnalysisServiceTests {
         assertEquals(1, analysis.size());
         MonthlyUserAnalysis entry = validateAndGetMonthlyUserAnalysis(2023, 1, 0, analysis);
         assertEquals(2, entry.getUsers().size());
-        validateUserAmount(entry, 1, "1", "1.2");
-        validateUserAmount(entry, 2, "1", "0.8");
+        validateUserAmount(entry, 1, "1", "1.2", "-0.2");
+        validateUserAmount(entry, 2, "1", "0.8", "0.2");
     }
 
     @DisplayName("getAnalysisByMonth should return the list of expenses, actual and expected, by user, by month, using the most detailed split available")
@@ -90,18 +90,55 @@ public class AggregatedAnalysisServiceTests {
         List<MonthlyUserAnalysis> analysis = analysisService.getBoardAnalysisByMonthUser(entries, splits);
         assertEquals(12, analysis.size());
 
-        int index = 0;
-        for (int month = 1; month < 5; month++) {
-            MonthlyUserAnalysis entry = validateAndGetMonthlyUserAnalysis(2020, month, index++, analysis);
-            validateUserAmount(entry, 1, "1", "1.2");
-            validateUserAmount(entry, 2, "1", "0.8");
-        }
+        MonthlyUserAnalysis entry;
 
-        for (int month = 5; month <= 12; month++) {
-            MonthlyUserAnalysis entry = validateAndGetMonthlyUserAnalysis(2020, month, index++, analysis);
-            validateUserAmount(entry, 1, "1", "1.0");
-            validateUserAmount(entry, 2, "1", "1.0");
-        }
+        entry = validateAndGetMonthlyUserAnalysis(2020, 1, 0, analysis);
+        validateUserAmount(entry, 1, "1", "1.2", "-0.2");
+        validateUserAmount(entry, 2, "1", "0.8", "0.2");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 2, 1, analysis);
+        validateUserAmount(entry, 1, "1", "1.2", "-0.4");
+        validateUserAmount(entry, 2, "1", "0.8", "0.4");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 3, 2, analysis);
+        validateUserAmount(entry, 1, "1", "1.2", "-0.6");
+        validateUserAmount(entry, 2, "1", "0.8", "0.6");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 4, 3, analysis);
+        validateUserAmount(entry, 1, "1", "1.2", "-0.8");
+        validateUserAmount(entry, 2, "1", "0.8", "0.8");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 5, 4, analysis);
+        validateUserAmount(entry, 1, "1", "1.0", "-0.8");
+        validateUserAmount(entry, 2, "1", "1.0", "0.8");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 6, 5, analysis);
+        validateUserAmount(entry, 1, "1", "1.0", "-0.8");
+        validateUserAmount(entry, 2, "1", "1.0", "0.8");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 7, 6, analysis);
+        validateUserAmount(entry, 1, "1", "1.0", "-0.8");
+        validateUserAmount(entry, 2, "1", "1.0", "0.8");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 8, 7, analysis);
+        validateUserAmount(entry, 1, "1", "1.0", "-0.8");
+        validateUserAmount(entry, 2, "1", "1.0", "0.8");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 9, 8, analysis);
+        validateUserAmount(entry, 1, "1", "1.0", "-0.8");
+        validateUserAmount(entry, 2, "1", "1.0", "0.8");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 10, 9, analysis);
+        validateUserAmount(entry, 1, "1", "1.0", "-0.8");
+        validateUserAmount(entry, 2, "1", "1.0", "0.8");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 11, 10, analysis);
+        validateUserAmount(entry, 1, "1", "1.0", "-0.8");
+        validateUserAmount(entry, 2, "1", "1.0", "0.8");
+
+        entry = validateAndGetMonthlyUserAnalysis(2020, 12, 11, analysis);
+        validateUserAmount(entry, 1, "1", "1.0", "-0.8");
+        validateUserAmount(entry, 2, "1", "1.0", "0.8");
     }
 
 
@@ -152,15 +189,17 @@ public class AggregatedAnalysisServiceTests {
         return obj;
     }
 
-    void validateUserAmount(MonthlyUserAnalysis analysis, long userId, String actual, String expected) {
+    void validateUserAmount(MonthlyUserAnalysis analysis, long userId, String actual, String expected, String cumulatedCredit) {
         UserAmount u = getUserAmount(analysis, userId);
         assertEquals(userId, u.getUserId());
 
         BigDecimal actualValue = new BigDecimal(actual);
         BigDecimal expectedValue = new BigDecimal(expected);
+        BigDecimal cumulatedCreditValue = new BigDecimal(cumulatedCredit);
 
         assertEquals(0, actualValue.compareTo(u.getActual()), "Actual values are not equals. Expected=" + actualValue.toPlainString() + " Actual=" + u.getActual().toPlainString());
         assertEquals(0, expectedValue.compareTo(u.getExpected()), "Expected values are not equals. Expected=" + expectedValue.toPlainString() + " Actual=" + u.getExpected().toPlainString());
+        assertEquals(0, cumulatedCreditValue.compareTo(u.getCumulatedCredit()), "Expected values are not equals. Expected=" + cumulatedCreditValue.toPlainString() + " Actual=" + u.getCumulatedCredit().toPlainString());
     }
 
     UserAmount getUserAmount(MonthlyUserAnalysis analysis, long userId) {
