@@ -91,6 +91,5 @@ const getUser = (row: MonthlyUserAnalysis): UserAmount => {
   return row.users.filter((u) => u.userId === props.user.id)[0];
 };
 
-const formatCurrency = (value: string) =>
-  NumberUtil.formatCurrency(asDecimal(value));
+const formatCurrency = (value: string) => NumberUtil.formatCurrency(value);
 </script>

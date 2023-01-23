@@ -1,3 +1,5 @@
+import { asDecimal } from 'src/utils/JsonUtil';
+
 export default class NumberUtil {
   public static formatInt(n: number): string {
     return n.toLocaleString(undefined, {
@@ -39,10 +41,16 @@ export default class NumberUtil {
   public static sum(numbers: number[]): number {
     return numbers.reduce((prev, curr) => prev + curr, 0);
   }
-  public static formatCurrency(value: number): string {
+  public static formatCurrency(value: number | string): string {
+    let v;
+    if (typeof value === 'number') {
+      v = value;
+    } else {
+      v = asDecimal(value);
+    }
     return new Intl.NumberFormat('it-IT', {
       style: 'currency',
       currency: 'EUR',
-    }).format(value);
+    }).format(v);
   }
 }

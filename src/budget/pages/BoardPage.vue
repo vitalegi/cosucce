@@ -19,14 +19,7 @@
             <div class="text-subtitle2">Dati</div>
           </q-card-section>
           <q-separator />
-          <q-table
-            :dense="true"
-            :flat="true"
-            :rows="boardEntries"
-            :columns="boardEntriesColumns"
-            row-key="name"
-            :binary-state-sort="true"
-          />
+          <BoardEntriesComponent :entries="boardEntries" :users="members" />
         </q-card>
       </div>
     </div>
@@ -40,9 +33,9 @@ import Board from 'src/budget/models/Board';
 import BoardEntry from 'src/budget/models/BoardEntry';
 import { useRouter } from 'vue-router';
 import BoardMonthlyUsersAnalysisComponent from 'src/budget/components/analysis/BoardMonthlyUsersAnalysisComponent.vue';
-import UserData from 'src/models/UserData';
-import MonthlyUserAnalysis from 'src/models/budget/analysis/MonthlyUserAnalysis';
-import BoardUser from 'src/models/budget/BoardUser';
+import BoardEntriesComponent from 'src/budget/components/BoardEntriesComponent.vue';
+import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis';
+import BoardUser from 'src/budget/models/BoardUser';
 
 const props = defineProps({
   boardId: {
@@ -66,8 +59,8 @@ const reloadAnalysis = async (boardId: string): Promise<void> => {
 
 const loadData = async (boardId: string): Promise<void> => {
   board.value = await boardService.getBoard(boardId);
-  boardEntries.value = await boardService.getBoardEntries(boardId);
   members.value = await boardService.getBoardUsers(boardId);
+  boardEntries.value = await boardService.getBoardEntries(boardId);
   reloadAnalysis(boardId);
 };
 
@@ -85,54 +78,4 @@ watch(
 const addNewBoardEntry = (): void => {
   router.push(`/board/${props.boardId}/add`);
 };
-
-const boardEntriesColumns = [
-  {
-    name: 'date',
-    required: true,
-    label: 'Data',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    field: (row: any) => (row.date as Date).toLocaleDateString(),
-    align: 'left',
-    sortable: true,
-    sort: (a: string, b: string, rowA: BoardEntry, rowB: BoardEntry) =>
-      rowA.date.getTime() - rowB.date.getTime(),
-  },
-  {
-    name: 'ownerId',
-    required: true,
-    label: 'Proprietario',
-    field: 'ownerId',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'category',
-    required: true,
-    label: 'Categoria',
-    field: 'category',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'description',
-    required: false,
-    label: 'Descrizione',
-    field: 'description',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'amount',
-    required: true,
-    label: 'Importo',
-    field: 'amount',
-    align: 'left',
-    sortable: true,
-  },
-];
-
-const users = new Array<UserData>();
-users.push({ id: 0, username: 'Giorgio' });
-users.push({ id: 1, username: 'Federica' });
 </script>
