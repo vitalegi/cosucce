@@ -13,3 +13,10 @@ export const fromQDateFormat = (str: string): Date => {
   const day = parseInt(values[2]) + 1;
   return new Date(year, month, day);
 };
+
+export const formatYearMonth = (year: number, month: number): string => {
+  return new Date(year, month, 1).toLocaleString('default', {
+    year: '2-digit',
+    month: 'short',
+  });
+};

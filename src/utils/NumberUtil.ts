@@ -39,4 +39,10 @@ export default class NumberUtil {
   public static sum(numbers: number[]): number {
     return numbers.reduce((prev, curr) => prev + curr, 0);
   }
+  public static formatCurrency(value: number): string {
+    return new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(value);
+  }
 }

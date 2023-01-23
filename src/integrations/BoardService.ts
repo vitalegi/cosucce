@@ -1,6 +1,7 @@
 import Board from 'src/models/Board';
 import BoardEntry from 'src/models/BoardEntry';
-import BoardUser from 'src/models/BoardUser';
+import BoardUser from 'src/models/budget/BoardUser';
+import MonthlyUserAnalysis from 'src/models/budget/analysis/MonthlyUserAnalysis';
 import { asString } from 'src/utils/JsonUtil';
 import api from './BackendService';
 
@@ -16,7 +17,7 @@ export class BoardService {
   };
 
   addBoard = async (name: string): Promise<Board> => {
-    const out = await api.put('/board/', null, {
+    const out = await api.post('/board/', null, {
       name: name,
     });
     return Board.fromJson(out);
@@ -26,7 +27,7 @@ export class BoardService {
     boardId: string,
     entry: BoardEntry
   ): Promise<BoardEntry> => {
-    const out = await api.put(`/board/${boardId}/entry`, null, entry);
+    const out = await api.post(`/board/${boardId}/entry`, null, entry);
     return BoardEntry.fromJson(out);
   };
 
@@ -35,13 +36,19 @@ export class BoardService {
     return out.map(BoardEntry.fromJson);
   };
 
-  getBoardUsers = async (boardId: string): Promise<BoardUser[]> => {
+  getBoardUsers = async (boardId: string): Promise<Array<BoardUser>> => {
     const out = await api.get(`/board/${boardId}/users`, null);
     return out.map(BoardUser.fromJson);
   };
   getBoardCategories = async (boardId: string): Promise<string[]> => {
     const out = await api.get(`/board/${boardId}/categories`, null);
     return out.map(asString);
+  };
+  getBoardAnalysisMonthUser = async (
+    boardId: string
+  ): Promise<MonthlyUserAnalysis[]> => {
+    const out = await api.get(`/board/${boardId}/analysis/month-user`, null);
+    return out.map(MonthlyUserAnalysis.fromJson);
   };
 }
 

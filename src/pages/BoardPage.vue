@@ -7,15 +7,11 @@
         <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
       </div>
       <div class="q-pa-xs col-12">
-        <q-card>
-          <q-card-section>
-            <div class="text-subtitle2">Recap</div>
-          </q-card-section>
-          <q-separator />
-          <q-card-section>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
-          </q-card-section>
-        </q-card>
+        <BoardMonthlyUsersAnalysisComponent
+          :users="members"
+          :entries="monthlyUserAnalysis"
+        >
+        </BoardMonthlyUsersAnalysisComponent>
       </div>
       <div class="q-pa-xs col-12">
         <q-card>
@@ -43,6 +39,10 @@ import boardService from 'src/integrations/BoardService';
 import Board from 'src/models/Board';
 import BoardEntry from 'src/models/BoardEntry';
 import { useRouter } from 'vue-router';
+import BoardMonthlyUsersAnalysisComponent from 'components/board/analysis/BoardMonthlyUsersAnalysisComponent.vue';
+import UserData from 'src/models/UserData';
+import MonthlyUserAnalysis from 'src/models/budget/analysis/MonthlyUserAnalysis';
+import BoardUser from 'src/models/budget/BoardUser';
 
 const props = defineProps({
   boardId: {
@@ -55,10 +55,20 @@ const router = useRouter();
 
 const board = ref(new Board());
 const boardEntries = ref(new Array<BoardEntry>());
+const monthlyUserAnalysis = ref(new Array<MonthlyUserAnalysis>());
+const members = ref(new Array<BoardUser>());
+
+const reloadAnalysis = async (boardId: string): Promise<void> => {
+  monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
+    boardId
+  );
+};
 
 const loadData = async (boardId: string): Promise<void> => {
   board.value = await boardService.getBoard(boardId);
   boardEntries.value = await boardService.getBoardEntries(boardId);
+  members.value = await boardService.getBoardUsers(boardId);
+  reloadAnalysis(boardId);
 };
 
 loadData(props.boardId);
@@ -121,4 +131,8 @@ const boardEntriesColumns = [
     sortable: true,
   },
 ];
+
+const users = new Array<UserData>();
+users.push({ id: 0, username: 'Giorgio' });
+users.push({ id: 1, username: 'Federica' });
 </script>

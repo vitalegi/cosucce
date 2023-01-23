@@ -32,6 +32,9 @@ class BackendService {
   put = async (url: string, queryParams: any, data: any): Promise<any> => {
     return this.exchange(url, 'PUT', queryParams, data);
   };
+  post = async (url: string, queryParams: any, data: any): Promise<any> => {
+    return this.exchange(url, 'POST', queryParams, data);
+  };
 }
 
 export default new BackendService();
