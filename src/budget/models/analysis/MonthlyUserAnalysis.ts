@@ -1,4 +1,4 @@
-import UserAmount from 'src/models/budget/analysis/UserAmount';
+import UserAmount from 'src/budget/models/analysis/UserAmount';
 import { asInt } from 'src/utils/JsonUtil';
 
 export default class BoardUserAnalysis {

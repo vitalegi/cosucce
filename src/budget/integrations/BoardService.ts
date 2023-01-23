@@ -1,9 +1,9 @@
-import Board from 'src/models/Board';
-import BoardEntry from 'src/models/BoardEntry';
-import BoardUser from 'src/models/budget/BoardUser';
-import MonthlyUserAnalysis from 'src/models/budget/analysis/MonthlyUserAnalysis';
+import Board from 'src/budget/models/Board';
+import BoardEntry from 'src/budget/models/BoardEntry';
+import BoardUser from 'src/budget/models/BoardUser';
+import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis';
 import { asString } from 'src/utils/JsonUtil';
-import api from './BackendService';
+import api from '../../integrations/BackendService';
 
 export class BoardService {
   getBoards = async (): Promise<Board[]> => {

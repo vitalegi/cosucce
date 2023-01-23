@@ -35,11 +35,11 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import boardService from 'src/integrations/BoardService';
-import Board from 'src/models/Board';
-import BoardEntry from 'src/models/BoardEntry';
+import boardService from 'src/budget/integrations/BoardService';
+import Board from 'src/budget/models/Board';
+import BoardEntry from 'src/budget/models/BoardEntry';
 import { useRouter } from 'vue-router';
-import BoardMonthlyUsersAnalysisComponent from 'components/board/analysis/BoardMonthlyUsersAnalysisComponent.vue';
+import BoardMonthlyUsersAnalysisComponent from 'src/budget/components/analysis/BoardMonthlyUsersAnalysisComponent.vue';
 import UserData from 'src/models/UserData';
 import MonthlyUserAnalysis from 'src/models/budget/analysis/MonthlyUserAnalysis';
 import BoardUser from 'src/models/budget/BoardUser';

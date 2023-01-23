@@ -45,8 +45,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import boardService from 'src/integrations/BoardService';
-import BoardEntry from 'src/models/BoardEntry';
+import boardService from 'src/budget/integrations/BoardService';
+import BoardEntry from 'src/budget/models/BoardEntry';
 import BoardUser from 'src/models/BoardUser';
 import { fromQDateFormat, toQDateFormat } from 'src/utils/DateUtil';
 import userService from 'src/integrations/UserService';

@@ -32,7 +32,7 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'Boards',
         path: '/',
-        component: () => import('pages/BoardsPage.vue'),
+        component: () => import('src/budget/pages/BoardsPage.vue'),
         meta: {
           requiresAuth: true,
         },
@@ -40,7 +40,7 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'ViewBoard',
         path: '/board/:boardId',
-        component: () => import('pages/BoardPage.vue'),
+        component: () => import('src/budget/pages/BoardPage.vue'),
         meta: {
           requiresAuth: true,
         },
@@ -49,7 +49,7 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'AddBoardEntry',
         path: '/board/:boardId/add',
-        component: () => import('pages/BoardEntryAddPage.vue'),
+        component: () => import('src/budget/pages/BoardEntryAddPage.vue'),
         meta: {
           requiresAuth: true,
         },

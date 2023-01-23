@@ -49,8 +49,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import boardService from 'src/integrations/BoardService';
-import Board from 'src/models/Board';
+import boardService from 'src/budget/integrations/BoardService';
+import Board from 'src/budget/models/Board';
 
 const leftDrawerOpen = ref(false);
 

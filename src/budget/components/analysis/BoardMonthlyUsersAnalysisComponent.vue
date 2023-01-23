@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import MonthlyUserAnalysis from 'src/models/budget/analysis/MonthlyUserAnalysis';
-import BoardMonthlyUserAnalysisComponent from 'components/board/analysis/BoardMonthlyUserAnalysisComponent.vue';
+import BoardMonthlyUserAnalysisComponent from 'src/budget/components/analysis/BoardMonthlyUserAnalysisComponent.vue';
 import { PropType } from 'vue';
 import BoardUser from 'src/models/budget/BoardUser';
 
