@@ -12,3 +12,6 @@ server:
   tomcat:
     accesslog:
       enabled: true
+
+log:
+  single-line: false

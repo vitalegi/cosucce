@@ -33,3 +33,23 @@ security:
     allowedMethods: GET, POST, PUT
     allowCredentials: true
     allowedHeaders: Content-Type, Access-Control-Request-Method, Access-Control-Allow-Credentials, Access-Control-Allow-Origin, Access-Control-Allow-Headers, x-requested-with, Authorization, origin, accept
+
+log:
+  single-line: true
+  skip-classes: >
+    FastClassBySpringCGLIB,
+    EnhancerBySpringCGLIB,
+    java.lang.reflect.Method.invoke,
+    jdk.internal.reflect,
+    org.apache.catalina,
+    org.apache.coyote,
+    org.apache.tomcat,
+    org.springframework.aop.framework,
+    org.springframework.aop.aspectj,
+    org.springframework.cglib.proxy.MethodProxy.invoke,
+    org.springframework.security.web.FilterChainProxy,
+    org.springframework.web.filter.OncePerRequestFilter.doFilter,
+    org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke,
+    org.springframework.web.method.support.InvocableHandlerMethod,
+    org.springframework.web.servlet.mvc.method.annotation,
+    org.springframework.web.filter

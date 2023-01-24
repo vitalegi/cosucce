@@ -6,6 +6,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
 
 @Log4j2
@@ -16,14 +17,18 @@ public class PerformanceAspect {
     @Around(value = "@target(Performance) && within(it.vitalegi..*)")
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
+        Type type = type(joinPoint);
         LocalDateTime now = LocalDateTime.now();
         try {
             Object out = joinPoint.proceed();
-            log.info("target={}, time={}, status=OK", getName((joinPoint)), time(start));
+            long duration = time(start);
+            if (duration > 20) {
+                log.info("target={}, type={}, time={}, status=OK", getName((joinPoint)), type, duration);
+            }
             return out;
         } catch (Throwable e) {
             Throwable root = root(e);
-            log.error("target={}, time={}, status=KO, e={}, e_msg={}, root={}, root_msg={}", getName((joinPoint)), time(start), exName(e), e.getMessage(), exName(root), root.getMessage());
+            log.error("target={}, type={}, time={}, status=KO, e={}, e_msg={}, root={}, root_msg={}", getName((joinPoint)), type, time(start), exName(e), e.getMessage(), exName(root), root.getMessage());
             throw e;
         }
     }
@@ -45,5 +50,13 @@ public class PerformanceAspect {
 
     protected long time(long startTime) {
         return System.currentTimeMillis() - startTime;
+    }
+
+    protected Type type(ProceedingJoinPoint joinPoint) {
+        Annotation annotation = joinPoint.getSignature().getDeclaringType().getAnnotation(Performance.class);
+        if (annotation != null) {
+            return ((Performance) annotation).value();
+        }
+        return null;
     }
 }
