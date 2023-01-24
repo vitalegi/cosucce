@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
@@ -14,6 +15,9 @@ import java.time.LocalDateTime;
 @Component
 public class PerformanceAspect {
 
+    @Value("${metrics.skipIfLessThan}")
+    int skipIfLessThan;
+
     @Around(value = "@target(Performance) && within(it.vitalegi..*)")
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
@@ -22,7 +26,7 @@ public class PerformanceAspect {
         try {
             Object out = joinPoint.proceed();
             long duration = time(start);
-            if (duration > 20) {
+            if (skipIfLessThan == -1 || duration >= skipIfLessThan) {
                 log.info("target={}, type={}, time={}, status=OK", getName((joinPoint)), type, duration);
             }
             return out;

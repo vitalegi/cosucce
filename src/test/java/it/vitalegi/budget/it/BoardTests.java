@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import static it.vitalegi.budget.it.HttpMonitor.monitor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -444,7 +445,7 @@ public class BoardTests {
     }
 
     ResultActions access(RequestPostProcessor user) throws Exception {
-        return mockMvc.perform(get("/user").with(user));
+        return mockMvc.perform(get("/user").with(user)).andDo(monitor());
     }
 
     Board addBoardOk(RequestPostProcessor auth, String boardName, Long ownerId) throws Exception {
@@ -458,10 +459,11 @@ public class BoardTests {
         request.setName(name);
 
         return mockMvc.perform(post("/board") //
-                .with(csrf()) //
-                .with(user) //
-                .contentType(MediaType.APPLICATION_JSON) //
-                .content(cs.toJson(request)));
+                        .with(csrf()) //
+                        .with(user) //
+                        .contentType(MediaType.APPLICATION_JSON) //
+                        .content(cs.toJson(request))) //
+                .andDo(monitor());
     }
 
     void validateBoard(String name, UUID boardId, Board actual) {
@@ -481,11 +483,13 @@ public class BoardTests {
     }
 
     ResultActions getBoard(RequestPostProcessor user, String boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId).with(user));
+        return mockMvc.perform(get("/board/" + boardId).with(user))//
+                .andDo(monitor());
     }
 
     ResultActions getBoards(RequestPostProcessor user) throws Exception {
-        return mockMvc.perform(get("/board").with(user));
+        return mockMvc.perform(get("/board").with(user))//
+                .andDo(monitor());
     }
 
     void validateUser(Long id, String uid, User actual) {
@@ -512,10 +516,11 @@ public class BoardTests {
         request.setDate(date);
 
         return mockMvc.perform(post("/board/" + boardId + "/entry") //
-                .with(csrf()) //
-                .with(user) //
-                .contentType(MediaType.APPLICATION_JSON) //
-                .content(cs.toJson(request)));
+                        .with(csrf()) //
+                        .with(user) //
+                        .contentType(MediaType.APPLICATION_JSON) //
+                        .content(cs.toJson(request)))//
+                .andDo(monitor());
     }
 
     List<BoardEntry> getBoardEntriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
@@ -525,8 +530,9 @@ public class BoardTests {
 
     ResultActions getBoardEntries(RequestPostProcessor user, UUID boardId) throws Exception {
         return mockMvc.perform(get("/board/" + boardId + "/entries") //
-                .with(user) //
-        );
+                        .with(user) //
+                )//
+                .andDo(monitor());
     }
 
     BoardUser addBoardUserOk(RequestPostProcessor auth, UUID boardId, Long userId, BoardUserRole role) throws Exception {
@@ -537,10 +543,11 @@ public class BoardTests {
         BoardUser request = new BoardUser();
         request.setRole(role);
         return mockMvc.perform(post("/board/" + boardId + "/user/" + userId) //
-                .with(csrf()) //
-                .with(user) //
-                .contentType(MediaType.APPLICATION_JSON) //
-                .content(cs.toJson(request)));
+                        .with(csrf()) //
+                        .with(user) //
+                        .contentType(MediaType.APPLICATION_JSON) //
+                        .content(cs.toJson(request)))//
+                .andDo(monitor());
     }
 
     List<BoardUser> getBoardUsersOk(RequestPostProcessor auth, UUID boardId) throws Exception {
@@ -550,7 +557,8 @@ public class BoardTests {
 
     ResultActions getBoardUsers(RequestPostProcessor user, UUID boardId) throws Exception {
         return mockMvc.perform(get("/board/" + boardId + "/users") //
-                .with(user));
+                        .with(user))//
+                .andDo(monitor());
     }
 
     List<String> getCategoriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
@@ -560,7 +568,8 @@ public class BoardTests {
 
     ResultActions getCategories(RequestPostProcessor user, UUID boardId) throws Exception {
         return mockMvc.perform(get("/board/" + boardId + "/categories") //
-                .with(user));
+                        .with(user))//
+                .andDo(monitor());
     }
 
     BoardSplit addBoardSplitOk(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
@@ -578,10 +587,11 @@ public class BoardTests {
         request.setValue1(value1);
 
         return mockMvc.perform(post("/board/" + boardId + "/split") //
-                .with(csrf()) //
-                .with(auth) //
-                .contentType(MediaType.APPLICATION_JSON) //
-                .content(cs.toJson(request)));
+                        .with(csrf()) //
+                        .with(auth) //
+                        .contentType(MediaType.APPLICATION_JSON) //
+                        .content(cs.toJson(request)))//
+                .andDo(monitor());
     }
 
     List<BoardSplit> getBoardSplitsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
@@ -591,8 +601,9 @@ public class BoardTests {
 
     ResultActions getBoardSplits(RequestPostProcessor user, UUID boardId) throws Exception {
         return mockMvc.perform(get("/board/" + boardId + "/splits") //
-                .with(user) //
-        );
+                        .with(user) //
+                )//
+                .andDo(monitor());
     }
 
     List<MonthlyUserAnalysis> getBoardAnalysisMonthUserOk(RequestPostProcessor auth, UUID boardId) throws Exception {
@@ -602,8 +613,9 @@ public class BoardTests {
 
     ResultActions getBoardAnalysisMonthUser(RequestPostProcessor user, UUID boardId) throws Exception {
         return mockMvc.perform(get("/board/" + boardId + "/analysis/month-user") //
-                .with(user) //
-        );
+                        .with(user) //
+                )//
+                .andDo(monitor());
     }
 
     UserAmount userAmount(long userId, String actual, String expected, String cumulatedCredit) {

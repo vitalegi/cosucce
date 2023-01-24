@@ -3,15 +3,16 @@ package it.vitalegi.budget.it;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 
+@Log4j2
 @Service
 public class CallService {
-
     @Autowired
     ObjectMapper objectMapper;
 

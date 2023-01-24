@@ -48,8 +48,8 @@ public class ResponseExceptionHandler {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
 
-        String lineSeparator = " ";
-        if (singleLine) {
+        String lineSeparator = ">>";
+        if (!singleLine) {
             lineSeparator = "\n";
         }
 
@@ -57,6 +57,5 @@ public class ResponseExceptionHandler {
                 .filter(s -> !skipClasses.stream().anyMatch(skip -> s.contains(skip))) //
                 .collect(Collectors.joining(lineSeparator));
         log.error(error);
-        log.info("[{}] [{}]", lineSeparator, skipClasses);
     }
 }
