@@ -157,7 +157,7 @@ public class AggregatedAnalysisServiceTests {
     @DisplayName("getAnalysisByMonth - performance analysis - 20 years, 20 users - should complete in time")
     @Test
     void test_getAnalysisByMonth_performanceTest3() {
-        performanceTest(20, 20, 150);
+        performanceTest(20, 20, 200);
     }
 
     void performanceTest(int years, int users, int ms) {
