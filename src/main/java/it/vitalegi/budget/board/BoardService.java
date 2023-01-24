@@ -130,11 +130,16 @@ public class BoardService {
     @Transactional
     public BoardEntry updateBoardEntry(UUID boardId, BoardEntry boardEntry) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        log.info("Current user can edit board entries");
 
-        BoardEntryEntity entry = boardEntryRepository.findById(boardId).get();
+        UserEntity author = userService.getUserEntity(boardEntry.getOwnerId());
+        boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        log.info("Author {} can edit board entries", author.getId());
+
+        BoardEntryEntity entry = boardEntryRepository.findById(boardEntry.getId()).get();
         entry.setDate(boardEntry.getDate());
-        LocalDateTime now = LocalDateTime.now();
-        entry.setLastUpdate(now);
+        entry.setLastUpdate(LocalDateTime.now());
+        entry.setOwner(author);
         entry.setCategory(boardEntry.getCategory());
         entry.setDescription(boardEntry.getDescription());
         entry.setAmount(boardEntry.getAmount());
