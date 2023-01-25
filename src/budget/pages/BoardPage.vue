@@ -23,6 +23,7 @@
             :entries="boardEntries"
             :users="members"
             @editEntry="editBoardEntry"
+            @deleteEntry="deleteBoardEntry"
           />
         </q-card>
       </div>
@@ -85,5 +86,13 @@ const addNewBoardEntry = (): void => {
 
 const editBoardEntry = (boardEntryId: string): void => {
   router.push(`/board/${props.boardId}/edit/${boardEntryId}`);
+};
+
+const deleteBoardEntry = async (boardEntryId: string): Promise<void> => {
+  await boardService.deleteBoardEntry(props.boardId, boardEntryId);
+
+  // cleanup data
+  boardEntries.value = boardEntries.value.filter((e) => e.id !== boardEntryId);
+  reloadAnalysis(props.boardId);
 };
 </script>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { Method } from 'axios';
 import { getUser } from 'src/boot/firebase';
 
@@ -34,6 +35,9 @@ class BackendService {
   };
   post = async (url: string, queryParams: any, data: any): Promise<any> => {
     return this.exchange(url, 'POST', queryParams, data);
+  };
+  delete = async (url: string, queryParams: any, data: any): Promise<any> => {
+    return this.exchange(url, 'DELETE', queryParams, data);
   };
 }
 

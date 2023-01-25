@@ -39,6 +39,13 @@ export class BoardService {
     return BoardEntry.fromJson(out);
   };
 
+  deleteBoardEntry = async (
+    boardId: string,
+    entryId: string
+  ): Promise<void> => {
+    await api.delete(`/board/${boardId}/entry/${entryId}`, null, null);
+  };
+
   getBoardEntries = async (boardId: string): Promise<BoardEntry[]> => {
     const out = await api.get(`/board/${boardId}/entries`, null);
     return out.map(BoardEntry.fromJson);

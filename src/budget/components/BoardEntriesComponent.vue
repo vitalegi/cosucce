@@ -11,7 +11,12 @@
       <q-td :props="props">
         <div class="q-pt-xs q-gutter-sm">
           <q-btn round icon="edit" size="xs" @click="editEntry(props.row.id)" />
-          <q-btn round icon="delete" size="xs" />
+          <q-btn
+            round
+            icon="delete"
+            size="xs"
+            @click="deleteEntry(props.row.id)"
+          />
         </div>
       </q-td>
     </template>
@@ -116,7 +121,10 @@ const boardEntriesColumns = [
 const emit = defineEmits(['editEntry', 'deleteEntry']);
 
 const editEntry = (boardEntryId: string): void => {
-  //router.push(`/board/${props.boardId}/add`);
   emit('editEntry', boardEntryId);
+};
+
+const deleteEntry = (boardEntryId: string): void => {
+  emit('deleteEntry', boardEntryId);
 };
 </script>
