@@ -87,6 +87,12 @@ public class BoardResource {
         return boardService.getBoardEntries(boardId);
     }
 
+    @Operation(summary = "Retrieve board's entries")
+    @GetMapping(path = "/{boardId}/entry/{boardEntryId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BoardEntry getBoardEntry(@PathVariable("boardId") UUID boardId,@PathVariable("boardEntryId") UUID boardEntryId) {
+        return boardService.getBoardEntry(boardId, boardEntryId);
+    }
+
     @Operation(summary = "Retrieve board's users")
     @GetMapping(path = "/{boardId}/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<BoardUser> getBoardUsers(@PathVariable("boardId") UUID boardId) {

@@ -32,6 +32,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,13 +92,11 @@ public class BoardService {
 
     public BoardEntity getBoardEntity(UUID id) {
         boardPermissionService.checkGrant(id, BoardGrant.BOARD_VIEW);
-        return boardRepository.findById(id)
-                              .get();
+        return boardRepository.findById(id).get();
     }
 
     public List<Board> getVisibleBoards() {
-        Iterable<BoardEntity> boards = boardRepository.findVisibleBoards(userService.getCurrentUser()
-                                                                                    .getId());
+        Iterable<BoardEntity> boards = boardRepository.findVisibleBoards(userService.getCurrentUser().getId());
         return StreamSupport.stream(boards.spliterator(), false) //
                             .map(board -> mapper.map(board)) //
                             .collect(Collectors.toList());
@@ -112,8 +111,7 @@ public class BoardService {
         boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
         log.info("Author {} can edit board entries", author.getId());
 
-        BoardEntity board = boardRepository.findById(boardId)
-                                           .get();
+        BoardEntity board = boardRepository.findById(boardId).get();
 
         BoardEntryEntity entry = new BoardEntryEntity();
         entry.setBoard(board);
@@ -139,8 +137,7 @@ public class BoardService {
         boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
         log.info("Author {} can edit board entries", author.getId());
 
-        BoardEntryEntity entry = boardEntryRepository.findById(boardEntry.getId())
-                                                     .get();
+        BoardEntryEntity entry = boardEntryRepository.findById(boardEntry.getId()).get();
         entry.setDate(boardEntry.getDate());
         entry.setLastUpdate(LocalDateTime.now());
         entry.setOwner(author);
@@ -157,9 +154,20 @@ public class BoardService {
     public List<BoardEntry> getBoardEntries(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
         List<BoardEntryEntity> entries = boardEntryRepository.findByBoardId(boardId);
-        return StreamSupport.stream(entries.spliterator(), false)
-                            .map(mapper::map)
-                            .collect(Collectors.toList());
+        return StreamSupport.stream(entries.spliterator(), false).map(mapper::map).collect(Collectors.toList());
+    }
+
+    public BoardEntry getBoardEntry(UUID boardId, UUID boardEntryId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);
+        if (entry.isEmpty()) {
+            throw new IllegalArgumentException("entry doesn't exist");
+        }
+        BoardEntryEntity value = entry.get();
+        if (!value.getBoard().getId().equals(boardId)) {
+            throw new IllegalArgumentException("entry not related to this board. Entry=" + boardEntryId + ", Board=" + boardId);
+        }
+        return mapper.map(value);
     }
 
     public List<String> getCategories(UUID boardId) {
@@ -189,9 +197,7 @@ public class BoardService {
             throw new IllegalArgumentException("Cannot change self role");
         }
         List<BoardUserEntity> entries = boardUserRepository.findByBoard_Id(board.getId());
-        List<BoardUserEntity> rolesOfUser = entries.stream()
-                                                   .filter(e -> e.getUser()
-                                                                 .equals(user)) //
+        List<BoardUserEntity> rolesOfUser = entries.stream().filter(e -> e.getUser().equals(user)) //
                                                    .collect(Collectors.toList());
         if (rolesOfUser.isEmpty()) {
             log.info("ADD_BOARD_USER board={}, user={}, owner={}, role={}", board.getId(), user.getId(),
@@ -248,37 +254,28 @@ public class BoardService {
     protected List<BoardSplit> doGetBoardSplits(UUID boardId) {
         List<BoardSplitEntity> entries = boardSplitRepository.findByBoardId(boardId);
         if (!entries.isEmpty()) {
-            return entries.stream()
-                          .map(e -> mapper.map(e))
-                          .collect(Collectors.toList());
+            return entries.stream().map(e -> mapper.map(e)).collect(Collectors.toList());
         }
         log.info("There are no entries, use an even split");
 
         List<BoardUserEntity> boardUsers = boardUserRepository.findByBoard_Id(boardId);
         BigDecimal ratio = BigDecimal.ONE.divide(BigDecimal.valueOf(boardUsers.size()), 2, RoundingMode.FLOOR);
 
-        List<BoardSplit> out = boardUsers.stream()
-                                         .map(u -> {
+        List<BoardSplit> out = boardUsers.stream().map(u -> {
                                              BoardSplit boardSplit = new BoardSplit();
-                                             boardSplit.setUserId(u.getUser()
-                                                                   .getId());
+                                             boardSplit.setUserId(u.getUser().getId());
                                              boardSplit.setBoardId(boardId);
                                              boardSplit.setValue1(ratio);
                                              return boardSplit;
-                                         })
-                                         .sorted(Comparator.comparing(BoardSplit::getValue1))//
+                                         }).sorted(Comparator.comparing(BoardSplit::getValue1))//
                                          .collect(Collectors.toList());
 
-        BigDecimal sum = sum(out.stream()
-                                .map(BoardSplit::getValue1));
+        BigDecimal sum = sum(out.stream().map(BoardSplit::getValue1));
         if (sum.equals(BigDecimal.ONE)) {
             return out;
         }
         log.info("Splits sum is not 100%, round up the highest value");
-        out.get(0)
-           .setValue1(out.get(0)
-                         .getValue1()
-                         .add(BigDecimal.ONE.subtract(sum)));
+        out.get(0).setValue1(out.get(0).getValue1().add(BigDecimal.ONE.subtract(sum)));
         return out;
     }
 
