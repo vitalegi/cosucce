@@ -158,7 +158,7 @@ public class BoardService {
     }
 
     public BoardEntry getBoardEntry(UUID boardId, UUID boardEntryId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
         Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);
         if (entry.isEmpty()) {
             throw new IllegalArgumentException("entry doesn't exist");
@@ -168,6 +168,19 @@ public class BoardService {
             throw new IllegalArgumentException("entry not related to this board. Entry=" + boardEntryId + ", Board=" + boardId);
         }
         return mapper.map(value);
+    }
+
+    public void deleteBoardEntry(UUID boardId, UUID boardEntryId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);
+        if (entry.isEmpty()) {
+            throw new IllegalArgumentException("entry doesn't exist");
+        }
+        BoardEntryEntity value = entry.get();
+        if (!value.getBoard().getId().equals(boardId)) {
+            throw new IllegalArgumentException("entry not related to this board. Entry=" + boardEntryId + ", Board=" + boardId);
+        }
+        boardEntryRepository.deleteById(boardEntryId);
     }
 
     public List<String> getCategories(UUID boardId) {

@@ -17,6 +17,7 @@ import it.vitalegi.budget.user.entity.UserEntity;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -87,10 +88,18 @@ public class BoardResource {
         return boardService.getBoardEntries(boardId);
     }
 
-    @Operation(summary = "Retrieve board's entries")
+    @Operation(summary = "Retrieve board entry")
     @GetMapping(path = "/{boardId}/entry/{boardEntryId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BoardEntry getBoardEntry(@PathVariable("boardId") UUID boardId,@PathVariable("boardEntryId") UUID boardEntryId) {
+    public BoardEntry getBoardEntry(@PathVariable("boardId") UUID boardId,
+                                    @PathVariable("boardEntryId") UUID boardEntryId) {
         return boardService.getBoardEntry(boardId, boardEntryId);
+    }
+
+    @Operation(summary = "Delete board entry")
+    @DeleteMapping(path = "/{boardId}/entry/{boardEntryId}")
+    public void deleteBoardEntry(@PathVariable("boardId") UUID boardId,
+                                 @PathVariable("boardEntryId") UUID boardEntryId) {
+        boardService.deleteBoardEntry(boardId, boardEntryId);
     }
 
     @Operation(summary = "Retrieve board's users")

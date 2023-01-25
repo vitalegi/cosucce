@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -318,7 +319,7 @@ public class BoardTests {
 
         addBoardEntry(auth2, board1.getId(), user2.getId(), LocalDate.now(), new BigDecimal("100.15"), "CATEGORY",
                 "description") //
-                               .andExpect(error403());
+                                                                                                                                  .andExpect(error403());
     }
 
     @DisplayName("updateBoardEntry, I'm the owner, should update the entry")
@@ -358,7 +359,7 @@ public class BoardTests {
     List<BoardEntry> getBoardEntriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
         return cs.jsonPayloadList(getBoardEntries(auth, boardId).andExpect(ok()),
                 new TypeReference<List<BoardEntry>>() {
-                });
+        });
     }
 
     ResultActions updateBoardEntry(RequestPostProcessor user, UUID boardId, UUID boardEntryId, Long ownerId,
@@ -635,6 +636,10 @@ public class BoardTests {
         return cs.jsonPayload(getBoardEntry(auth, boardId, boardEntryId).andExpect(ok()), BoardEntry.class);
     }
 
+    ResultActions getBoardEntry(RequestPostProcessor user, UUID boardId, UUID boardEntryId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/entry/" + boardEntryId).with(user)).andDo(monitor());
+    }
+
     @DisplayName("getBoardEntry, I'm not a member, should fail")
     @Test
     void test_getBoardEntry_notMember_shouldFail() throws Exception {
@@ -646,13 +651,8 @@ public class BoardTests {
         User user2 = accessOk(auth2, USER2);
 
         BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
-                new BigDecimal("123"), "CAT",
-                null);
+                new BigDecimal("123"), "CAT", null);
         getBoardEntry(auth2, board.getId(), entry.getId()).andExpect(error403());
-    }
-
-    ResultActions getBoardEntry(RequestPostProcessor user, UUID boardId, UUID boardEntryId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/entry/" + boardEntryId).with(user)).andDo(monitor());
     }
 
     @DisplayName("getBoardEntry, I'm a member, board and boardEntry are not connected, should fail")
@@ -667,13 +667,71 @@ public class BoardTests {
         User user2 = accessOk(auth2, USER2);
 
         BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
-                new BigDecimal("123"), "CAT",
-                null);
+                new BigDecimal("123"), "CAT", null);
         getBoardEntry(auth1, board2.getId(), entry.getId()).andExpect(error500());
     }
 
     ResultMatcher error500() {
         return status().isInternalServerError();
+    }
+
+    @DisplayName("deleteBoardEntry, I'm a member, should delete entry")
+    @Test
+    void test_deleteBoardEntry_member_shouldWork() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+                new BigDecimal("123"), "CAT", null);
+
+        deleteBoardEntryOk(auth1, board.getId(), entry.getId());
+
+        getBoardEntry(auth1, board.getId(), entry.getId()).andExpect(error500());
+    }
+
+    void deleteBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
+        deleteBoardEntry(auth, boardId, boardEntryId).andExpect(ok());
+    }
+
+    ResultActions deleteBoardEntry(RequestPostProcessor user, UUID boardId, UUID boardEntryId) throws Exception {
+        return mockMvc.perform(delete("/board/" + boardId + "/entry/" + boardEntryId).with(csrf()).with(user))
+                      .andDo(monitor());
+    }
+
+    @DisplayName("deleteBoardEntry, I'm not a member, should fail")
+    @Test
+    void test_deleteBoardEntry_notMember_shouldFail() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+                new BigDecimal("123"), "CAT", null);
+        deleteBoardEntry(auth2, board.getId(), entry.getId()).andExpect(error403());
+    }
+
+    @DisplayName("deleteBoardEntry, I'm a member, board and boardEntry are not connected, should fail")
+    @Test
+    void test_deleteBoardEntry_member_shouldFail() throws Exception {
+        RequestPostProcessor auth1 = mockAuth.user(USER1);
+        User user1 = accessOk(auth1, USER1);
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board2 = addBoardOk(auth1, "board2", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+                new BigDecimal("123"), "CAT", null);
+        deleteBoardEntry(auth1, board2.getId(), entry.getId()).andExpect(error500());
     }
 
     @DisplayName("getCategories, should retrieve all entries")
@@ -836,7 +894,7 @@ public class BoardTests {
     List<MonthlyUserAnalysis> getBoardAnalysisMonthUserOk(RequestPostProcessor auth, UUID boardId) throws Exception {
         return cs.jsonPayloadList(getBoardAnalysisMonthUser(auth, boardId).andExpect(ok()),
                 new TypeReference<List<MonthlyUserAnalysis>>() {
-                });
+        });
     }
 
     void validateMonthlyUserAnalysis(int year, int month, List<UserAmount> users, MonthlyUserAnalysis actual) {

@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
@@ -30,12 +29,12 @@ public class BoardEntryEntity {
     @Type(type = "org.hibernate.type.UUIDCharType")
     UUID id;
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_entry__user__owner_id"))
     UserEntity owner;
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_entry__board__board_id"))
     BoardEntity board;
 
@@ -65,8 +64,7 @@ public class BoardEntryEntity {
 
     @Override
     public String toString() {
-        return this.getClass()
-                   .getName() + "(" + getId() + ")";
+        return this.getClass().getName() + "(" + getId() + ")";
     }
 
 }

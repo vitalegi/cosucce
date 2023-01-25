@@ -23,7 +23,6 @@ mvn clean package
 $env:DATASOURCE_URL = 'jdbc:postgresql://localhost:5432/budget'
 $env:DATASOURCE_USERNAME = 'postgres'
 $env:DATASOURCE_PASSWORD = 'postgres'
-$env:DATASOURCE_PASSWORD = 'postgres'
 $env:CORS_ALLOWED_ORIGINS = 'http://localhost:9000'
 java -jar "-Dspring.profiles.active=prod" ./target/budget-0.0.1-SNAPSHOT.jar
 
@@ -41,7 +40,7 @@ liquibase "--url=jdbc:h2:./liquibase;DB_CLOSE_ON_EXIT=FALSE" "--username=sa" "--
 ## Check differences between 2 databases
 
 ```
-$oldDb=./db/00002/liquibase
+$oldDb="./db/00002/liquibase"
 liquibase "--changelog-file=dbchangelog.xml" "--url=jdbc:h2:${oldDb};DB_CLOSE_ON_EXIT=FALSE" "--username=sa" "--password=" "--referenceUrl=jdbc:h2:./liquibase;DB_CLOSE_ON_EXIT=FALSE" "--referenceUsername=sa" "--referencePassword=" diff-changelog
 ```
 
