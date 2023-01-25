@@ -91,14 +91,16 @@ public class BoardService {
 
     public BoardEntity getBoardEntity(UUID id) {
         boardPermissionService.checkGrant(id, BoardGrant.BOARD_VIEW);
-        return boardRepository.findById(id).get();
+        return boardRepository.findById(id)
+                              .get();
     }
 
     public List<Board> getVisibleBoards() {
-        Iterable<BoardEntity> boards = boardRepository.findVisibleBoards(userService.getCurrentUser().getId());
+        Iterable<BoardEntity> boards = boardRepository.findVisibleBoards(userService.getCurrentUser()
+                                                                                    .getId());
         return StreamSupport.stream(boards.spliterator(), false) //
-                .map(board -> mapper.map(board)) //
-                .collect(Collectors.toList());
+                            .map(board -> mapper.map(board)) //
+                            .collect(Collectors.toList());
     }
 
     public BoardEntry addBoardEntry(UUID boardId, BoardEntry boardEntry) {
@@ -110,7 +112,8 @@ public class BoardService {
         boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
         log.info("Author {} can edit board entries", author.getId());
 
-        BoardEntity board = boardRepository.findById(boardId).get();
+        BoardEntity board = boardRepository.findById(boardId)
+                                           .get();
 
         BoardEntryEntity entry = new BoardEntryEntity();
         entry.setBoard(board);
@@ -136,7 +139,8 @@ public class BoardService {
         boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
         log.info("Author {} can edit board entries", author.getId());
 
-        BoardEntryEntity entry = boardEntryRepository.findById(boardEntry.getId()).get();
+        BoardEntryEntity entry = boardEntryRepository.findById(boardEntry.getId())
+                                                     .get();
         entry.setDate(boardEntry.getDate());
         entry.setLastUpdate(LocalDateTime.now());
         entry.setOwner(author);
@@ -144,7 +148,8 @@ public class BoardService {
         entry.setDescription(boardEntry.getDescription());
         entry.setAmount(boardEntry.getAmount());
         BoardEntryEntity newEntry = boardEntryRepository.save(entry);
-        log.info("Updated boardEntry. board={}, ownerId={}, entryId={}", boardId, boardEntry.getOwnerId(), newEntry.getId());
+        log.info("Updated boardEntry. board={}, ownerId={}, entryId={}", boardId, boardEntry.getOwnerId(),
+                newEntry.getId());
         return mapper.map(newEntry);
     }
 
@@ -152,7 +157,9 @@ public class BoardService {
     public List<BoardEntry> getBoardEntries(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
         List<BoardEntryEntity> entries = boardEntryRepository.findByBoardId(boardId);
-        return StreamSupport.stream(entries.spliterator(), false).map(mapper::map).collect(Collectors.toList());
+        return StreamSupport.stream(entries.spliterator(), false)
+                            .map(mapper::map)
+                            .collect(Collectors.toList());
     }
 
     public List<String> getCategories(UUID boardId) {
@@ -182,17 +189,21 @@ public class BoardService {
             throw new IllegalArgumentException("Cannot change self role");
         }
         List<BoardUserEntity> entries = boardUserRepository.findByBoard_Id(board.getId());
-        List<BoardUserEntity> rolesOfUser = entries.stream().filter(e -> e.getUser().equals(user)) //
-                .collect(Collectors.toList());
+        List<BoardUserEntity> rolesOfUser = entries.stream()
+                                                   .filter(e -> e.getUser()
+                                                                 .equals(user)) //
+                                                   .collect(Collectors.toList());
         if (rolesOfUser.isEmpty()) {
-            log.info("ADD_BOARD_USER board={}, user={}, owner={}, role={}", board.getId(), user.getId(), currentUser.getId(), role);
+            log.info("ADD_BOARD_USER board={}, user={}, owner={}, role={}", board.getId(), user.getId(),
+                    currentUser.getId(), role);
             BoardUserEntity entity = new BoardUserEntity();
             entity.setBoard(board);
             entity.setUser(user);
             entity.setRole(role.name());
             return boardUserRepository.save(entity);
         } else {
-            log.info("UPDATE_BOARD_USER board={}, user={}, owner={}, role={}", board.getId(), user.getId(), currentUser.getId(), role);
+            log.info("UPDATE_BOARD_USER board={}, user={}, owner={}, role={}", board.getId(), user.getId(),
+                    currentUser.getId(), role);
             BoardUserEntity entity = rolesOfUser.get(0);
             entity.setRole(role.name());
             return boardUserRepository.save(entity);
@@ -200,7 +211,8 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardSplit addBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value) {
+    public BoardSplit addBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear,
+                                    Integer toMonth, BigDecimal value) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_EDIT);
         BoardEntity boardEntity = getBoardEntity(boardId);
         log.info("User can work on this board");
@@ -227,45 +239,56 @@ public class BoardService {
 
     public List<MonthlyUserAnalysis> getBoardAnalysisByMonthUser(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
-        List<BoardEntryGroupByMonthUserCategory> entries = boardEntryRepository.getAggregatedBoardEntriesByMonthUserCategory(boardId);
+        List<BoardEntryGroupByMonthUserCategory> entries =
+                boardEntryRepository.getAggregatedBoardEntriesByMonthUserCategory(boardId);
         List<BoardSplit> splits = doGetBoardSplits(boardId);
         return aggregatedAnalysisService.getBoardAnalysisByMonthUser(entries, splits);
     }
 
-    public List<BoardSplit> getBoardSplits(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
-        return doGetBoardSplits(boardId);
-    }
     protected List<BoardSplit> doGetBoardSplits(UUID boardId) {
         List<BoardSplitEntity> entries = boardSplitRepository.findByBoardId(boardId);
         if (!entries.isEmpty()) {
-            return entries.stream().map(e -> mapper.map(e)).collect(Collectors.toList());
+            return entries.stream()
+                          .map(e -> mapper.map(e))
+                          .collect(Collectors.toList());
         }
         log.info("There are no entries, use an even split");
 
         List<BoardUserEntity> boardUsers = boardUserRepository.findByBoard_Id(boardId);
         BigDecimal ratio = BigDecimal.ONE.divide(BigDecimal.valueOf(boardUsers.size()), 2, RoundingMode.FLOOR);
 
-        List<BoardSplit> out = boardUsers.stream().map(u -> {
-                    BoardSplit boardSplit = new BoardSplit();
-                    boardSplit.setUserId(u.getUser().getId());
-                    boardSplit.setBoardId(boardId);
-                    boardSplit.setValue1(ratio);
-                    return boardSplit;
-                }).sorted(Comparator.comparing(BoardSplit::getValue1))//
-                .collect(Collectors.toList());
+        List<BoardSplit> out = boardUsers.stream()
+                                         .map(u -> {
+                                             BoardSplit boardSplit = new BoardSplit();
+                                             boardSplit.setUserId(u.getUser()
+                                                                   .getId());
+                                             boardSplit.setBoardId(boardId);
+                                             boardSplit.setValue1(ratio);
+                                             return boardSplit;
+                                         })
+                                         .sorted(Comparator.comparing(BoardSplit::getValue1))//
+                                         .collect(Collectors.toList());
 
-        BigDecimal sum = sum(out.stream().map(BoardSplit::getValue1));
+        BigDecimal sum = sum(out.stream()
+                                .map(BoardSplit::getValue1));
         if (sum.equals(BigDecimal.ONE)) {
             return out;
         }
         log.info("Splits sum is not 100%, round up the highest value");
-        out.get(0).setValue1(out.get(0).getValue1().add(BigDecimal.ONE.subtract(sum)));
+        out.get(0)
+           .setValue1(out.get(0)
+                         .getValue1()
+                         .add(BigDecimal.ONE.subtract(sum)));
         return out;
     }
 
     protected BigDecimal sum(Stream<BigDecimal> values) {
         return values.reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+    }
+
+    public List<BoardSplit> getBoardSplits(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        return doGetBoardSplits(boardId);
     }
 
 }

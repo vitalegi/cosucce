@@ -12,10 +12,6 @@ import java.util.List;
 @Service
 public class MockAuth {
 
-    String username(String uid) {
-        return "username_" + uid;
-    }
-
     RequestPostProcessor user(String uid) {
         return user(uid, username(uid), true);
     }
@@ -29,5 +25,9 @@ public class MockAuth {
         org.springframework.security.core.userdetails.User user;
         user = new org.springframework.security.core.userdetails.User(uid, "password", grants);
         return SecurityMockMvcRequestPostProcessors.user(user);
+    }
+
+    String username(String uid) {
+        return "username_" + uid;
     }
 }

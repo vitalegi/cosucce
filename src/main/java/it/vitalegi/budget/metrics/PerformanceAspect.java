@@ -32,13 +32,30 @@ public class PerformanceAspect {
             return out;
         } catch (Throwable e) {
             Throwable root = root(e);
-            log.error("target={}, type={}, time={}, status=KO, e={}, e_msg={}, root={}, root_msg={}", getName((joinPoint)), type, time(start), exName(e), e.getMessage(), exName(root), root.getMessage());
+            log.error("target={}, type={}, time={}, status=KO, e={}, e_msg={}, root={}, root_msg={}",
+                    getName((joinPoint)), type, time(start), exName(e), e.getMessage(), exName(root),
+                    root.getMessage());
             throw e;
         }
     }
 
+    protected Type type(ProceedingJoinPoint joinPoint) {
+        Annotation annotation = joinPoint.getSignature()
+                                         .getDeclaringType()
+                                         .getAnnotation(Performance.class);
+        if (annotation != null) {
+            return ((Performance) annotation).value();
+        }
+        return null;
+    }
+
+    protected long time(long startTime) {
+        return System.currentTimeMillis() - startTime;
+    }
+
     protected String getName(ProceedingJoinPoint joinPoint) {
-        return joinPoint.getSignature().getName();
+        return joinPoint.getSignature()
+                        .getName();
     }
 
     protected Throwable root(Throwable e) {
@@ -49,18 +66,7 @@ public class PerformanceAspect {
     }
 
     protected String exName(Throwable e) {
-        return e.getClass().getSimpleName();
-    }
-
-    protected long time(long startTime) {
-        return System.currentTimeMillis() - startTime;
-    }
-
-    protected Type type(ProceedingJoinPoint joinPoint) {
-        Annotation annotation = joinPoint.getSignature().getDeclaringType().getAnnotation(Performance.class);
-        if (annotation != null) {
-            return ((Performance) annotation).value();
-        }
-        return null;
+        return e.getClass()
+                .getSimpleName();
     }
 }

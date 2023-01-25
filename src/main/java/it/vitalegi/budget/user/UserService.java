@@ -39,16 +39,17 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public User getCurrentUser() {
+        return mapper.map(getCurrentUserEntity());
+    }
+
     public UserEntity getCurrentUserEntity() {
         String uid = authenticationService.getUid();
         return userRepository.findByUid(uid);
     }
 
-    public User getCurrentUser() {
-        return mapper.map(getCurrentUserEntity());
-    }
-
     public UserEntity getUserEntity(long id) {
-        return userRepository.findById(id).get();
+        return userRepository.findById(id)
+                             .get();
     }
 }

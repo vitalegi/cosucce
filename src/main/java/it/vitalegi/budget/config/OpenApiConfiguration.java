@@ -21,12 +21,15 @@ public class OpenApiConfiguration {
     @Bean
     public OpenApiCustomiser customerGlobalHeaderOpenApiCustomiser() {
         return openApi -> {
-            openApi.getPaths().values().forEach(pathItem -> pathItem.readOperations().forEach(operation -> {
-                ApiResponses apiResponses = operation.getResponses();
-                unauthorised(apiResponses);
-                forbidden(apiResponses);
-                internalError(apiResponses);
-            }));
+            openApi.getPaths()
+                   .values()
+                   .forEach(pathItem -> pathItem.readOperations()
+                                                .forEach(operation -> {
+                                                    ApiResponses apiResponses = operation.getResponses();
+                                                    unauthorised(apiResponses);
+                                                    forbidden(apiResponses);
+                                                    internalError(apiResponses);
+                                                }));
         };
     }
 
@@ -36,12 +39,14 @@ public class OpenApiConfiguration {
     }
 
     protected void forbidden(ApiResponses apiResponses) {
-        ApiResponse apiResponse = new ApiResponse().description("Forbidden").content(error());
+        ApiResponse apiResponse = new ApiResponse().description("Forbidden")
+                                                   .content(error());
         apiResponses.addApiResponse("403", apiResponse);
     }
 
     protected void internalError(ApiResponses apiResponses) {
-        ApiResponse apiResponse = new ApiResponse().description("Internal server error").content(error());
+        ApiResponse apiResponse = new ApiResponse().description("Internal server error")
+                                                   .content(error());
         apiResponses.addApiResponse("500", apiResponse);
     }
 
@@ -50,7 +55,8 @@ public class OpenApiConfiguration {
     }
 
     protected MediaType errorMediaType() {
-        return new MediaType().schema(ModelConverters.getInstance().resolveAsResolvedSchema(new AnnotatedType(ErrorResponse.class)).schema);
+        return new MediaType().schema(ModelConverters.getInstance()
+                                                     .resolveAsResolvedSchema(new AnnotatedType(ErrorResponse.class)).schema);
     }
 
 

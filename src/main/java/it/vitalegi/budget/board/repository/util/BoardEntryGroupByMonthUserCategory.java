@@ -20,8 +20,8 @@ public class BoardEntryGroupByMonthUserCategory {
     BigDecimal amount;
 
     public BoardEntryGroupByMonthUserCategory(int year, int month, long userId, String category, BigDecimal amount) {
-        this.year=year;
-        this.month=month;
+        this.year = year;
+        this.month = month;
         this.userId = userId;
         this.category = category;
         this.amount = amount;

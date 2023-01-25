@@ -25,16 +25,18 @@ public class GrantedAuthoritiesExtractor
         logger.info("headers: {}", jwt.getHeaders());
         logger.info("subject: {}", jwt.getSubject());
         Collection<?> authorities = (Collection<?>)
-                jwt.getClaims().getOrDefault("mycustomclaim", Collections.emptyList());
+                jwt.getClaims()
+                   .getOrDefault("mycustomclaim", Collections.emptyList());
 
         return authorities.stream()
-                .map(Object::toString)
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+                          .map(Object::toString)
+                          .map(SimpleGrantedAuthority::new)
+                          .collect(Collectors.toList());
     }
 
     protected boolean isVerified(Map<String, Object> claims) {
-        claims.forEach((key, value) -> logger.info("claim {}={}, types: {}, {}", key, value, key.getClass(), value.getClass()));
+        claims.forEach((key, value) -> logger.info("claim {}={}, types: {}, {}", key, value, key.getClass(),
+                value.getClass()));
         return false;
     }
 }

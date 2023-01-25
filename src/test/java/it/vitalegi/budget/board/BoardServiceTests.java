@@ -1,6 +1,5 @@
 package it.vitalegi.budget.board;
 
-import it.vitalegi.budget.auth.BoardGrant;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardSplit;
@@ -115,8 +114,43 @@ public class BoardServiceTests {
         entities.add(s2);
         when(boardSplitRepository.findByBoardId(boardId)).thenReturn(entities);
         List<BoardSplit> out = service.getBoardSplits(boardId);
-        assertEquals(s1.getValue1(), out.stream().filter(o -> o.getUserId() == s1.getUser().getId()).findFirst().orElse(null).getValue1());
-        assertEquals(s2.getValue1(), out.stream().filter(o -> o.getUserId() == s2.getUser().getId()).findFirst().orElse(null).getValue1());
+        assertEquals(s1.getValue1(),
+                out.stream()
+                   .filter(o -> o.getUserId() == s1.getUser()
+                                                   .getId())
+                   .findFirst()
+                   .orElse(null)
+                   .getValue1());
+        assertEquals(s2.getValue1(),
+                out.stream()
+                   .filter(o -> o.getUserId() == s2.getUser()
+                                                   .getId())
+                   .findFirst()
+                   .orElse(null)
+                   .getValue1());
+    }
+
+    protected BoardEntity randomBoard(UUID boardId) {
+        BoardEntity entity = new BoardEntity();
+        entity.setName("name " + boardId);
+        entity.setId(boardId);
+        return entity;
+    }
+
+    protected BoardSplitEntity boardSplit(BoardEntity board, BigDecimal ratio) {
+        BoardSplitEntity entity = new BoardSplitEntity();
+        entity.setBoard(board);
+        entity.setUser(randomUser());
+        entity.setValue1(ratio);
+        return entity;
+    }
+
+    protected UserEntity randomUser() {
+        UserEntity user = new UserEntity();
+        user.setId(++USER_ID);
+        user.setUsername("username_" + user.getId());
+        user.setUid("uid_" + user.getId());
+        return user;
     }
 
     @DisplayName("getBoardSplits, if there are no splits available, create default ones with 1/n ratio")
@@ -136,27 +170,21 @@ public class BoardServiceTests {
         assertEquals(3, out.size());
 
         boardUsers.forEach(boardUser -> {
-            List<Long> ids = out.stream().map(BoardSplit::getUserId).collect(Collectors.toList());
-            assertTrue(out.stream().anyMatch(bs -> bs.getUserId() == boardUser.getUser().getId()), "Output doesn't contain an entry for user " + boardUser.getUser().getId() + ": " + ids);
+            List<Long> ids = out.stream()
+                                .map(BoardSplit::getUserId)
+                                .collect(Collectors.toList());
+            assertTrue(out.stream()
+                          .anyMatch(bs -> bs.getUserId() == boardUser.getUser()
+                                                                     .getId()), "Output doesn't " +
+                    "contain an entry for user " + boardUser.getUser()
+                                                            .getId() + ": " + ids);
         });
-        assertEquals(new BigDecimal("0.34"), out.get(0).getValue1());
-        assertEquals(new BigDecimal("0.33"), out.get(1).getValue1());
-        assertEquals(new BigDecimal("0.33"), out.get(2).getValue1());
-    }
-
-    protected BoardSplitEntity boardSplit(BoardEntity board, BigDecimal ratio) {
-        BoardSplitEntity entity = new BoardSplitEntity();
-        entity.setBoard(board);
-        entity.setUser(randomUser());
-        entity.setValue1(ratio);
-        return entity;
-    }
-
-    protected BoardEntity randomBoard(UUID boardId) {
-        BoardEntity entity = new BoardEntity();
-        entity.setName("name " + boardId);
-        entity.setId(boardId);
-        return entity;
+        assertEquals(new BigDecimal("0.34"), out.get(0)
+                                                .getValue1());
+        assertEquals(new BigDecimal("0.33"), out.get(1)
+                                                .getValue1());
+        assertEquals(new BigDecimal("0.33"), out.get(2)
+                                                .getValue1());
     }
 
     protected BoardUserEntity boardUser(BoardEntity board) {
@@ -166,13 +194,5 @@ public class BoardServiceTests {
         entity.setBoard(board);
         entity.setRole(BoardUserRole.MEMBER.name());
         return entity;
-    }
-
-    protected UserEntity randomUser() {
-        UserEntity user = new UserEntity();
-        user.setId(++USER_ID);
-        user.setUsername("username_" + user.getId());
-        user.setUid("uid_" + user.getId());
-        return user;
     }
 }

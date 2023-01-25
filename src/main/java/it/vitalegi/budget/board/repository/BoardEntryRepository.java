@@ -20,7 +20,8 @@ public interface BoardEntryRepository extends CrudRepository<BoardEntryEntity, U
     @Query("SELECT DISTINCT be.category FROM BoardEntry be WHERE be.board.id = :boardId")
     List<String> findCategories(@Param("boardId") UUID boardId);
 
-    @Query("SELECT new it.vitalegi.budget.board.repository.util.BoardEntryGroupByMonthUserCategory(YEAR(be.date), MONTH(be.date), be.owner.id, be.category, SUM(be.amount)) " + //
+    @Query("SELECT new it.vitalegi.budget.board.repository.util.BoardEntryGroupByMonthUserCategory(YEAR(be.date), " +
+            "MONTH(be.date), be.owner.id, be.category, SUM(be.amount)) " + //
             "FROM BoardEntry be WHERE be.board.id = :boardId " + //
             "GROUP BY be.owner.id, be.category, YEAR(be.date), MONTH(be.date)")
     List<BoardEntryGroupByMonthUserCategory> getAggregatedBoardEntriesByMonthUserCategory(@Param("boardId") UUID boardId);

@@ -36,6 +36,7 @@ public class UserEntity {
         UserEntity other = (UserEntity) obj;
         return Objects.equals(id, other.getId());
     }
+
     @Override
     public String toString() {
         return this.getClass().getName() + "(" + getId() + ")";

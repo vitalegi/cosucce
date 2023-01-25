@@ -50,9 +50,11 @@ public class BoardUserEntity {
         BoardUserEntity other = (BoardUserEntity) obj;
         return Objects.equals(id, other.getId());
     }
+
     @Override
     public String toString() {
-        return this.getClass().getName() + "(" + getId() + ")";
+        return this.getClass()
+                   .getName() + "(" + getId() + ")";
     }
 
 }

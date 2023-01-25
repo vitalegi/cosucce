@@ -58,20 +58,24 @@ public class BoardResource {
     }
 
     @Operation(summary = "Add new entry to board")
-    @PostMapping(path = "/{boardId}/entry", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{boardId}/entry", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+            MediaType.APPLICATION_JSON_VALUE)
     public BoardEntry addBoardEntry(@PathVariable("boardId") UUID boardId, @RequestBody BoardEntry boardEntry) {
         return boardService.addBoardEntry(boardId, boardEntry);
     }
 
     @Operation(summary = "Update existing entry in board")
-    @PutMapping(path = "/{boardId}/entry", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{boardId}/entry", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+            MediaType.APPLICATION_JSON_VALUE)
     public BoardEntry updateBoardEntry(@PathVariable("boardId") UUID boardId, @RequestBody BoardEntry boardEntry) {
         return boardService.updateBoardEntry(boardId, boardEntry);
     }
 
     @Operation(summary = "Add user to board")
-    @PostMapping(path = "/{boardId}/user/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public BoardUser addBoardUser(@PathVariable("boardId") UUID boardId, @PathVariable("userId") long userId, @RequestBody AddBoardUser boardUser) {
+    @PostMapping(path = "/{boardId}/user/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    public BoardUser addBoardUser(@PathVariable("boardId") UUID boardId, @PathVariable("userId") long userId,
+                                  @RequestBody AddBoardUser boardUser) {
         BoardEntity board = boardService.getBoardEntity(boardId);
         UserEntity user = userService.getUserEntity(userId);
         return boardService.addBoardUser(board, user, boardUser.getRole());
@@ -96,9 +100,11 @@ public class BoardResource {
     }
 
     @Operation(summary = "Add new split configuration")
-    @PostMapping(path = "/{boardId}/split", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{boardId}/split", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+            MediaType.APPLICATION_JSON_VALUE)
     public BoardSplit addBoardSplit(@PathVariable("boardId") UUID boardId, @RequestBody BoardSplit split) {
-        return boardService.addBoardSplit(boardId, split.getUserId(), split.getFromYear(), split.getFromMonth(), split.getToYear(), split.getToMonth(), split.getValue1());
+        return boardService.addBoardSplit(boardId, split.getUserId(), split.getFromYear(), split.getFromMonth(),
+                split.getToYear(), split.getToMonth(), split.getValue1());
     }
 
     @Operation(summary = "Retrieve board's split configurations")

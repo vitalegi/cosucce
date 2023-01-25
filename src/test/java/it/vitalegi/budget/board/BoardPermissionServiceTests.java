@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -57,6 +57,12 @@ public class BoardPermissionServiceTests {
         assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_ENTRY_EDIT));
     }
 
+    Optional<BoardEntity> board(BoardEntity boardEntity) {
+        return Collections.singletonList(boardEntity)
+                          .stream()
+                          .findFirst();
+    }
+
     @DisplayName("hasGrants should have limited permissions if MEMBER")
     @Test
     void test_hasGrant_member_shouldHaveOnlyLimitedPermissions() {
@@ -69,9 +75,5 @@ public class BoardPermissionServiceTests {
         assertFalse(service.hasGrant(0, boardId, BoardGrant.BOARD_EDIT));
         assertFalse(service.hasGrant(0, boardId, BoardGrant.BOARD_USER_ROLE_EDIT));
         assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_ENTRY_EDIT));
-    }
-
-    Optional<BoardEntity> board(BoardEntity boardEntity) {
-        return Arrays.asList(boardEntity).stream().findFirst();
     }
 }

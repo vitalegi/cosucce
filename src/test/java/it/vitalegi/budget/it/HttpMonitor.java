@@ -13,10 +13,15 @@ public class HttpMonitor implements ResultHandler {
 
     @Override
     public void handle(MvcResult result) throws Exception {
-        log.info("URI={}", result.getRequest().getRequestURI());
-        log.info("METHOD={}", result.getRequest().getMethod());
-        log.info("BODY={}", result.getRequest().getContentAsString());
-        log.info("STATUS={}", result.getResponse().getStatus());
-        log.info("RESPONSE={}", result.getResponse().getContentAsString());
+        log.info("URI={}", result.getRequest()
+                                 .getRequestURI());
+        log.info("METHOD={}", result.getRequest()
+                                    .getMethod());
+        log.info("BODY={}", result.getRequest()
+                                  .getContentAsString());
+        log.info("STATUS={}", result.getResponse()
+                                    .getStatus());
+        log.info("RESPONSE={}", result.getResponse()
+                                      .getContentAsString());
     }
 }

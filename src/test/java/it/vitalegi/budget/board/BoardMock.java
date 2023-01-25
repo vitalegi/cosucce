@@ -2,7 +2,6 @@ package it.vitalegi.budget.board;
 
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.entity.BoardEntity;
-import it.vitalegi.budget.user.UserMock;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

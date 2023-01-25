@@ -21,8 +21,10 @@ public class LoggingFilter implements Filter {
     private final String CORRELATION_ID = "x-request-id";
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        String id = UUID.randomUUID().toString();
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
+            ServletException {
+        String id = UUID.randomUUID()
+                        .toString();
         MDC.put("correlationId", id);
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
         httpServletResponse.setHeader(CORRELATION_ID, id);

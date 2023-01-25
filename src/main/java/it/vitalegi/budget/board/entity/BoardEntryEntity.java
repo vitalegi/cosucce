@@ -62,9 +62,11 @@ public class BoardEntryEntity {
         BoardEntryEntity other = (BoardEntryEntity) obj;
         return Objects.equals(id, other.getId());
     }
+
     @Override
     public String toString() {
-        return this.getClass().getName() + "(" + getId() + ")";
+        return this.getClass()
+                   .getName() + "(" + getId() + ")";
     }
 
 }

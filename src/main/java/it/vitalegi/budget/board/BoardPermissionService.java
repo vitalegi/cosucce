@@ -51,13 +51,8 @@ public class BoardPermissionService {
 
 
     public void checkGrant(UUID boardId, BoardGrant grant) {
-        if (!hasGrant(userService.getCurrentUser().getId(), boardId, grant)) {
-            throw new PermissionException("board", boardId.toString(), grant.name());
-        }
-    }
-
-    public void checkGrant(UserEntity user, UUID boardId, BoardGrant grant) {
-        if (!hasGrant(user.getId(), boardId, grant)) {
+        if (!hasGrant(userService.getCurrentUser()
+                                 .getId(), boardId, grant)) {
             throw new PermissionException("board", boardId.toString(), grant.name());
         }
     }
@@ -70,8 +65,15 @@ public class BoardPermissionService {
         BoardUserEntity role = boardUserRepository.findUserBoard(boardId, userId);
         if (role != null) {
             BoardUserRole userRole = BoardUserRole.valueOf(role.getRole());
-            return RBAC.get(userRole).contains(grant);
+            return RBAC.get(userRole)
+                       .contains(grant);
         }
         return false;
+    }
+
+    public void checkGrant(UserEntity user, UUID boardId, BoardGrant grant) {
+        if (!hasGrant(user.getId(), boardId, grant)) {
+            throw new PermissionException("board", boardId.toString(), grant.name());
+        }
     }
 }

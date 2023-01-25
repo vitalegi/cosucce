@@ -40,10 +40,18 @@ public class WebSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors().and()//
-                .authorizeHttpRequests().antMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml", "/swagger-ui/*").permitAll().and() //
-                .authorizeHttpRequests().anyRequest().authenticated();
-        http.oauth2ResourceServer().jwt();
+        http.cors()
+            .and()//
+            .authorizeHttpRequests()
+            .antMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",
+                    "/swagger-ui/*")
+            .permitAll()
+            .and() //
+            .authorizeHttpRequests()
+            .anyRequest()
+            .authenticated();
+        http.oauth2ResourceServer()
+            .jwt();
         return http.build();
     }
 

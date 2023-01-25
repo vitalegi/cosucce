@@ -16,7 +16,8 @@ public class Amount {
     @Schema(description = "Money that the user was expected to spend in the interval")
     BigDecimal expected;
     @NotNull
-    @Schema(description = "Cumulated credit the user has so far. Value > 0 means that the user spent more than expected")
+    @Schema(description = "Cumulated credit the user has so far. Value > 0 means that the user spent more than " +
+            "expected")
     BigDecimal cumulatedCredit;
 
     public synchronized void addActual(BigDecimal value) {

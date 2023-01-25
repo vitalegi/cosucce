@@ -54,6 +54,7 @@ public class BoardEntity {
 
     @Override
     public String toString() {
-        return this.getClass().getName() + "(" + getId() + ")";
+        return this.getClass()
+                   .getName() + "(" + getId() + ")";
     }
 }
