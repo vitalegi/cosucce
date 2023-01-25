@@ -6,18 +6,23 @@
     :columns="boardEntriesColumns"
     row-key="name"
     :binary-state-sort="true"
-  />
+  >
+    <template v-slot:body-cell-actions="props">
+      <q-td :props="props">
+        <div class="q-pt-xs q-gutter-sm">
+          <q-btn round icon="edit" size="xs" @click="editEntry(props.row.id)" />
+          <q-btn round icon="delete" size="xs" />
+        </div>
+      </q-td>
+    </template>
+  </q-table>
 </template>
 
 <script setup lang="ts">
 import { PropType } from 'vue';
 import BoardEntry from 'src/budget/models/BoardEntry';
 import NumberUtil from 'src/utils/NumberUtil';
-import {
-  formatFullDateTime,
-  formatFullDate,
-  formatElapsedTime,
-} from 'src/utils/DateUtil';
+import { formatFullDate, formatElapsedTime } from 'src/utils/DateUtil';
 import BoardUser from 'src/budget/models/BoardUser';
 
 const props = defineProps({
@@ -94,12 +99,24 @@ const boardEntriesColumns = [
     label: 'Ultimo aggiornamento',
     field: 'lastUpdate',
     format: (value: string, row: BoardEntry) =>
-      `${formatFullDateTime(row.lastUpdate)} (${formatElapsedTime(
-        row.lastUpdate,
-        now
-      )})`,
+      formatElapsedTime(row.lastUpdate, now),
     align: 'right',
     sortable: true,
   },
+  {
+    name: 'actions',
+    required: true,
+    label: '',
+    field: 'id',
+    align: 'right',
+    sortable: false,
+  },
 ];
+
+const emit = defineEmits(['editEntry', 'deleteEntry']);
+
+const editEntry = (boardEntryId: string): void => {
+  //router.push(`/board/${props.boardId}/add`);
+  emit('editEntry', boardEntryId);
+};
 </script>

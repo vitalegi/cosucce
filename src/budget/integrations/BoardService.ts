@@ -31,9 +31,25 @@ export class BoardService {
     return BoardEntry.fromJson(out);
   };
 
+  updateBoardEntry = async (
+    boardId: string,
+    entry: BoardEntry
+  ): Promise<BoardEntry> => {
+    const out = await api.put(`/board/${boardId}/entry`, null, entry);
+    return BoardEntry.fromJson(out);
+  };
+
   getBoardEntries = async (boardId: string): Promise<BoardEntry[]> => {
     const out = await api.get(`/board/${boardId}/entries`, null);
     return out.map(BoardEntry.fromJson);
+  };
+
+  getBoardEntry = async (
+    boardId: string,
+    boardEntryId: string
+  ): Promise<BoardEntry> => {
+    const out = await api.get(`/board/${boardId}/entry/${boardEntryId}`, null);
+    return BoardEntry.fromJson(out);
   };
 
   getBoardUsers = async (boardId: string): Promise<Array<BoardUser>> => {

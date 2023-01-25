@@ -55,6 +55,15 @@ const routes: RouteRecordRaw[] = [
         },
         props: true,
       },
+      {
+        name: 'EditBoardEntry',
+        path: '/board/:boardId/edit/:boardEntryId',
+        component: () => import('src/budget/pages/BoardEntryAddPage.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+        props: true,
+      },
     ],
   },
 

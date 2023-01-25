@@ -19,7 +19,11 @@
             <div class="text-subtitle2">Dati</div>
           </q-card-section>
           <q-separator />
-          <BoardEntriesComponent :entries="boardEntries" :users="members" />
+          <BoardEntriesComponent
+            :entries="boardEntries"
+            :users="members"
+            @editEntry="editBoardEntry"
+          />
         </q-card>
       </div>
     </div>
@@ -77,5 +81,9 @@ watch(
 
 const addNewBoardEntry = (): void => {
   router.push(`/board/${props.boardId}/add`);
+};
+
+const editBoardEntry = (boardEntryId: string): void => {
+  router.push(`/board/${props.boardId}/edit/${boardEntryId}`);
 };
 </script>

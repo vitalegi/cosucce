@@ -35,7 +35,9 @@
           :step="0.01"
           label="Importo"
           type="number"
-          :rules="[(val) => (val && val.length > 0) || 'Valore obbligatorio']"
+          :rules="[
+            (val) => (val && validateAmount(val)) || 'Valore obbligatorio',
+          ]"
         />
         <q-btn label="Submit" type="submit" color="primary" />
       </q-form>
@@ -47,52 +49,60 @@
 import { computed, ref, watch } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
 import BoardEntry from 'src/budget/models/BoardEntry';
-import BoardUser from 'src/models/BoardUser';
+import BoardUser from 'src/budget/models/BoardUser';
 import { fromQDateFormat, toQDateFormat } from 'src/utils/DateUtil';
 import userService from 'src/integrations/UserService';
 import UserData from 'src/models/UserData';
+import SelectValue from 'src/models/SelectValue';
 import { asInt } from 'src/utils/JsonUtil';
-
-class SelectValue {
-  label = '';
-  value = '';
-
-  constructor(label: string, value: string) {
-    this.label = label;
-    this.value = value;
-  }
-}
+import NumberUtil from 'src/utils/NumberUtil';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
   boardId: {
     type: String,
     required: true,
   },
+  boardEntryId: {
+    type: String,
+    required: false,
+  },
 });
+
+const router = useRouter();
 
 // form data
 const date = ref(toQDateFormat(new Date()));
 const author = ref(new SelectValue('', ''));
-
 const category = ref('');
 const description = ref('');
 const amount = ref(0);
 
 const user = ref(new UserData());
-const entries = ref(new Array<BoardEntry>());
 const categories = ref(new Array<string>());
 const users = ref(new Array<BoardUser>());
 const authorEntries = computed(() =>
-  users.value.map((u) => new SelectValue(u.username, `${u.userId}`))
+  users.value.map((u) => new SelectValue(u.user.username, `${u.user.id}`))
 );
 
 const loadData = async (boardId: string): Promise<void> => {
   user.value = await userService.getUser();
-  entries.value = await boardService.getBoardEntries(boardId);
   users.value = await boardService.getBoardUsers(boardId);
   categories.value = await boardService.getBoardCategories(boardId);
-  categories.value.push('Casa', 'Bollette');
   author.value = new SelectValue(user.value.username, `${user.value.id}`);
+
+  if (props.boardEntryId) {
+    const entry = await boardService.getBoardEntry(
+      props.boardId,
+      props.boardEntryId
+    );
+    date.value = toQDateFormat(entry.date);
+    const user = users.value.filter((u) => u.user.id === entry.ownerId)[0];
+    author.value = new SelectValue(user.user.username, `${user.user.id}`);
+    category.value = entry.category;
+    description.value = entry.description;
+    amount.value = entry.amount;
+  }
 };
 
 loadData(props.boardId);
@@ -100,7 +110,6 @@ loadData(props.boardId);
 watch(
   () => props.boardId,
   (newBoardId) => {
-    entries.value = new Array<BoardEntry>();
     users.value = new Array<BoardUser>();
     categories.value = new Array<string>();
     loadData(newBoardId);
@@ -121,6 +130,16 @@ const onSubmit = async (): Promise<void> => {
   }
   entry.description = description.value;
   entry.amount = amount.value;
-  await boardService.addBoardEntry(props.boardId, entry);
+  if (props.boardEntryId) {
+    entry.id = props.boardEntryId;
+    await boardService.updateBoardEntry(props.boardId, entry);
+  } else {
+    await boardService.addBoardEntry(props.boardId, entry);
+  }
+  router.push(`/board/${props.boardId}`);
+};
+
+const validateAmount = (value: string): boolean => {
+  return NumberUtil.parseAsDecimal(value) !== 0;
 };
 </script>
