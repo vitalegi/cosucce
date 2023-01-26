@@ -23,11 +23,35 @@
             :entries="boardEntries"
             :users="members"
             @editEntry="editBoardEntry"
-            @deleteEntry="deleteBoardEntry"
+            @deleteEntry="showDialogDeleteBoardEntry"
           />
         </q-card>
       </div>
     </div>
+    <q-dialog v-model="dialogDeleteBoardEntry" persistent>
+      <q-card>
+        <q-card-section class="row items-center">
+          <q-avatar icon="delete" color="primary" text-color="white" />
+          <span class="q-ml-sm"> Vuoi eliminare questa spesa? </span>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="Annulla"
+            v-close-popup
+            @click="resetDialogDeleteBoardEntry()"
+          />
+          <q-btn
+            flat
+            label="Procedi"
+            color="primary"
+            v-close-popup
+            @click="deleteBoardEntry()"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -88,11 +112,28 @@ const editBoardEntry = (boardEntryId: string): void => {
   router.push(`/board/${props.boardId}/edit/${boardEntryId}`);
 };
 
-const deleteBoardEntry = async (boardEntryId: string): Promise<void> => {
+// delete board entry
+
+const dialogDeleteBoardEntry = ref(false);
+const deleteBoardEntryId = ref('');
+
+const showDialogDeleteBoardEntry = (boardEntryId: string): void => {
+  deleteBoardEntryId.value = boardEntryId;
+  dialogDeleteBoardEntry.value = true;
+};
+
+const resetDialogDeleteBoardEntry = (): void => {
+  deleteBoardEntryId.value = '';
+  dialogDeleteBoardEntry.value = false;
+};
+
+const deleteBoardEntry = async (): Promise<void> => {
+  const boardEntryId = deleteBoardEntryId.value;
   await boardService.deleteBoardEntry(props.boardId, boardEntryId);
 
   // cleanup data
   boardEntries.value = boardEntries.value.filter((e) => e.id !== boardEntryId);
-  reloadAnalysis(props.boardId);
+  await reloadAnalysis(props.boardId);
+  resetDialogDeleteBoardEntry();
 };
 </script>
