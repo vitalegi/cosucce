@@ -4,7 +4,10 @@
       <div class="q-pa-xs col-12 row">
         <div class="text-h6">{{ board.name }}</div>
         <q-space />
-        <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
+        <div class="q-pa-xs q-gutter-sm">
+          <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
+          <q-btn round icon="settings" @click="openBoardSettings()" />
+        </div>
       </div>
       <div class="q-pa-xs col-12">
         <BoardMonthlyUsersAnalysisComponent
@@ -110,6 +113,10 @@ const addNewBoardEntry = (): void => {
 
 const editBoardEntry = (boardEntryId: string): void => {
   router.push(`/board/${props.boardId}/edit/${boardEntryId}`);
+};
+
+const openBoardSettings = (): void => {
+  router.push(`/board/${props.boardId}/settings`);
 };
 
 // delete board entry

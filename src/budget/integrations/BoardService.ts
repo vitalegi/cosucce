@@ -63,6 +63,17 @@ export class BoardService {
     const out = await api.get(`/board/${boardId}/users`, null);
     return out.map(BoardUser.fromJson);
   };
+  addBoardUser = async (
+    boardId: string,
+    userId: number,
+    role: string
+  ): Promise<BoardUser> => {
+    const out = await api.post(`/board/${boardId}/user/${userId}`, null, {
+      role: role,
+    });
+    return BoardUser.fromJson(out);
+  };
+
   getBoardCategories = async (boardId: string): Promise<string[]> => {
     const out = await api.get(`/board/${boardId}/categories`, null);
     return out.map(asString);
