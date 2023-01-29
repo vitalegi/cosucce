@@ -4,6 +4,7 @@ import BoardUser from 'src/budget/models/BoardUser';
 import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis';
 import { asString } from 'src/utils/JsonUtil';
 import api from '../../integrations/BackendService';
+import BoardInvite from 'src/budget/models/BoardInvite';
 
 export class BoardService {
   getBoards = async (): Promise<Board[]> => {
@@ -63,17 +64,13 @@ export class BoardService {
     const out = await api.get(`/board/${boardId}/users`, null);
     return out.map(BoardUser.fromJson);
   };
-  addBoardUser = async (
-    boardId: string,
-    userId: number,
-    role: string
-  ): Promise<BoardUser> => {
-    const out = await api.post(`/board/${boardId}/user/${userId}`, null, {
-      role: role,
-    });
-    return BoardUser.fromJson(out);
+  addBoardInvite = async (boardId: string): Promise<BoardInvite> => {
+    const out = await api.post(`/board/${boardId}/invite`, null, {});
+    return BoardInvite.fromJson(out);
   };
-
+  useBoardInvite = async (boardId: string, invite: string): Promise<void> => {
+    await api.get(`/board/${boardId}/invite/${invite}`, null);
+  };
   getBoardCategories = async (boardId: string): Promise<string[]> => {
     const out = await api.get(`/board/${boardId}/categories`, null);
     return out.map(asString);

@@ -3,38 +3,48 @@
     <div class="q-pa-xs col-12 row">
       <div class="text-h2 section">Members</div>
       <q-space />
-      <q-btn
-        round
-        color="primary"
-        icon="add"
-        @click="showDialogAddUser = true"
-      />
+      <q-btn round color="primary" icon="share" @click="getInvite()" />
     </div>
     <div class="q-pa-xs col-12">
       <BoardMembersList :users="members" />
     </div>
   </div>
 
-  <q-dialog v-model="showDialogAddUser" persistent>
+  <q-dialog v-model="showDialogShare" persistent>
     <q-card>
-      <q-card-section class="row items-center">
-        <q-input outlined v-model="addUserId" label="ID utente" type="number" />
+      <q-card-section>
+        <div class="text-h6">Condividi board</div>
       </q-card-section>
-
+      <q-card-section class="row items-center">
+        <div class="col-12">
+          Condividi il codice seguente per permettere ad altre persone di unirsi
+          a questa board:
+        </div>
+        <q-input
+          class="col-12"
+          outlined
+          v-model="token"
+          label="Token"
+          :readonly="true"
+        >
+          <template v-slot:append>
+            <q-icon
+              v-if="!done"
+              name="content_copy"
+              @click.stop.prevent="copy()"
+              class="cursor-pointer"
+            />
+            <q-icon
+              v-if="done"
+              name="check"
+              class="cursor-pointer"
+              style="color: green"
+            />
+          </template>
+        </q-input>
+      </q-card-section>
       <q-card-actions align="right">
-        <q-btn
-          flat
-          label="Annulla"
-          v-close-popup
-          @click="resetDialogAddUser()"
-        />
-        <q-btn
-          flat
-          label="Aggiungi"
-          color="primary"
-          v-close-popup
-          @click="addUser()"
-        />
+        <q-btn flat label="Chiudi" v-close-popup @click="resetDialogShare()" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -42,9 +52,10 @@
 
 <script setup lang="ts">
 import BoardUser from 'src/budget/models/BoardUser';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
 import BoardMembersList from 'src/budget/components/BoardMembersList.vue';
+import BoardInvite from 'src/budget/models/BoardInvite';
 
 const props = defineProps({
   boardId: {
@@ -59,16 +70,27 @@ boardService
   .getBoardUsers(props.boardId)
   .then((users) => (members.value = users));
 
-const showDialogAddUser = ref(false);
-const addUserId = ref(0);
+const showDialogShare = ref(false);
+const invite = ref(new BoardInvite());
 
-const resetDialogAddUser = (): void => {
-  addUserId.value = 0;
-  showDialogAddUser.value = false;
+const resetDialogShare = (): void => {
+  invite.value = new BoardInvite();
+  showDialogShare.value = false;
 };
 
-const addUser = async (): Promise<void> => {
-  await boardService.addBoardUser(props.boardId, addUserId.value, 'MEMBER');
-  resetDialogAddUser();
+const getInvite = async (): Promise<void> => {
+  invite.value = await boardService.addBoardInvite(props.boardId);
+  showDialogShare.value = true;
+};
+
+const token = computed(() => invite.value.encodeToken());
+
+const done = ref(false);
+const copy = async (): Promise<void> => {
+  await navigator.clipboard.writeText(token.value);
+  done.value = true;
+  setTimeout(() => {
+    done.value = false;
+  }, 1300);
 };
 </script>

@@ -47,6 +47,15 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
       {
+        name: 'JoinBoard',
+        path: '/board/join',
+        component: () => import('src/budget/pages/JoinBoardPage.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+        props: true,
+      },
+      {
         name: 'BoardSettings',
         path: '/board/:boardId/settings',
         component: () => import('src/budget/pages/BoardSettingsPage.vue'),

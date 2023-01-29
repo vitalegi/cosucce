@@ -1,6 +1,12 @@
 <template>
   <q-page>
     <div class="q-pa-md row">
+      <div class="q-gutter-sm q-pa-xs col-12 row">
+        <q-space />
+        <q-btn flat color="primary" @click="newBoard()">New</q-btn>
+        <q-btn flat color="primary" @click="joinBoard()"> Join </q-btn>
+      </div>
+
       <div class="q-pa-xs col-xs-12 col-sm-4 col-md-3">
         <q-card @click="newBoard()">
           <q-card-section>
@@ -45,5 +51,9 @@ const goToBoard = (boardId: string): void => {
 const newBoard = async (): Promise<void> => {
   const board = await boardService.addBoard('La mia board');
   router.push(`/board/${board.id}`);
+};
+
+const joinBoard = async (): Promise<void> => {
+  router.push('/board/join');
 };
 </script>
