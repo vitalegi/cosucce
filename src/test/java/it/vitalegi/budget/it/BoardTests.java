@@ -36,6 +36,7 @@ import java.util.UUID;
 
 import static it.vitalegi.budget.it.HttpMonitor.monitor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -95,10 +96,10 @@ public class BoardTests {
 
     }
 
-    @DisplayName("addBoardEntry, I'm a member, I should see the board")
+    @DisplayName("GIVEN I am a member of the board WHEN I add a new entry THEN the entry should be created")
     @Test
     public void test_addBoardEntry_member_shouldCreateEntry() throws Exception {
-        Board board1 = addBoardOk(auth1, "board1", user1.getId());
+        Board board1 = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board1.getId());
 
         BoardEntry entry = addBoardEntryOk(auth2, board1.getId(), user2.getId(), LocalDate.now(), new BigDecimal("100"
@@ -107,121 +108,116 @@ public class BoardTests {
                 "description", entry);
     }
 
-    @DisplayName("addBoardEntry, I'm not a member, it should fail")
+    @DisplayName("GIVEN I am not member of the board WHEN I add a new entry THEN I should receive an error")
     @Test
     public void test_addBoardEntry_notMember_shouldFail() throws Exception {
-        Board board1 = addBoardOk(auth1, "board1", user1.getId());
+        Board board1 = addBoardOk(auth1, "board1");
         addBoardEntry(auth2, board1.getId(), user2.getId(), LocalDate.now(), new BigDecimal("100.15"), "CATEGORY",
                 "description").andExpect(error403());
     }
 
-    @DisplayName("addBoardEntry, I'm the owner, I should see the board")
+    @DisplayName("GIVEN I am the owner of the board WHEN I add a new entry THEN the entry should be created")
     @Test
     public void test_addBoardEntry_owner_shouldCreateEntry() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.now(),
                 new BigDecimal("100" + ".15"), "CATEGORY", "description");
         validateBoardEntry(board.getId(), user1.getId(), LocalDate.now(), new BigDecimal("100.15"), "CATEGORY",
                 "description", entry);
     }
 
-    @DisplayName("addBoardInvite, I'm a member, I shouldn't be able to create an invite")
+    @DisplayName("GIVEN I am a member of the board WHEN I create a new invite THEN I should receive an error")
     @Test
     public void test_addBoardInvite_member_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
 
         joinBoard(auth1, auth2, board.getId());
 
         addBoardInvite(auth2, board.getId()).andExpect(error403());
     }
 
-    @DisplayName("addBoardInvite, I'm not a member, I shouldn't be able to create an invite")
+    @DisplayName("GIVEN I am not a member of the board WHEN I create a new invite THEN I should receive an error")
     @Test
     public void test_addBoardInvite_notMember_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         addBoardInvite(auth2, board.getId()).andExpect(error403());
     }
 
-    @DisplayName("addBoardInvite, I'm the owner, I should be able to create the invite, the user should be able to " +
-            "use it and to join the board with role=MEMBER")
+    // TODO split in 3 tests
+    @DisplayName("GIVEN I am the owner of the board WHEN I create a new invite THEN the invite should be created, " + "the user should be able to use it, the user should join the board with role=MEMBER")
     @Test
     public void test_addBoardInvite_owner_shouldAssign() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
         List<BoardUser> users = getBoardUsersOk(auth1, board.getId());
 
         assertEquals(2, users.size());
-        BoardUser u1 = users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst().get();
+        BoardUser u1 = users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst().orElse(null);
         assertNotNull(u1);
         assertEquals(BoardUserRole.OWNER, u1.getRole());
-        BoardUser u2 = users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst().get();
+        BoardUser u2 = users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst().orElse(null);
         assertNotNull(u2);
         assertEquals(BoardUserRole.MEMBER, u2.getRole());
     }
 
-    @DisplayName("addBoardSplit, I'm a member, should fail")
+    @DisplayName("GIVEN I am a member of the board WHEN I add a new split THEN I should receive an error")
     @Test
     public void test_addBoardSplit_member_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
 
         addBoardSplit(auth2, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("1")).andExpect(error403());
     }
 
-    @DisplayName("addBoardSplit, I'm not a member, should fail")
+    @DisplayName("GIVEN I am not a member of the board WHEN I add a new split configuration THEN I should receive " + "an" + " error")
     @Test
     public void test_addBoardSplit_notMember_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         addBoardSplit(auth2, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("1")).andExpect(error403());
     }
 
-    @DisplayName("addBoardSplit, I'm the owner, should create split")
+    @DisplayName("GIVEN I am the owner of the board WHEN I add a new split configuration THEN the split should be " + "created")
     @Test
     public void test_addBoardSplit_owner_shouldCreateSplit() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
 
         BoardSplit s1 = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null, new BigDecimal(
                 "1"));
-        BoardSplit s2 = addBoardSplitOk(auth1, board.getId(), user1.getId(), 2022, 01, 2022, 02, new BigDecimal("0.5"));
-        BoardSplit s3 = addBoardSplitOk(auth1, board.getId(), user2.getId(), 2022, 01, null, null,
+        BoardSplit s2 = addBoardSplitOk(auth1, board.getId(), user1.getId(), 2022, 1, 2022, 2, new BigDecimal("0.5"));
+        BoardSplit s3 = addBoardSplitOk(auth1, board.getId(), user2.getId(), 2022, 1, null, null,
                 new BigDecimal("0" + ".5"));
-        BoardSplit s4 = addBoardSplitOk(auth1, board.getId(), user2.getId(), null, null, 2022, 02,
+        BoardSplit s4 = addBoardSplitOk(auth1, board.getId(), user2.getId(), null, null, 2022, 2,
                 new BigDecimal("0" + ".5"));
         List<BoardSplit> splits = getBoardSplitsOk(auth1, board.getId());
         validateBoardSplits(Arrays.asList(s1, s2, s3, s4), splits);
     }
 
-    @DisplayName("addBoard should create a new board")
+    @DisplayName("GIVEN I am a user WHEN I create a board THEN the board should be created")
     @Test
     public void test_addBoard_shouldCreateBoard() throws Exception {
-        addBoardOk(auth1, "board1", user1.getId());
+        addBoardOk(auth1, "board1");
     }
 
-    @DisplayName("deleteBoardEntry, I'm a member, board and boardEntry are not connected, should fail")
+    @DisplayName("GIVEN I am a member of the board WHEN I delete an entry of another board THEN I should receive " + "an" + " error")
     @Test
     public void test_deleteBoardEntry_member_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-        Board board2 = addBoardOk(auth1, "board2", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
+        Board board2 = addBoardOk(auth1, "board2");
 
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5),
                 new BigDecimal("123"), "CAT", null);
         deleteBoardEntry(auth1, board2.getId(), entry.getId()).andExpect(error500());
     }
 
-    @DisplayName("deleteBoardEntry, I'm a member, should delete entry")
+    @DisplayName("GIVEN I am a member of the board WHEN I delete an entry THEN the entry should be deleted")
     @Test
     public void test_deleteBoardEntry_member_shouldWork() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
 
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
         joinBoard(auth1, auth2, board.getId());
 
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5),
                 new BigDecimal("123"), "CAT", null);
 
         deleteBoardEntryOk(auth1, board.getId(), entry.getId());
@@ -229,114 +225,114 @@ public class BoardTests {
         getBoardEntry(auth1, board.getId(), entry.getId()).andExpect(error500());
     }
 
-    @DisplayName("deleteBoardEntry, I'm not a member, should fail")
+    @DisplayName("GIVEN I am not a member of the board WHEN I delete a board entry THEN I should receive an error")
     @Test
     public void test_deleteBoardEntry_notMember_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
 
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5),
                 new BigDecimal("123"), "CAT", null);
         deleteBoardEntry(auth2, board.getId(), entry.getId()).andExpect(error403());
     }
 
-    @DisplayName("getBoardAggregatedData, part of the board, should retrieve aggregated data")
+    // TODO split in multiple tests
+    @DisplayName("GIVEN I am a user WHEN I retrieve board aggregated data THEN I should receive data")
     @Test
     public void test_getBoardAggregatedData() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
 
         joinBoard(auth1, auth2, board.getId());
 
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2023, 1, 05), new BigDecimal("1"), "CAT1",
-                null);
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2023, 2, 05), new BigDecimal("1"), "CAT1",
-                null);
-        addBoardEntry(auth1, board.getId(), user2.getId(), LocalDate.of(2023, 2, 05), new BigDecimal("1"), "CAT1",
-                null);
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2023, 1, 5), new BigDecimal("1"), "CAT1", null);
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2023, 2, 5), new BigDecimal("1"), "CAT1", null);
+        addBoardEntry(auth1, board.getId(), user2.getId(), LocalDate.of(2023, 2, 5), new BigDecimal("1"), "CAT1", null);
 
         addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("0.5"));
         addBoardSplitOk(auth1, board.getId(), user2.getId(), null, null, null, null, new BigDecimal("0.5"));
 
         List<MonthlyUserAnalysis> analysys = getBoardAnalysisMonthUserOk(auth1, board.getId());
         assertEquals(2, analysys.size());
-        validateMonthlyUserAnalysis(2023, 01, Arrays.asList(userAmount(user1.getId(), "1", "0.5", "-0.5"),
+        validateMonthlyUserAnalysis(2023, 1, Arrays.asList(userAmount(user1.getId(), "1", "0.5", "-0.5"),
                 userAmount(user2.getId(), "0", "0.5", "0.5")), analysys.get(0));
-        validateMonthlyUserAnalysis(2023, 02, Arrays.asList(userAmount(user1.getId(), "1", "1", "0"),
+        validateMonthlyUserAnalysis(2023, 2, Arrays.asList(userAmount(user1.getId(), "1", "1", "0"),
                 userAmount(user2.getId(), "1", "1", "0")), analysys.get(1));
     }
 
-    @DisplayName("getBoardEntries, I'm a member, should retrieve all entries")
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve all board entries THEN I should retrieve all " +
+            "entries of the board")
     @Test
     public void test_getBoardEntries_member_shouldWork() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT",
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5), new BigDecimal("123"), "CAT",
                 null);
-        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT",
+        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 1, 10), new BigDecimal("456"), "CAT",
                 null);
         List<BoardEntry> entries = getBoardEntriesOk(auth2, board.getId());
         assertEquals(2, entries.size());
     }
 
-    @DisplayName("getBoardEntries, I'm not a member, should fail")
+    @DisplayName("GIVEN I am not a member of the board WHEN I retrieve all board entries THEN I should receive an " + "error")
     @Test
     public void test_getBoardEntries_notMember_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT",
+        Board board = addBoardOk(auth1, "board1");
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5), new BigDecimal("123"), "CAT",
                 null);
         getBoardEntries(auth3, board.getId()).andExpect(error403());
     }
 
-    @DisplayName("getBoardEntries, I'm the owner, should retrieve all entries")
+    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve all board entries THEN I should retrieve all " + "entries")
     @Test
     public void test_getBoardEntries_owner_shouldWork() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT",
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5), new BigDecimal("123"), "CAT",
                 null);
-        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT",
+        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 1, 10), new BigDecimal("456"), "CAT",
                 null);
         List<BoardEntry> entries = getBoardEntriesOk(auth1, board.getId());
         assertEquals(2, entries.size());
     }
 
-    @DisplayName("getBoardEntry, I'm a member, board and boardEntry are not connected, should fail")
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve one board entry with wrong IDs THEN I should " +
+            "receive an error")
     @Test
     public void test_getBoardEntry_member_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-        Board board2 = addBoardOk(auth1, "board2", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
+        Board board2 = addBoardOk(auth1, "board2");
 
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5),
                 new BigDecimal("123"), "CAT", null);
         getBoardEntry(auth1, board2.getId(), entry.getId()).andExpect(error500());
     }
 
-    @DisplayName("getBoardEntry, I'm a member, should retrieve entry")
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve one board entry THEN I should retrieve the entry")
     @Test
     public void test_getBoardEntry_member_shouldWork() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
 
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5),
                 new BigDecimal("123"), "CAT", null);
         BoardEntry actual = getBoardEntryOk(auth2, board.getId(), entry.getId());
         validateBoardEntry(entry.getBoardId(), entry.getOwnerId(), entry.getDate(), entry.getAmount(),
                 entry.getCategory(), entry.getDescription(), actual);
     }
 
-    @DisplayName("getBoardEntry, I'm not a member, should fail")
+    @DisplayName("GIVEN I am not a member of the board WHEN I retrieve one board entry THEN I should receive an error")
     @Test
     public void test_getBoardEntry_notMember_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
 
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5),
                 new BigDecimal("123"), "CAT", null);
         getBoardEntry(auth2, board.getId(), entry.getId()).andExpect(error403());
     }
 
-    @DisplayName("getBoardUsers, I'm a member, should work")
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve board users of the board THEN I should retrieve " + "the board users")
     @Test
     public void test_getBoardUsers_member_shouldWork() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
 
         List<BoardUser> users = getBoardUsersOk(auth2, board.getId());
@@ -349,18 +345,20 @@ public class BoardTests {
                                                 .getRole());
     }
 
-    @DisplayName("getBoardUsers, I'm not a member, should fail")
+    @DisplayName("GIVEN I am not a member of the board WHEN I retrieve board users of the board THEN I should " +
+            "retrieve an error")
     @Test
     public void test_getBoardUsers_notMember_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
 
         getBoardUsers(auth2, board.getId()).andExpect(error403());
     }
 
-    @DisplayName("getBoardUsers, I'm the owner, should work")
+    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve board users of the board THEN I should retrieve "
+            + "the board users")
     @Test
     public void test_getBoardUsers_owner_shouldWork() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
 
         List<BoardUser> users = getBoardUsersOk(auth1, board.getId());
@@ -373,47 +371,48 @@ public class BoardTests {
                                                 .getRole());
     }
 
-    @DisplayName("getBoard, I'm a member, I should see the board")
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve the board THEN the board should be retrieved")
     @Test
     public void test_getBoard_member_shouldReturnBoard() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
         Board board1 = getBoardOk(auth2, board.getId().toString());
-        validateBoard("board1", board.getId(), board);
+        validateBoard("board1", board.getId(), board1);
     }
 
-    @DisplayName("getBoard, I'm not part of the board, it should fail")
+    @DisplayName("GIVEN I am not a member of the board WHEN I retrieve the board THEN I should receive an error")
     @Test
     public void test_getBoard_notMember_shouldFail() throws Exception {
-        Board board1 = addBoardOk(auth1, "board", user1.getId());
+        Board board1 = addBoardOk(auth1, "board");
         getBoard(auth2, board1.getId().toString()).andExpect(error403());
     }
 
-    @DisplayName("getBoard, I'm the owner, I should see the board")
+    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve the board THEN I should retrieve the board")
     @Test
     public void test_getBoard_owned_shouldReturnBoard() throws Exception {
-        Board board1 = addBoardOk(auth1, "board1", user1.getId());
+        Board board1 = addBoardOk(auth1, "board1");
         Board board = getBoardOk(auth1, board1.getId().toString());
         validateBoard("board1", board1.getId(), board);
     }
 
-    @DisplayName("getBoard, I'm unauthorized, should fail")
+    @DisplayName("GIVEN I am not logged in WHEN I retrieve the board THEN I should receive an unauthorized error")
     @Test
     public void test_getBoard_unknown_shouldReturnBoard() throws Exception {
         mockMvc.perform(get("/user")).andExpect(status().isUnauthorized());
     }
 
-    @DisplayName("getBoards, multiple cases (owner, member, not a member)")
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve the boards THEN I should receive only the boards "
+            + "I'm a member of")
     @Test
     public void test_getBoards_shouldReturnBoards() throws Exception {
-        Board board1 = addBoardOk(auth1, "board1", user1.getId());
+        Board board1 = addBoardOk(auth1, "board1");
         log.info("user1 is owner of board1");
 
-        Board board2 = addBoardOk(auth2, "board2", user2.getId());
+        Board board2 = addBoardOk(auth2, "board2");
         joinBoard(auth2, auth1, board2.getId());
         log.info("user1 is member of board2");
 
-        Board board3 = addBoardOk(auth3, "board3", user3.getId());
+        Board board3 = addBoardOk(auth3, "board3");
         log.info("user1 is not in board3");
 
         List<Board> boards = getBoardsOk(auth1);
@@ -424,18 +423,20 @@ public class BoardTests {
                            .orElseThrow(() -> new NoSuchElementException("Missing board2"));
         validateBoard(board1.getName(), board1.getId(), out1);
         validateBoard(board2.getName(), board2.getId(), out2);
+        assertFalse(boards.stream().anyMatch(b -> b.getId().equals(board3.getId())));
     }
 
-    @DisplayName("getCategories, should retrieve all entries")
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve the categories THEN I should retrieve all " +
+            "categories")
     @Test
     public void test_getCategories_shouldWork() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
 
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT1",
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5), new BigDecimal("123"), "CAT1",
                 null);
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT2",
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 10), new BigDecimal("456"), "CAT2",
                 null);
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT2",
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 10), new BigDecimal("456"), "CAT2",
                 null);
         List<String> entries = getCategoriesOk(auth1, board.getId());
         assertEquals(2, entries.size());
@@ -443,67 +444,67 @@ public class BoardTests {
         assertTrue(entries.stream().anyMatch(c -> c.equals("CAT2")));
     }
 
-    @DisplayName("updateBoardEntry, I'm a member, should update the entry")
+    @DisplayName("GIVEN I am a member of the board WHEN I update a board entry THEN the entry should be updated")
     @Test
     public void test_updateBoardEntry_member_shouldCreateEntry() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
 
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 02),
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 2),
                 new BigDecimal("100.15"), "CATEGORY", "description");
-        validateBoardEntry(board.getId(), user1.getId(), LocalDate.of(2022, 01, 02), new BigDecimal("100.15"),
+        validateBoardEntry(board.getId(), user1.getId(), LocalDate.of(2022, 1, 2), new BigDecimal("100.15"),
                 "CATEGORY", "description", entry);
 
         BoardEntry updated = updateBoardEntryOk(auth2, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023
-                , 03, 04), new BigDecimal("10"), "NEW CATEGORY", "new description");
-        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
+                , 3, 4), new BigDecimal("10"), "NEW CATEGORY", "new description");
+        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 3, 4), new BigDecimal("10"), "NEW " +
                 "CATEGORY", "new description", updated);
         assertEquals(entry.getId(), updated.getId());
 
         BoardEntry updated2 = getBoardEntriesOk(auth2, board.getId()).get(0);
-        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
+        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 3, 4), new BigDecimal("10"), "NEW " +
                 "CATEGORY", "new description", updated2);
         assertEquals(entry.getId(), updated2.getId());
     }
 
-    @DisplayName("updateBoardEntry, I'm not a member, it should fail")
+    @DisplayName("GIVEN I am not a member of the board WHEN I update a board entry THEN I should receive an error")
     @Test
     public void test_updateBoardEntry_notMember_shouldFail() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
 
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 02),
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 2),
                 new BigDecimal("100.15"), "CATEGORY", "description");
-        validateBoardEntry(board.getId(), user1.getId(), LocalDate.of(2022, 01, 02), new BigDecimal("100.15"),
+        validateBoardEntry(board.getId(), user1.getId(), LocalDate.of(2022, 1, 2), new BigDecimal("100.15"),
                 "CATEGORY", "description", entry);
 
         log.info("A user that is not part of the board cannot edit it");
-        updateBoardEntry(auth2, board.getId(), entry.getId(), user1.getId(), LocalDate.of(2023, 03, 04),
+        updateBoardEntry(auth2, board.getId(), entry.getId(), user1.getId(), LocalDate.of(2023, 3, 4),
                 new BigDecimal("10"), "NEW CATEGORY", "new description").andExpect(error403());
 
         log.info("A user that is not part of the board cannot be assigned to its resources");
-        updateBoardEntry(auth1, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023, 03, 04),
+        updateBoardEntry(auth1, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023, 3, 4),
                 new BigDecimal("10"), "NEW CATEGORY", "new description").andExpect(error403());
     }
 
-    @DisplayName("updateBoardEntry, I'm the owner, should update the entry")
+    @DisplayName("GIVEN I am the owner of the board WHEN I update a board entry THEN the entry should be updated")
     @Test
     public void test_updateBoardEntry_owner_shouldUpdate() throws Exception {
-        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
 
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 02),
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 2),
                 new BigDecimal("100.15"), "CATEGORY", "description");
-        validateBoardEntry(board.getId(), user1.getId(), LocalDate.of(2022, 01, 02), new BigDecimal("100.15"),
+        validateBoardEntry(board.getId(), user1.getId(), LocalDate.of(2022, 1, 2), new BigDecimal("100.15"),
                 "CATEGORY", "description", entry);
 
         BoardEntry updated = updateBoardEntryOk(auth1, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023
-                , 03, 04), new BigDecimal("10"), "NEW CATEGORY", "new description");
-        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
+                , 3, 4), new BigDecimal("10"), "NEW CATEGORY", "new description");
+        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 3, 4), new BigDecimal("10"), "NEW " +
                 "CATEGORY", "new description", updated);
         assertEquals(entry.getId(), updated.getId());
 
         BoardEntry updated2 = getBoardEntriesOk(auth1, board.getId()).get(0);
-        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
+        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 3, 4), new BigDecimal("10"), "NEW " +
                 "CATEGORY", "new description", updated2);
         assertEquals(entry.getId(), updated2.getId());
     }
@@ -560,7 +561,7 @@ public class BoardTests {
         return cs.jsonPayload(addBoardInvite(auth, boardId).andExpect(ok()), BoardInvite.class);
     }
 
-    private Board addBoardOk(RequestPostProcessor auth, String boardName, Long ownerId) throws Exception {
+    private Board addBoardOk(RequestPostProcessor auth, String boardName) throws Exception {
         Board board = cs.jsonPayload(addBoard(auth, boardName).andExpect(ok()), Board.class);
         validateBoard(boardName, null, board);
         return board;
@@ -615,7 +616,7 @@ public class BoardTests {
 
     private List<MonthlyUserAnalysis> getBoardAnalysisMonthUserOk(RequestPostProcessor auth, UUID boardId) throws Exception {
         return cs.jsonPayloadList(getBoardAnalysisMonthUser(auth, boardId).andExpect(ok()),
-                new TypeReference<List<MonthlyUserAnalysis>>() {
+                new TypeReference<>() {
                 });
     }
 
@@ -625,7 +626,7 @@ public class BoardTests {
 
     private List<BoardEntry> getBoardEntriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
         return cs.jsonPayloadList(getBoardEntries(auth, boardId).andExpect(ok()),
-                new TypeReference<List<BoardEntry>>() {
+                new TypeReference<>() {
                 });
     }
 
@@ -646,7 +647,7 @@ public class BoardTests {
     }
 
     private List<BoardSplit> getBoardSplitsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardSplits(auth, boardId).andExpect(ok()), new TypeReference<List<BoardSplit>>() {
+        return cs.jsonPayloadList(getBoardSplits(auth, boardId).andExpect(ok()), new TypeReference<>() {
         });
     }
 
@@ -655,7 +656,7 @@ public class BoardTests {
     }
 
     private List<BoardUser> getBoardUsersOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardUsers(auth, boardId).andExpect(ok()), new TypeReference<List<BoardUser>>() {
+        return cs.jsonPayloadList(getBoardUsers(auth, boardId).andExpect(ok()), new TypeReference<>() {
         });
     }
 
@@ -665,7 +666,7 @@ public class BoardTests {
     }
 
     private List<Board> getBoardsOk(RequestPostProcessor auth) throws Exception {
-        return cs.jsonPayloadList(getBoards(auth).andExpect(ok()), new TypeReference<List<Board>>() {
+        return cs.jsonPayloadList(getBoards(auth).andExpect(ok()), new TypeReference<>() {
         });
     }
 
@@ -674,7 +675,7 @@ public class BoardTests {
     }
 
     private List<String> getCategoriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getCategories(auth, boardId).andExpect(ok()), new TypeReference<List<String>>() {
+        return cs.jsonPayloadList(getCategories(auth, boardId).andExpect(ok()), new TypeReference<>() {
         });
     }
 
@@ -770,11 +771,6 @@ public class BoardTests {
         });
     }
 
-    private void validateBoardUser(Long userId, BoardUserRole role, BoardUser actual) {
-        assertEquals(userId, actual.getUser().getId());
-        assertEquals(role, actual.getRole());
-    }
-
     private void validateMonthlyUserAnalysis(int year, int month, List<UserAmount> users, MonthlyUserAnalysis actual) {
         assertEquals(year, actual.getYear());
         assertEquals(month, actual.getMonth());
@@ -788,20 +784,5 @@ public class BoardTests {
         }
         String username = mockAuth.username(uid);
         assertEquals(username, actual.getUsername());
-    }
-
-    private void validateUserAmount(UserAmount expected, UserAmount actual) {
-        assertEquals(expected.getUserId(), actual.getUserId());
-        assertEquals(0, expected.getExpected().compareTo(actual.getExpected()));
-        assertEquals(0, expected.getActual().compareTo(actual.getActual()));
-    }
-
-    private void validateUserAmounts(List<UserAmount> expected, List<UserAmount> actual) {
-        assertEquals(expected.size(), actual.size());
-        expected.forEach(e -> {
-            UserAmount actualEntry = actual.stream().filter(a -> a.getUserId() == e.getUserId()).findFirst()
-                                           .orElseThrow(() -> new NoSuchElementException("Missing entry for " + e));
-            validateUserAmount(e, actualEntry);
-        });
     }
 }
