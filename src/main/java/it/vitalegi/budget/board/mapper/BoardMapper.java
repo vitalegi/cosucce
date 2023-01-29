@@ -3,10 +3,12 @@ package it.vitalegi.budget.board.mapper;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
+import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
+import it.vitalegi.budget.board.entity.BoardInviteEntity;
 import it.vitalegi.budget.board.entity.BoardSplitEntity;
 import it.vitalegi.budget.board.entity.BoardUserEntity;
 import it.vitalegi.budget.user.mapper.UserMapper;
@@ -36,14 +38,12 @@ public class BoardMapper {
     public BoardEntry map(BoardEntryEntity source) {
         BoardEntry dto = new BoardEntry();
         dto.setId(source.getId());
-        dto.setBoardId(source.getBoard()
-                             .getId());
+        dto.setBoardId(source.getBoard().getId());
         dto.setDate(source.getDate());
         dto.setCategory(source.getCategory());
         dto.setAmount(source.getAmount());
         dto.setDescription(source.getDescription());
-        dto.setOwnerId(source.getOwner()
-                             .getId());
+        dto.setOwnerId(source.getOwner().getId());
         dto.setCreationDate(source.getCreationDate());
         dto.setLastUpdate(source.getLastUpdate());
         return dto;
@@ -56,8 +56,7 @@ public class BoardMapper {
 
     public List<BoardUser> map(List<BoardUserEntity> entities) {
         return entities.stream()//
-                       .map(this::map)
-                       .collect(Collectors.toList());
+                       .map(this::map).collect(Collectors.toList());
     }
 
     public BoardUser map(BoardUserEntity entity) {
@@ -70,8 +69,14 @@ public class BoardMapper {
     public BoardSplit map(BoardSplitEntity entity) {
         BoardSplit dto = ObjectUtil.copy(entity, new BoardSplit());
         dto.setBoardId(entity.getId());
-        dto.setUserId(entity.getUser()
-                            .getId());
+        dto.setUserId(entity.getUser().getId());
+        return dto;
+    }
+
+    public BoardInvite map(BoardInviteEntity entity) {
+        BoardInvite dto = ObjectUtil.copy(entity, new BoardInvite());
+        dto.setBoardId(entity.getBoard().getId());
+        dto.setOwnerId(entity.getOwner().getId());
         return dto;
     }
 }

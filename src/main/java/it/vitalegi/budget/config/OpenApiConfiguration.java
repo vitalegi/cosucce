@@ -33,9 +33,13 @@ public class OpenApiConfiguration {
         };
     }
 
-    protected void unauthorised(ApiResponses apiResponses) {
-        ApiResponse apiResponse = new ApiResponse().description("Unauthorized");
-        apiResponses.addApiResponse("401", apiResponse);
+    protected Content error() {
+        return new Content().addMediaType(APPLICATION_JSON_VALUE, errorMediaType());
+    }
+
+    protected MediaType errorMediaType() {
+        return new MediaType().schema(ModelConverters.getInstance()
+                                                     .resolveAsResolvedSchema(new AnnotatedType(ErrorResponse.class)).schema);
     }
 
     protected void forbidden(ApiResponses apiResponses) {
@@ -50,13 +54,9 @@ public class OpenApiConfiguration {
         apiResponses.addApiResponse("500", apiResponse);
     }
 
-    protected Content error() {
-        return new Content().addMediaType(APPLICATION_JSON_VALUE, errorMediaType());
-    }
-
-    protected MediaType errorMediaType() {
-        return new MediaType().schema(ModelConverters.getInstance()
-                                                     .resolveAsResolvedSchema(new AnnotatedType(ErrorResponse.class)).schema);
+    protected void unauthorised(ApiResponses apiResponses) {
+        ApiResponse apiResponse = new ApiResponse().description("Unauthorized");
+        apiResponses.addApiResponse("401", apiResponse);
     }
 
 

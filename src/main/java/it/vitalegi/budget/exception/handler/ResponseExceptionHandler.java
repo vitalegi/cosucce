@@ -38,6 +38,13 @@ public class ResponseExceptionHandler {
                                                        .getName(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(PermissionException.class)
+    public ResponseEntity<ErrorResponse> handle(PermissionException e) {
+        log(e);
+        return new ResponseEntity<>(new ErrorResponse(e.getClass()
+                                                       .getName(), e.getMessage()), HttpStatus.FORBIDDEN);
+    }
+
     protected void log(Throwable e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
@@ -54,12 +61,5 @@ public class ResponseExceptionHandler {
                                                       .anyMatch(skip -> s.contains(skip)))
                              .collect(Collectors.joining(lineSeparator));
         log.error(error);
-    }
-
-    @ExceptionHandler(PermissionException.class)
-    public ResponseEntity<ErrorResponse> handle(PermissionException e) {
-        log(e);
-        return new ResponseEntity<>(new ErrorResponse(e.getClass()
-                                                       .getName(), e.getMessage()), HttpStatus.FORBIDDEN);
     }
 }

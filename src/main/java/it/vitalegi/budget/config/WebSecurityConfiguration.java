@@ -55,12 +55,6 @@ public class WebSecurityConfiguration {
         return http.build();
     }
 
-    Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new GrantedAuthoritiesExtractor());
-        return jwtAuthenticationConverter;
-    }
-
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         log.info("CORS configuration");
@@ -76,5 +70,11 @@ public class WebSecurityConfiguration {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new GrantedAuthoritiesExtractor());
+        return jwtAuthenticationConverter;
     }
 }

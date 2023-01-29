@@ -39,18 +39,9 @@ public class PerformanceAspect {
         }
     }
 
-    protected Type type(ProceedingJoinPoint joinPoint) {
-        Annotation annotation = joinPoint.getSignature()
-                                         .getDeclaringType()
-                                         .getAnnotation(Performance.class);
-        if (annotation != null) {
-            return ((Performance) annotation).value();
-        }
-        return null;
-    }
-
-    protected long time(long startTime) {
-        return System.currentTimeMillis() - startTime;
+    protected String exName(Throwable e) {
+        return e.getClass()
+                .getSimpleName();
     }
 
     protected String getName(ProceedingJoinPoint joinPoint) {
@@ -65,8 +56,17 @@ public class PerformanceAspect {
         return e;
     }
 
-    protected String exName(Throwable e) {
-        return e.getClass()
-                .getSimpleName();
+    protected long time(long startTime) {
+        return System.currentTimeMillis() - startTime;
+    }
+
+    protected Type type(ProceedingJoinPoint joinPoint) {
+        Annotation annotation = joinPoint.getSignature()
+                                         .getDeclaringType()
+                                         .getAnnotation(Performance.class);
+        if (annotation != null) {
+            return ((Performance) annotation).value();
+        }
+        return null;
     }
 }

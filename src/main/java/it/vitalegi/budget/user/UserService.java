@@ -26,19 +26,6 @@ public class UserService {
     @Autowired
     UserMapper mapper;
 
-    @Transactional
-    public void importCurrentUser() {
-        String id = authenticationService.getUid();
-        if (userRepository.findByUid(id) != null) {
-            return;
-        }
-        log.info("User {} is unknown, import.", id);
-        UserEntity user = new UserEntity();
-        user.setUid(id);
-        user.setUsername(authenticationService.getName());
-        userRepository.save(user);
-    }
-
     public User getCurrentUser() {
         return mapper.map(getCurrentUserEntity());
     }
@@ -51,5 +38,18 @@ public class UserService {
     public UserEntity getUserEntity(long id) {
         return userRepository.findById(id)
                              .get();
+    }
+
+    @Transactional
+    public void importCurrentUser() {
+        String id = authenticationService.getUid();
+        if (userRepository.findByUid(id) != null) {
+            return;
+        }
+        log.info("User {} is unknown, import.", id);
+        UserEntity user = new UserEntity();
+        user.setUid(id);
+        user.setUsername(authenticationService.getName());
+        userRepository.save(user);
     }
 }

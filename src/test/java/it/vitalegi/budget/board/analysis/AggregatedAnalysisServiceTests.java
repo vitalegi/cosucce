@@ -28,66 +28,73 @@ public class AggregatedAnalysisServiceTests {
 
     AggregatedAnalysisService analysisService;
 
-    @BeforeEach
-    void init() {
-        analysisService = new AggregatedAnalysisService();
+    protected List<LocalDate> months(LocalDate firstDate, LocalDate lastDate) {
+        List<LocalDate> dates = new ArrayList<>();
+        LocalDate currentDate = firstDate;
+        while (!currentDate.isAfter(lastDate)) {
+            dates.add(currentDate);
+            currentDate = currentDate.plusMonths(1);
+        }
+        return dates;
     }
 
-    @DisplayName("getAnalysisByMonth should return the list of expenses, actual and expected, by user, by month")
-    @Test
-    void test_getAnalysisByMonth_shouldWork() {
-        List<BoardEntryGroupByMonthUserCategory> entries = new ArrayList<>();
-        entries.add(entry(2023, 1, 1, "a", "1"));
-        entries.add(entry(2023, 1, 2, "a", "1"));
+    protected List<Long> userIds(int n) {
+        return LongStream.range(0, n)
+                         .mapToObj(v -> v)
+                         .collect(Collectors.toList());
+    }
 
-        List<BoardSplit> splits = Arrays.asList(//
-                split(1, "0.5"), //
-                split(2, "0.5") //
-        );
-        List<MonthlyUserAnalysis> analysis = analysisService.getBoardAnalysisByMonthUser(entries, splits);
-        assertEquals(1, analysis.size());
-        MonthlyUserAnalysis entry = validateAndGetMonthlyUserAnalysis(2023, 1, 0, analysis);
-        assertEquals(2, entry.getUsers()
-                             .size());
-        validateUserAmount(entry, 1, "1", "1", "0");
-        validateUserAmount(entry, 2, "1", "1", "0");
+    List<BoardEntryGroupByMonthUserCategory> entries(LocalDate fromDate, LocalDate toDate, long userId,
+                                                     String category, String value) {
+        return months(fromDate, toDate).stream()
+                                       .map(date -> entry(date.getYear(), date.getMonthValue(), userId,
+                                               category, value))
+                                       .collect(Collectors.toList());
     }
 
     BoardEntryGroupByMonthUserCategory entry(int year, int month, long userId, String category, String value) {
         return new BoardEntryGroupByMonthUserCategory(year, month, userId, category, new BigDecimal(value));
     }
 
+    UserAmount getUserAmount(MonthlyUserAnalysis analysis, long userId) {
+        UserAmount value = analysis.getUsers()
+                                   .stream()
+                                   .filter(u -> u.getUserId() == userId)
+                                   .findFirst()
+                                   .orElse(null);
+        if (value != null) {
+            return value;
+        }
+        throw new NullPointerException("Cannot find " + userId + " in " + analysis);
+    }
+
+    @BeforeEach
+    void init() {
+        analysisService = new AggregatedAnalysisService();
+    }
+
+    void performanceTest(int years, int users, int ms) {
+        assertTimeout(Duration.ofMillis(ms), () -> performanceTest(years, users));
+    }
+
+    void performanceTest(int years, int users) {
+        List<BoardEntryGroupByMonthUserCategory> entries = new ArrayList<>();
+        List<BoardSplit> splits = new ArrayList<>();
+
+        LocalDate from = LocalDate.of(2020, 01, 01);
+        LocalDate to = LocalDate.of(2020 + years, 01, 01);
+
+        BigDecimal ratio = BigDecimal.ONE.divide(BigDecimal.valueOf(users), MathContext.DECIMAL32);
+        List<Long> ids = userIds(users);
+        ids.forEach(id -> {
+            entries.addAll(entries(from, to, id, "", "1"));
+            splits.add(split(id, ratio));
+        });
+        analysisService.getBoardAnalysisByMonthUser(entries, splits);
+    }
+
     BoardSplit split(long userId, String value) {
         return split(userId, null, null, null, null, new BigDecimal(value));
-    }
-
-    MonthlyUserAnalysis validateAndGetMonthlyUserAnalysis(int year, int month, int expectedIndex,
-                                                          List<MonthlyUserAnalysis> analysis) {
-        log.info("Expect to find year={}, month={} on index={}", year, month, expectedIndex);
-        MonthlyUserAnalysis obj = analysis.get(expectedIndex);
-        assertEquals(year, obj.getYear());
-        assertEquals(month, obj.getMonth());
-        return obj;
-    }
-
-    void validateUserAmount(MonthlyUserAnalysis analysis, long userId, String actual, String expected,
-                            String cumulatedCredit) {
-        UserAmount u = getUserAmount(analysis, userId);
-        assertEquals(userId, u.getUserId());
-
-        BigDecimal actualValue = new BigDecimal(actual);
-        BigDecimal expectedValue = new BigDecimal(expected);
-        BigDecimal cumulatedCreditValue = new BigDecimal(cumulatedCredit);
-
-        assertEquals(0, actualValue.compareTo(u.getActual()),
-                "Actual values are not equals. Expected=" + actualValue.toPlainString() + " Actual=" + u.getActual()
-                                                                                                        .toPlainString());
-        assertEquals(0, expectedValue.compareTo(u.getExpected()),
-                "Expected values are not equals. Expected=" + expectedValue.toPlainString() + " Actual=" + u.getExpected()
-                                                                                                            .toPlainString());
-        assertEquals(0, cumulatedCreditValue.compareTo(u.getCumulatedCredit()), "Expected values are not equals. " +
-                "Expected=" + cumulatedCreditValue.toPlainString() + " Actual=" + u.getCumulatedCredit()
-                                                                                   .toPlainString());
     }
 
     BoardSplit split(long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth,
@@ -104,16 +111,12 @@ public class AggregatedAnalysisServiceTests {
         return split;
     }
 
-    UserAmount getUserAmount(MonthlyUserAnalysis analysis, long userId) {
-        UserAmount value = analysis.getUsers()
-                                   .stream()
-                                   .filter(u -> u.getUserId() == userId)
-                                   .findFirst()
-                                   .orElse(null);
-        if (value != null) {
-            return value;
-        }
-        throw new NullPointerException("Cannot find " + userId + " in " + analysis);
+    BoardSplit split(long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, String value) {
+        return split(userId, fromYear, fromMonth, toYear, toMonth, new BigDecimal(value));
+    }
+
+    BoardSplit split(long userId, BigDecimal value) {
+        return split(userId, null, null, null, null, value);
     }
 
     @DisplayName("getAnalysisByMonth should return the list of expenses, actual and expected, by user, by month, " +
@@ -208,62 +211,10 @@ public class AggregatedAnalysisServiceTests {
         validateUserAmount(entry, 2, "1", "1.0", "0.8");
     }
 
-    List<BoardEntryGroupByMonthUserCategory> entries(LocalDate fromDate, LocalDate toDate, long userId,
-                                                     String category, String value) {
-        return months(fromDate, toDate).stream()
-                                       .map(date -> entry(date.getYear(), date.getMonthValue(), userId,
-                                               category, value))
-                                       .collect(Collectors.toList());
-    }
-
-    BoardSplit split(long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, String value) {
-        return split(userId, fromYear, fromMonth, toYear, toMonth, new BigDecimal(value));
-    }
-
-    protected List<LocalDate> months(LocalDate firstDate, LocalDate lastDate) {
-        List<LocalDate> dates = new ArrayList<>();
-        LocalDate currentDate = firstDate;
-        while (!currentDate.isAfter(lastDate)) {
-            dates.add(currentDate);
-            currentDate = currentDate.plusMonths(1);
-        }
-        return dates;
-    }
-
     @DisplayName("getAnalysisByMonth - performance analysis - 20 years, 2 users - should complete in time")
     @Test
     void test_getAnalysisByMonth_performanceTest1() {
         performanceTest(20, 2, 100);
-    }
-
-    void performanceTest(int years, int users, int ms) {
-        assertTimeout(Duration.ofMillis(ms), () -> performanceTest(years, users));
-    }
-
-    void performanceTest(int years, int users) {
-        List<BoardEntryGroupByMonthUserCategory> entries = new ArrayList<>();
-        List<BoardSplit> splits = new ArrayList<>();
-
-        LocalDate from = LocalDate.of(2020, 01, 01);
-        LocalDate to = LocalDate.of(2020 + years, 01, 01);
-
-        BigDecimal ratio = BigDecimal.ONE.divide(BigDecimal.valueOf(users), MathContext.DECIMAL32);
-        List<Long> ids = userIds(users);
-        ids.forEach(id -> {
-            entries.addAll(entries(from, to, id, "", "1"));
-            splits.add(split(id, ratio));
-        });
-        analysisService.getBoardAnalysisByMonthUser(entries, splits);
-    }
-
-    protected List<Long> userIds(int n) {
-        return LongStream.range(0, n)
-                         .mapToObj(v -> v)
-                         .collect(Collectors.toList());
-    }
-
-    BoardSplit split(long userId, BigDecimal value) {
-        return split(userId, null, null, null, null, value);
     }
 
     @DisplayName("getAnalysisByMonth - performance analysis - 10 years, 10 users - should complete in time")
@@ -276,5 +227,54 @@ public class AggregatedAnalysisServiceTests {
     @Test
     void test_getAnalysisByMonth_performanceTest3() {
         performanceTest(20, 20, 200);
+    }
+
+    @DisplayName("getAnalysisByMonth should return the list of expenses, actual and expected, by user, by month")
+    @Test
+    void test_getAnalysisByMonth_shouldWork() {
+        List<BoardEntryGroupByMonthUserCategory> entries = new ArrayList<>();
+        entries.add(entry(2023, 1, 1, "a", "1"));
+        entries.add(entry(2023, 1, 2, "a", "1"));
+
+        List<BoardSplit> splits = Arrays.asList(//
+                split(1, "0.5"), //
+                split(2, "0.5") //
+        );
+        List<MonthlyUserAnalysis> analysis = analysisService.getBoardAnalysisByMonthUser(entries, splits);
+        assertEquals(1, analysis.size());
+        MonthlyUserAnalysis entry = validateAndGetMonthlyUserAnalysis(2023, 1, 0, analysis);
+        assertEquals(2, entry.getUsers()
+                             .size());
+        validateUserAmount(entry, 1, "1", "1", "0");
+        validateUserAmount(entry, 2, "1", "1", "0");
+    }
+
+    MonthlyUserAnalysis validateAndGetMonthlyUserAnalysis(int year, int month, int expectedIndex,
+                                                          List<MonthlyUserAnalysis> analysis) {
+        log.info("Expect to find year={}, month={} on index={}", year, month, expectedIndex);
+        MonthlyUserAnalysis obj = analysis.get(expectedIndex);
+        assertEquals(year, obj.getYear());
+        assertEquals(month, obj.getMonth());
+        return obj;
+    }
+
+    void validateUserAmount(MonthlyUserAnalysis analysis, long userId, String actual, String expected,
+                            String cumulatedCredit) {
+        UserAmount u = getUserAmount(analysis, userId);
+        assertEquals(userId, u.getUserId());
+
+        BigDecimal actualValue = new BigDecimal(actual);
+        BigDecimal expectedValue = new BigDecimal(expected);
+        BigDecimal cumulatedCreditValue = new BigDecimal(cumulatedCredit);
+
+        assertEquals(0, actualValue.compareTo(u.getActual()),
+                "Actual values are not equals. Expected=" + actualValue.toPlainString() + " Actual=" + u.getActual()
+                                                                                                        .toPlainString());
+        assertEquals(0, expectedValue.compareTo(u.getExpected()),
+                "Expected values are not equals. Expected=" + expectedValue.toPlainString() + " Actual=" + u.getExpected()
+                                                                                                            .toPlainString());
+        assertEquals(0, cumulatedCreditValue.compareTo(u.getCumulatedCredit()), "Expected values are not equals. " +
+                "Expected=" + cumulatedCreditValue.toPlainString() + " Actual=" + u.getCumulatedCredit()
+                                                                                   .toPlainString());
     }
 }

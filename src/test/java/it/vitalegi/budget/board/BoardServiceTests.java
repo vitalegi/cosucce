@@ -52,6 +52,38 @@ public class BoardServiceTests {
     BoardSplitRepository boardSplitRepository;
     BoardPermissionService boardPermissionService;
 
+    protected BoardSplitEntity boardSplit(BoardEntity board, BigDecimal ratio) {
+        BoardSplitEntity entity = new BoardSplitEntity();
+        entity.setBoard(board);
+        entity.setUser(randomUser());
+        entity.setValue1(ratio);
+        return entity;
+    }
+
+    protected BoardUserEntity boardUser(BoardEntity board) {
+        BoardUserEntity entity = new BoardUserEntity();
+        entity.setId(++RANDOM_ID);
+        entity.setUser(randomUser());
+        entity.setBoard(board);
+        entity.setRole(BoardUserRole.MEMBER.name());
+        return entity;
+    }
+
+    protected BoardEntity randomBoard(UUID boardId) {
+        BoardEntity entity = new BoardEntity();
+        entity.setName("name " + boardId);
+        entity.setId(boardId);
+        return entity;
+    }
+
+    protected UserEntity randomUser() {
+        UserEntity user = new UserEntity();
+        user.setId(++USER_ID);
+        user.setUsername("username_" + user.getId());
+        user.setUid("uid_" + user.getId());
+        return user;
+    }
+
     @BeforeEach
     void initTest() {
         service = new BoardService();
@@ -101,58 +133,6 @@ public class BoardServiceTests {
         assertEquals(mapperMock, board);
     }
 
-
-    @DisplayName("getBoardSplits, with splits available, should return splits")
-    @Test
-    void test_getBoardSplits_splitsAvailable_shouldReturnExistingSplits() {
-        UUID boardId = UUID.randomUUID();
-        List<BoardSplitEntity> entities = new ArrayList<>();
-        BoardEntity board = randomBoard(boardId);
-        BoardSplitEntity s1 = boardSplit(board, new BigDecimal("0.30"));
-        BoardSplitEntity s2 = boardSplit(board, new BigDecimal("0.70"));
-        entities.add(s1);
-        entities.add(s2);
-        when(boardSplitRepository.findByBoardId(boardId)).thenReturn(entities);
-        List<BoardSplit> out = service.getBoardSplits(boardId);
-        assertEquals(s1.getValue1(),
-                out.stream()
-                   .filter(o -> o.getUserId() == s1.getUser()
-                                                   .getId())
-                   .findFirst()
-                   .orElse(null)
-                   .getValue1());
-        assertEquals(s2.getValue1(),
-                out.stream()
-                   .filter(o -> o.getUserId() == s2.getUser()
-                                                   .getId())
-                   .findFirst()
-                   .orElse(null)
-                   .getValue1());
-    }
-
-    protected BoardEntity randomBoard(UUID boardId) {
-        BoardEntity entity = new BoardEntity();
-        entity.setName("name " + boardId);
-        entity.setId(boardId);
-        return entity;
-    }
-
-    protected BoardSplitEntity boardSplit(BoardEntity board, BigDecimal ratio) {
-        BoardSplitEntity entity = new BoardSplitEntity();
-        entity.setBoard(board);
-        entity.setUser(randomUser());
-        entity.setValue1(ratio);
-        return entity;
-    }
-
-    protected UserEntity randomUser() {
-        UserEntity user = new UserEntity();
-        user.setId(++USER_ID);
-        user.setUsername("username_" + user.getId());
-        user.setUid("uid_" + user.getId());
-        return user;
-    }
-
     @DisplayName("getBoardSplits, if there are no splits available, create default ones with 1/n ratio")
     @Test
     void test_getBoardSplits_noSplits_shouldCreateDefaultValues() {
@@ -187,12 +167,31 @@ public class BoardServiceTests {
                                                 .getValue1());
     }
 
-    protected BoardUserEntity boardUser(BoardEntity board) {
-        BoardUserEntity entity = new BoardUserEntity();
-        entity.setId(++RANDOM_ID);
-        entity.setUser(randomUser());
-        entity.setBoard(board);
-        entity.setRole(BoardUserRole.MEMBER.name());
-        return entity;
+    @DisplayName("getBoardSplits, with splits available, should return splits")
+    @Test
+    void test_getBoardSplits_splitsAvailable_shouldReturnExistingSplits() {
+        UUID boardId = UUID.randomUUID();
+        List<BoardSplitEntity> entities = new ArrayList<>();
+        BoardEntity board = randomBoard(boardId);
+        BoardSplitEntity s1 = boardSplit(board, new BigDecimal("0.30"));
+        BoardSplitEntity s2 = boardSplit(board, new BigDecimal("0.70"));
+        entities.add(s1);
+        entities.add(s2);
+        when(boardSplitRepository.findByBoardId(boardId)).thenReturn(entities);
+        List<BoardSplit> out = service.getBoardSplits(boardId);
+        assertEquals(s1.getValue1(),
+                out.stream()
+                   .filter(o -> o.getUserId() == s1.getUser()
+                                                   .getId())
+                   .findFirst()
+                   .orElse(null)
+                   .getValue1());
+        assertEquals(s2.getValue1(),
+                out.stream()
+                   .filter(o -> o.getUserId() == s2.getUser()
+                                                   .getId())
+                   .findFirst()
+                   .orElse(null)
+                   .getValue1());
     }
 }

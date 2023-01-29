@@ -6,14 +6,17 @@ import it.vitalegi.budget.board.analysis.dto.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
+import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
+import it.vitalegi.budget.board.entity.BoardInviteEntity;
 import it.vitalegi.budget.board.entity.BoardSplitEntity;
 import it.vitalegi.budget.board.entity.BoardUserEntity;
 import it.vitalegi.budget.board.mapper.BoardMapper;
 import it.vitalegi.budget.board.repository.BoardEntryRepository;
+import it.vitalegi.budget.board.repository.BoardInviteRepository;
 import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.board.repository.BoardSplitRepository;
 import it.vitalegi.budget.board.repository.BoardUserRepository;
@@ -65,6 +68,9 @@ public class BoardService {
     @Autowired
     AggregatedAnalysisService aggregatedAnalysisService;
 
+    @Autowired
+    BoardInviteRepository boardInviteRepository;
+
     @Transactional
     public Board addBoard(String name) {
         UserEntity owner = userService.getCurrentUserEntity();
@@ -83,23 +89,6 @@ public class BoardService {
         boardUserRepository.save(entity);
         log.info("User is owner of board. Board={}, User={}", out.getId(), owner.getId());
         return mapper.map(out);
-    }
-
-    public Board getBoard(UUID id) {
-        BoardEntity board = getBoardEntity(id);
-        return mapper.map(board);
-    }
-
-    public BoardEntity getBoardEntity(UUID id) {
-        boardPermissionService.checkGrant(id, BoardGrant.BOARD_VIEW);
-        return boardRepository.findById(id).get();
-    }
-
-    public List<Board> getVisibleBoards() {
-        Iterable<BoardEntity> boards = boardRepository.findVisibleBoards(userService.getCurrentUser().getId());
-        return StreamSupport.stream(boards.spliterator(), false) //
-                            .map(board -> mapper.map(board)) //
-                            .collect(Collectors.toList());
     }
 
     public BoardEntry addBoardEntry(UUID boardId, BoardEntry boardEntry) {
@@ -128,105 +117,21 @@ public class BoardService {
         return mapper.map(newEntry);
     }
 
-    @Transactional
-    public BoardEntry updateBoardEntry(UUID boardId, BoardEntry boardEntry) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
-        log.info("Current user can edit board entries");
+    public BoardInvite addBoardInvite(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_MANAGE_MEMBER);
 
-        UserEntity author = userService.getUserEntity(boardEntry.getOwnerId());
-        boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
-        log.info("Author {} can edit board entries", author.getId());
-
-        BoardEntryEntity entry = boardEntryRepository.findById(boardEntry.getId()).get();
-        entry.setDate(boardEntry.getDate());
-        entry.setLastUpdate(LocalDateTime.now());
-        entry.setOwner(author);
-        entry.setCategory(boardEntry.getCategory());
-        entry.setDescription(boardEntry.getDescription());
-        entry.setAmount(boardEntry.getAmount());
-        BoardEntryEntity newEntry = boardEntryRepository.save(entry);
-        log.info("Updated boardEntry. board={}, ownerId={}, entryId={}", boardId, boardEntry.getOwnerId(),
-                newEntry.getId());
-        return mapper.map(newEntry);
-    }
-
-
-    public List<BoardEntry> getBoardEntries(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
-        List<BoardEntryEntity> entries = boardEntryRepository.findByBoardId(boardId);
-        return StreamSupport.stream(entries.spliterator(), false).map(mapper::map).collect(Collectors.toList());
-    }
-
-    public BoardEntry getBoardEntry(UUID boardId, UUID boardEntryId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
-        Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);
-        if (entry.isEmpty()) {
-            throw new IllegalArgumentException("entry doesn't exist");
-        }
-        BoardEntryEntity value = entry.get();
-        if (!value.getBoard().getId().equals(boardId)) {
-            throw new IllegalArgumentException("entry not related to this board. Entry=" + boardEntryId + ", Board=" + boardId);
-        }
-        return mapper.map(value);
-    }
-
-    public void deleteBoardEntry(UUID boardId, UUID boardEntryId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
-        Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);
-        if (entry.isEmpty()) {
-            throw new IllegalArgumentException("entry doesn't exist");
-        }
-        BoardEntryEntity value = entry.get();
-        if (!value.getBoard().getId().equals(boardId)) {
-            throw new IllegalArgumentException("entry not related to this board. Entry=" + boardEntryId + ", Board=" + boardId);
-        }
-        boardEntryRepository.deleteById(boardEntryId);
-    }
-
-    public List<String> getCategories(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
-        List<String> categories = boardEntryRepository.findCategories(boardId);
-        categories.sort((a, b) -> a.compareTo(b));
-        return categories;
-    }
-
-    public List<BoardUser> getBoardUsers(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
-        List<BoardUserEntity> boardUsers = boardUserRepository.findByBoard_Id(boardId);
-        return mapper.map(boardUsers);
-    }
-
-
-    public BoardUser addBoardUser(BoardEntity board, UserEntity user, BoardUserRole role) {
-        BoardUserEntity entry = addBoardUserEntity(board, user, role);
-        return mapper.map(entry);
-    }
-
-    @Transactional
-    public BoardUserEntity addBoardUserEntity(BoardEntity board, UserEntity user, BoardUserRole role) {
-        boardPermissionService.checkGrant(board.getId(), BoardGrant.BOARD_USER_ROLE_EDIT);
         UserEntity currentUser = userService.getCurrentUserEntity();
-        if (user.getId() == currentUser.getId()) {
-            throw new IllegalArgumentException("Cannot change self role");
-        }
-        List<BoardUserEntity> entries = boardUserRepository.findByBoard_Id(board.getId());
-        List<BoardUserEntity> rolesOfUser = entries.stream().filter(e -> e.getUser().equals(user)) //
-                                                   .collect(Collectors.toList());
-        if (rolesOfUser.isEmpty()) {
-            log.info("ADD_BOARD_USER board={}, user={}, owner={}, role={}", board.getId(), user.getId(),
-                    currentUser.getId(), role);
-            BoardUserEntity entity = new BoardUserEntity();
-            entity.setBoard(board);
-            entity.setUser(user);
-            entity.setRole(role.name());
-            return boardUserRepository.save(entity);
-        } else {
-            log.info("UPDATE_BOARD_USER board={}, user={}, owner={}, role={}", board.getId(), user.getId(),
-                    currentUser.getId(), role);
-            BoardUserEntity entity = rolesOfUser.get(0);
-            entity.setRole(role.name());
-            return boardUserRepository.save(entity);
-        }
+        BoardEntity board = getBoardEntity(boardId);
+
+        BoardInviteEntity entity = new BoardInviteEntity();
+        entity.setOwner(currentUser);
+        LocalDateTime now = LocalDateTime.now();
+        entity.setCreationDate(now);
+        entity.setLastUpdate(now);
+        entity.setBoard(board);
+        BoardInviteEntity out = boardInviteRepository.save(entity);
+        log.info("ADD_BOARD_INVITE board={}, user={}, invite={}", board.getId(), currentUser.getId(), out.getId());
+        return mapper.map(out);
     }
 
     @Transactional
@@ -256,12 +161,149 @@ public class BoardService {
         return mapper.map(out);
     }
 
+    public void deleteBoardEntry(UUID boardId, UUID boardEntryId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);
+        if (entry.isEmpty()) {
+            throw new IllegalArgumentException("entry doesn't exist");
+        }
+        BoardEntryEntity value = entry.get();
+        if (!value.getBoard().getId().equals(boardId)) {
+            throw new IllegalArgumentException("entry not related to this board. Entry=" + boardEntryId + ", Board=" + boardId);
+        }
+        boardEntryRepository.deleteById(boardEntryId);
+    }
+
+    public void deleteBoardInvite(UUID boardId, UUID id) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_MANAGE_MEMBER);
+
+        BoardInviteEntity entry = boardInviteRepository.findById(id)
+                                                       .orElseThrow(() -> new IllegalArgumentException("Entry " + id + " doesn't exist."));
+
+        UUID entryBoardId = entry.getBoard().getId();
+        if (!entryBoardId.equals(boardId)) {
+            throw new IllegalArgumentException("Entry " + id + " referenced board " + entryBoardId + " is not " + boardId);
+        }
+        boardInviteRepository.delete(entry);
+        log.info("DELETE_BOARD_INVITE board={}, invite={}", entryBoardId, id);
+    }
+
+    public Board getBoard(UUID id) {
+        BoardEntity board = getBoardEntity(id);
+        return mapper.map(board);
+    }
+
     public List<MonthlyUserAnalysis> getBoardAnalysisByMonthUser(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
         List<BoardEntryGroupByMonthUserCategory> entries =
                 boardEntryRepository.getAggregatedBoardEntriesByMonthUserCategory(boardId);
         List<BoardSplit> splits = doGetBoardSplits(boardId);
         return aggregatedAnalysisService.getBoardAnalysisByMonthUser(entries, splits);
+    }
+
+    public BoardEntity getBoardEntity(UUID id) {
+        boardPermissionService.checkGrant(id, BoardGrant.BOARD_VIEW);
+        return boardRepository.findById(id).get();
+    }
+
+    public List<BoardEntry> getBoardEntries(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        List<BoardEntryEntity> entries = boardEntryRepository.findByBoardId(boardId);
+        return StreamSupport.stream(entries.spliterator(), false).map(mapper::map).collect(Collectors.toList());
+    }
+
+    public BoardEntry getBoardEntry(UUID boardId, UUID boardEntryId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);
+        if (entry.isEmpty()) {
+            throw new IllegalArgumentException("entry doesn't exist");
+        }
+        BoardEntryEntity value = entry.get();
+        if (!value.getBoard().getId().equals(boardId)) {
+            throw new IllegalArgumentException("entry not related to this board. Entry=" + boardEntryId + ", Board=" + boardId);
+        }
+        return mapper.map(value);
+    }
+
+    public List<BoardInvite> getBoardInvites(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_MANAGE_MEMBER);
+        List<BoardInviteEntity> invites = boardInviteRepository.findByBoardId(boardId);
+        return invites.stream().map(mapper::map).collect(Collectors.toList());
+    }
+
+    public List<BoardSplit> getBoardSplits(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        return doGetBoardSplits(boardId);
+    }
+
+    public List<BoardUser> getBoardUsers(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        List<BoardUserEntity> boardUsers = boardUserRepository.findByBoard_Id(boardId);
+        return mapper.map(boardUsers);
+    }
+
+    public List<String> getCategories(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        List<String> categories = boardEntryRepository.findCategories(boardId);
+        categories.sort((a, b) -> a.compareTo(b));
+        return categories;
+    }
+
+    public List<Board> getVisibleBoards() {
+        Iterable<BoardEntity> boards = boardRepository.findVisibleBoards(userService.getCurrentUser().getId());
+        return StreamSupport.stream(boards.spliterator(), false) //
+                            .map(board -> mapper.map(board)) //
+                            .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public BoardEntry updateBoardEntry(UUID boardId, BoardEntry boardEntry) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        log.info("Current user can edit board entries");
+
+        UserEntity author = userService.getUserEntity(boardEntry.getOwnerId());
+        boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        log.info("Author {} can edit board entries", author.getId());
+
+        BoardEntryEntity entry = boardEntryRepository.findById(boardEntry.getId()).get();
+        entry.setDate(boardEntry.getDate());
+        entry.setLastUpdate(LocalDateTime.now());
+        entry.setOwner(author);
+        entry.setCategory(boardEntry.getCategory());
+        entry.setDescription(boardEntry.getDescription());
+        entry.setAmount(boardEntry.getAmount());
+        BoardEntryEntity newEntry = boardEntryRepository.save(entry);
+        log.info("Updated boardEntry. board={}, ownerId={}, entryId={}", boardId, boardEntry.getOwnerId(),
+                newEntry.getId());
+        return mapper.map(newEntry);
+    }
+
+    @Transactional
+    public void useBoardInvite(UUID boardId, UUID inviteId) {
+        log.info("Use invite board={}, invite={}", boardId, inviteId);
+        BoardInviteEntity invite = boardInviteRepository.findById(inviteId).get();
+        if (invite == null) {
+            throw new IllegalArgumentException("Invite doesn't exist");
+        }
+        if (!invite.getBoard().getId().equals(boardId)) {
+            log.info("Using an invite of a different board. expected: {}, actual: {}");
+            throw new IllegalArgumentException("Invite and board don't match");
+        }
+        UserEntity currentUser = userService.getCurrentUserEntity();
+
+        BoardUserEntity membership = boardUserRepository.findUserBoard(boardId, currentUser.getId());
+        if (membership != null) {
+            log.debug("User {} is already member of board {} with role {}", currentUser.getId(), boardId,
+                    membership.getRole());
+            return;
+        }
+
+        log.info("ADD_BOARD_USER board={}, role={}, invite={}", boardId, BoardUserRole.MEMBER, inviteId);
+        BoardUserEntity entity = new BoardUserEntity();
+        entity.setBoard(invite.getBoard());
+        entity.setUser(currentUser);
+        entity.setRole(BoardUserRole.MEMBER.name());
+        boardUserRepository.save(entity);
     }
 
     protected List<BoardSplit> doGetBoardSplits(UUID boardId) {
@@ -294,11 +336,6 @@ public class BoardService {
 
     protected BigDecimal sum(Stream<BigDecimal> values) {
         return values.reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
-    }
-
-    public List<BoardSplit> getBoardSplits(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
-        return doGetBoardSplits(boardId);
     }
 
 }

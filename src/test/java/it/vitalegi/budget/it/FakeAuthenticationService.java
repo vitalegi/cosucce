@@ -13,13 +13,6 @@ import org.springframework.stereotype.Service;
 @Service
 @Primary
 public class FakeAuthenticationService extends AuthenticationService {
-    public String getUid() {
-        Authentication authentication = SecurityContextHolder.getContext()
-                                                             .getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        return user.getUsername();
-    }
-
     public String getName() {
         Authentication authentication = SecurityContextHolder.getContext()
                                                              .getAuthentication();
@@ -31,6 +24,13 @@ public class FakeAuthenticationService extends AuthenticationService {
                    .map(a -> a.substring("USERNAME:".length()))
                    .findFirst()
                    .orElseThrow();
+    }
+
+    public String getUid() {
+        Authentication authentication = SecurityContextHolder.getContext()
+                                                             .getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        return user.getUsername();
     }
 
     public boolean isVerified() {

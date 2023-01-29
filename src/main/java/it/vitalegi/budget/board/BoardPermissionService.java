@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_EDIT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_EDIT;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_MANAGE_MEMBER;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_USER_ROLE_EDIT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_VIEW;
 import static it.vitalegi.budget.board.constant.BoardUserRole.MEMBER;
@@ -38,7 +39,8 @@ public class BoardPermissionService {
 
     static {
         RBAC = new HashMap<>();
-        RBAC.put(OWNER, Arrays.asList(BOARD_VIEW, BOARD_EDIT, BOARD_ENTRY_EDIT, BOARD_USER_ROLE_EDIT));
+        RBAC.put(OWNER, Arrays.asList(BOARD_VIEW, BOARD_EDIT, BOARD_ENTRY_EDIT, BOARD_USER_ROLE_EDIT,
+                BOARD_MANAGE_MEMBER));
         RBAC.put(MEMBER, Arrays.asList(BOARD_VIEW, BOARD_ENTRY_EDIT));
     }
 
@@ -51,8 +53,13 @@ public class BoardPermissionService {
 
 
     public void checkGrant(UUID boardId, BoardGrant grant) {
-        if (!hasGrant(userService.getCurrentUser()
-                                 .getId(), boardId, grant)) {
+        if (!hasGrant(userService.getCurrentUser().getId(), boardId, grant)) {
+            throw new PermissionException("board", boardId.toString(), grant.name());
+        }
+    }
+
+    public void checkGrant(UserEntity user, UUID boardId, BoardGrant grant) {
+        if (!hasGrant(user.getId(), boardId, grant)) {
             throw new PermissionException("board", boardId.toString(), grant.name());
         }
     }
@@ -65,15 +72,8 @@ public class BoardPermissionService {
         BoardUserEntity role = boardUserRepository.findUserBoard(boardId, userId);
         if (role != null) {
             BoardUserRole userRole = BoardUserRole.valueOf(role.getRole());
-            return RBAC.get(userRole)
-                       .contains(grant);
+            return RBAC.get(userRole).contains(grant);
         }
         return false;
-    }
-
-    public void checkGrant(UserEntity user, UUID boardId, BoardGrant grant) {
-        if (!hasGrant(user.getId(), boardId, grant)) {
-            throw new PermissionException("board", boardId.toString(), grant.name());
-        }
     }
 }

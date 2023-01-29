@@ -29,6 +29,12 @@ public class BoardPermissionServiceTests {
     BoardRepository boardRepository;
     BoardUserRepository boardUserRepository;
 
+    Optional<BoardEntity> board(BoardEntity boardEntity) {
+        return Collections.singletonList(boardEntity)
+                          .stream()
+                          .findFirst();
+    }
+
     @BeforeEach
     void init() {
         service = new BoardPermissionService();
@@ -43,26 +49,6 @@ public class BoardPermissionServiceTests {
         service.boardUserRepository = boardUserRepository;
     }
 
-    @DisplayName("hasGrants should have always permissions if OWNER")
-    @Test
-    void test_hasGrant_owner_shouldHaveAllGrants() {
-        UUID boardId = UUID.randomUUID();
-        when(boardRepository.findById(any())).thenReturn(board(new BoardEntity()));
-        BoardUserEntity boardUserEntity = new BoardUserEntity();
-        boardUserEntity.setRole(OWNER.name());
-        when(boardUserRepository.findUserBoard(boardId, 0)).thenReturn(boardUserEntity);
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_VIEW));
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_EDIT));
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_USER_ROLE_EDIT));
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_ENTRY_EDIT));
-    }
-
-    Optional<BoardEntity> board(BoardEntity boardEntity) {
-        return Collections.singletonList(boardEntity)
-                          .stream()
-                          .findFirst();
-    }
-
     @DisplayName("hasGrants should have limited permissions if MEMBER")
     @Test
     void test_hasGrant_member_shouldHaveOnlyLimitedPermissions() {
@@ -74,6 +60,20 @@ public class BoardPermissionServiceTests {
         assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_VIEW));
         assertFalse(service.hasGrant(0, boardId, BoardGrant.BOARD_EDIT));
         assertFalse(service.hasGrant(0, boardId, BoardGrant.BOARD_USER_ROLE_EDIT));
+        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_ENTRY_EDIT));
+    }
+
+    @DisplayName("hasGrants should have always permissions if OWNER")
+    @Test
+    void test_hasGrant_owner_shouldHaveAllGrants() {
+        UUID boardId = UUID.randomUUID();
+        when(boardRepository.findById(any())).thenReturn(board(new BoardEntity()));
+        BoardUserEntity boardUserEntity = new BoardUserEntity();
+        boardUserEntity.setRole(OWNER.name());
+        when(boardUserRepository.findUserBoard(boardId, 0)).thenReturn(boardUserEntity);
+        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_VIEW));
+        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_EDIT));
+        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_USER_ROLE_EDIT));
         assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_ENTRY_EDIT));
     }
 }

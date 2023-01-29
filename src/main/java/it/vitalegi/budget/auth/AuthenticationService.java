@@ -11,26 +11,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthenticationService {
 
+    public String getName() {
+        Jwt principal = getPrincipal();
+        return principal.getClaimAsString("email");
+    }
+
     public String getUid() {
         Authentication authentication = SecurityContextHolder.getContext()
                                                              .getAuthentication();
         return authentication.getName();
     }
 
-    public String getName() {
+    public boolean isVerified() {
         Jwt principal = getPrincipal();
-        return principal.getClaimAsString("email");
+        Boolean verified = principal.getClaimAsBoolean("email_verified");
+        return BooleanUtil.isTrue(verified);
     }
 
     protected Jwt getPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext()
                                                              .getAuthentication();
         return (Jwt) authentication.getPrincipal();
-    }
-
-    public boolean isVerified() {
-        Jwt principal = getPrincipal();
-        Boolean verified = principal.getClaimAsBoolean("email_verified");
-        return BooleanUtil.isTrue(verified);
     }
 }

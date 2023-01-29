@@ -49,18 +49,6 @@ public class OpenApiTests {
 
     @DisplayName("OpenApi YAML, should download file")
     @Test
-    void test_openApi_yaml_shouldReturnValidYamlDefinition() throws Exception {
-        String payload =
-                mockMvc.perform(get("/v3/api-docs.yaml"))
-                       .andExpect(status().isOk())
-                       .andReturn()
-                       .getResponse()
-                       .getContentAsString();
-        objectMapper.readTree(payload);
-    }
-
-    @DisplayName("OpenApi YAML, should download file")
-    @Test
     void test_openApi_webPage_shouldReturnContent() throws Exception {
         String payload =
                 mockMvc.perform(get("/swagger-ui/index.html"))
@@ -70,6 +58,18 @@ public class OpenApiTests {
                        .getContentAsString();
         assertTrue(payload.trim()
                           .length() > 0);
+    }
+
+    @DisplayName("OpenApi YAML, should download file")
+    @Test
+    void test_openApi_yaml_shouldReturnValidYamlDefinition() throws Exception {
+        String payload =
+                mockMvc.perform(get("/v3/api-docs.yaml"))
+                       .andExpect(status().isOk())
+                       .andReturn()
+                       .getResponse()
+                       .getContentAsString();
+        objectMapper.readTree(payload);
     }
 
 }

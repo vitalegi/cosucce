@@ -51,20 +51,6 @@ public class AggregatedAnalysisService {
         return analysis;
     }
 
-    protected LocalDate date(BoardEntryGroupByMonthUserCategory e) {
-        return LocalDate.of(e.getYear(), e.getMonth(), 1);
-    }
-
-    protected List<LocalDate> months(LocalDate firstDate, LocalDate lastDate) {
-        List<LocalDate> dates = new ArrayList<>();
-        LocalDate currentDate = firstDate;
-        while (!currentDate.isAfter(lastDate)) {
-            dates.add(currentDate);
-            currentDate = currentDate.plusMonths(1);
-        }
-        return dates;
-    }
-
     protected MonthlyUserAnalysis analyzeByMonthUser(LocalDate referenceMonth,
                                                      List<BoardEntryGroupByMonthUserCategory> entries,
                                                      List<BoardSplit> splits) {
@@ -100,35 +86,6 @@ public class AggregatedAnalysisService {
         userIds.forEach(userId -> computeCumulativeCredit(analysis, userId));
     }
 
-    protected List<UserAmount> initializeUserAmounts(List<BoardEntryGroupByMonthUserCategory> entries) {
-        return getUserIds(entries).map(this::userAmount)
-                                  .collect(Collectors.toList());
-    }
-
-    protected boolean hasSameYearMonth(BoardEntryGroupByMonthUserCategory entry, LocalDate date) {
-        return date.getYear() == entry.getYear() && date.getMonthValue() == entry.getMonth();
-    }
-
-    protected Map<Long, BoardSplit> getUserSplits(LocalDate referenceDate, Stream<Long> userIds,
-                                                  List<BoardSplit> splits) {
-        return userIds.collect(Collectors.toMap(Function.identity(), id -> getUserSplits(referenceDate, id, splits)));
-    }
-
-    protected Stream<Long> getUserIds(List<BoardEntryGroupByMonthUserCategory> entries) {
-        return entries.stream()
-                      .map(BoardEntryGroupByMonthUserCategory::getUserId)
-                      .distinct();
-    }
-
-    protected void computeExpected(Map<Long, UserAmount> usersAmount, Map<Long, BoardSplit> targetSplits) {
-        BigDecimal total = sum(usersAmount.values()
-                                          .stream()
-                                          .map(UserAmount::getActual));
-        usersAmount.forEach((userId, userAmount) -> {
-            userAmount.setExpected(expected(total, targetSplits.get(userId)));
-        });
-    }
-
     protected void computeCumulativeCredit(List<MonthlyUserAnalysis> analysis, long userId) {
         BigDecimal cumulatedCredit = BigDecimal.ZERO;
         for (MonthlyUserAnalysis entry : analysis) {
@@ -145,11 +102,39 @@ public class AggregatedAnalysisService {
         }
     }
 
-    protected UserAmount userAmount(long userId) {
-        UserAmount u = new UserAmount();
-        u.setUserId(userId);
-        u.setActual(BigDecimal.ZERO);
-        return u;
+    protected void computeExpected(Map<Long, UserAmount> usersAmount, Map<Long, BoardSplit> targetSplits) {
+        BigDecimal total = sum(usersAmount.values()
+                                          .stream()
+                                          .map(UserAmount::getActual));
+        usersAmount.forEach((userId, userAmount) -> {
+            userAmount.setExpected(expected(total, targetSplits.get(userId)));
+        });
+    }
+
+    protected LocalDate date(BoardEntryGroupByMonthUserCategory e) {
+        return LocalDate.of(e.getYear(), e.getMonth(), 1);
+    }
+
+    protected BigDecimal expected(BigDecimal total, BoardSplit split) {
+        return total.multiply(split.getValue1(), MathContext.DECIMAL32);
+    }
+
+    protected LocalDate fromDate(BoardSplit split) {
+        if (split.getFromYear() != null && split.getFromMonth() != null) {
+            return LocalDate.of(split.getFromYear(), split.getFromMonth(), 1);
+        }
+        return LocalDate.MIN;
+    }
+
+    protected Stream<Long> getUserIds(List<BoardEntryGroupByMonthUserCategory> entries) {
+        return entries.stream()
+                      .map(BoardEntryGroupByMonthUserCategory::getUserId)
+                      .distinct();
+    }
+
+    protected Map<Long, BoardSplit> getUserSplits(LocalDate referenceDate, Stream<Long> userIds,
+                                                  List<BoardSplit> splits) {
+        return userIds.collect(Collectors.toMap(Function.identity(), id -> getUserSplits(referenceDate, id, splits)));
     }
 
     protected BoardSplit getUserSplits(LocalDate referenceDate, Long userId, List<BoardSplit> splits) {
@@ -187,16 +172,17 @@ public class AggregatedAnalysisService {
                 "date=" + referenceDate + ". Splits: " + defaults);
     }
 
-    protected BigDecimal sum(Stream<BigDecimal> stream) {
-        return stream.reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+    protected boolean hasSameYearMonth(BoardEntryGroupByMonthUserCategory entry, LocalDate date) {
+        return date.getYear() == entry.getYear() && date.getMonthValue() == entry.getMonth();
     }
 
-    protected BigDecimal expected(BigDecimal total, BoardSplit split) {
-        return total.multiply(split.getValue1(), MathContext.DECIMAL32);
+    protected List<UserAmount> initializeUserAmounts(List<BoardEntryGroupByMonthUserCategory> entries) {
+        return getUserIds(entries).map(this::userAmount)
+                                  .collect(Collectors.toList());
     }
 
-    protected boolean isSameUser(BoardSplit split, long userId) {
-        return split.getUserId() == userId;
+    protected boolean isDefaultSplit(BoardSplit split) {
+        return split.getFromYear() == null && split.getFromMonth() == null && split.getToYear() == null && split.getToMonth() == null;
     }
 
     protected boolean isInRange(BoardSplit split, LocalDate referenceDate) {
@@ -209,15 +195,22 @@ public class AggregatedAnalysisService {
         return !isDefaultSplit(split);
     }
 
-    protected boolean isDefaultSplit(BoardSplit split) {
-        return split.getFromYear() == null && split.getFromMonth() == null && split.getToYear() == null && split.getToMonth() == null;
+    protected boolean isSameUser(BoardSplit split, long userId) {
+        return split.getUserId() == userId;
     }
 
-    protected LocalDate fromDate(BoardSplit split) {
-        if (split.getFromYear() != null && split.getFromMonth() != null) {
-            return LocalDate.of(split.getFromYear(), split.getFromMonth(), 1);
+    protected List<LocalDate> months(LocalDate firstDate, LocalDate lastDate) {
+        List<LocalDate> dates = new ArrayList<>();
+        LocalDate currentDate = firstDate;
+        while (!currentDate.isAfter(lastDate)) {
+            dates.add(currentDate);
+            currentDate = currentDate.plusMonths(1);
         }
-        return LocalDate.MIN;
+        return dates;
+    }
+
+    protected BigDecimal sum(Stream<BigDecimal> stream) {
+        return stream.reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
     }
 
     protected LocalDate toDate(BoardSplit split) {
@@ -225,5 +218,12 @@ public class AggregatedAnalysisService {
             return LocalDate.of(split.getToYear(), split.getToMonth(), 1);
         }
         return LocalDate.MAX;
+    }
+
+    protected UserAmount userAmount(long userId) {
+        UserAmount u = new UserAmount();
+        u.setUserId(userId);
+        u.setActual(BigDecimal.ZERO);
+        return u;
     }
 }

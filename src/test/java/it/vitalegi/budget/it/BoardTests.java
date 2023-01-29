@@ -7,6 +7,7 @@ import it.vitalegi.budget.board.analysis.dto.UserAmount;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
+import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.board.repository.BoardRepository;
@@ -67,239 +68,38 @@ public class BoardTests {
     @Autowired
     BoardRepository boardRepository;
 
+    RequestPostProcessor auth1;
+    User user1;
+    RequestPostProcessor auth2;
+    User user2;
+    RequestPostProcessor auth3;
+    User user3;
+
     @BeforeEach
-    void init() {
+    public void init() throws Exception {
         log.info("Initialize database, erase user data. Boards={}, Users={}", boardRepository.count(),
                 userRepository.count());
         boardRepository.deleteAll();
         userRepository.deleteAll();
         assertEquals(0, boardRepository.count());
         assertEquals(0, userRepository.count());
-    }
 
-    @DisplayName("addBoard should create a new board")
-    @Test
-    void test_addBoard_shouldCreateBoard() throws Exception {
-        RequestPostProcessor auth = mockAuth.user(USER1);
-        User user = accessOk(auth, USER1);
-        addBoardOk(auth, "board1", user.getId());
-    }
+        auth1 = mockAuth.user(USER1);
+        user1 = accessOk(auth1, USER1);
 
-    User accessOk(RequestPostProcessor user, String uid) throws Exception {
-        User out = cs.jsonPayload(access(user).andExpect(ok()), User.class);
-        validateUser(null, uid, out);
-        return out;
-    }
+        auth2 = mockAuth.user(USER2);
+        user2 = accessOk(auth2, USER2);
 
-    Board addBoardOk(RequestPostProcessor auth, String boardName, Long ownerId) throws Exception {
-        Board board = cs.jsonPayload(addBoard(auth, boardName).andExpect(ok()), Board.class);
-        validateBoard(boardName, null, board);
-        return board;
-    }
+        auth3 = mockAuth.user(USER3);
+        user3 = accessOk(auth3, USER3);
 
-    ResultActions access(RequestPostProcessor user) throws Exception {
-        return mockMvc.perform(get("/user").with(user)).andDo(monitor());
-    }
-
-    ResultMatcher ok() {
-        return status().isOk();
-    }
-
-    void validateUser(Long id, String uid, User actual) {
-        assertEquals(uid, actual.getUid());
-        if (id != null) {
-            assertEquals(id, actual.getId());
-        }
-        String username = mockAuth.username(uid);
-        assertEquals(username, actual.getUsername());
-    }
-
-    ResultActions addBoard(RequestPostProcessor user, String name) throws Exception {
-        Board request = new Board();
-        request.setName(name);
-
-        return mockMvc.perform(post("/board") //
-                                              .with(csrf()) //
-                                              .with(user) //
-                                              .contentType(MediaType.APPLICATION_JSON) //
-                                              .content(cs.toJson(request))) //
-                      .andDo(monitor());
-    }
-
-    void validateBoard(String name, UUID boardId, Board actual) {
-        assertNotNull(actual.getId());
-        if (boardId != null) {
-            assertEquals(boardId, actual.getId());
-        }
-        if (name != null) {
-            assertEquals(name, actual.getName());
-        }
-        assertNotNull(actual.getLastUpdate());
-        assertNotNull(actual.getCreationDate());
-    }
-
-    @DisplayName("getBoard, I'm unauthorized, should fail")
-    @Test
-    void test_getBoard_unknown_shouldReturnBoard() throws Exception {
-        mockMvc.perform(get("/user")).andExpect(status().isUnauthorized());
-    }
-
-    @DisplayName("getBoard, I'm the owner, I should see the board")
-    @Test
-    void test_getBoard_owned_shouldReturnBoard() throws Exception {
-        RequestPostProcessor auth = mockAuth.user(USER1);
-        User user = accessOk(auth, USER1);
-        Board board1 = addBoardOk(auth, "board1", user.getId());
-        Board board = getBoardOk(auth, board1.getId().toString());
-        validateBoard("board1", board1.getId(), board);
-    }
-
-    Board getBoardOk(RequestPostProcessor user, String boardId) throws Exception {
-        return cs.jsonPayload(getBoard(user, boardId).andExpect(ok()), Board.class);
-    }
-
-    ResultActions getBoard(RequestPostProcessor user, String boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId).with(user))//
-                      .andDo(monitor());
-    }
-
-    @DisplayName("getBoard, I'm a member, I should see the board")
-    @Test
-    void test_getBoard_member_shouldReturnBoard() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board1 = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
-        addBoardUserOk(auth1, board1.getId(), user2.getId(), BoardUserRole.MEMBER);
-        Board board = getBoardOk(auth2, board1.getId().toString());
-        validateBoard("board1", board1.getId(), board);
-    }
-
-    BoardUser addBoardUserOk(RequestPostProcessor auth, UUID boardId, Long userId, BoardUserRole role) throws Exception {
-        return cs.jsonPayload(addBoardUser(auth, boardId, userId, role).andExpect(ok()), BoardUser.class);
-    }
-
-    ResultActions addBoardUser(RequestPostProcessor user, UUID boardId, Long userId, BoardUserRole role) throws Exception {
-        BoardUser request = new BoardUser();
-        request.setRole(role);
-        return mockMvc.perform(post("/board/" + boardId + "/user/" + userId) //
-                                                                             .with(csrf()) //
-                                                                             .with(user) //
-                                                                             .contentType(MediaType.APPLICATION_JSON) //
-                                                                             .content(cs.toJson(request)))//
-                      .andDo(monitor());
-    }
-
-    @DisplayName("getBoard, I'm not part of the board, it should fail")
-    @Test
-    void test_getBoard_notMember_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board1 = addBoardOk(auth1, "board", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
-        getBoard(auth2, board1.getId().toString()).andExpect(error403());
-    }
-
-    ResultMatcher error403() {
-        return status().isForbidden();
-    }
-
-    @DisplayName("getBoards, multiple cases (owner, member, not a member)")
-    @Test
-    void test_getBoards_shouldReturnBoards() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board1 = addBoardOk(auth1, "board1", user1.getId());
-        log.info("user1 is owner of board1");
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        Board board2 = addBoardOk(auth2, "board2", user2.getId());
-        addBoardUserOk(auth2, board2.getId(), user1.getId(), BoardUserRole.MEMBER);
-        log.info("user1 is member of board2");
-
-        RequestPostProcessor auth3 = mockAuth.user(USER3);
-        User user3 = accessOk(auth3, USER3);
-        Board board3 = addBoardOk(auth3, "board3", user3.getId());
-        log.info("user1 is not in board3");
-
-        List<Board> boards = cs.jsonPayloadList(getBoards(auth1).andExpect(ok()), new TypeReference<List<Board>>() {
-        });
-        assertEquals(2, boards.size());
-        Board out1 = boards.stream().filter(b -> b.getId().equals(board1.getId())).findFirst()
-                           .orElseThrow(() -> new NoSuchElementException("Missing board1"));
-        Board out2 = boards.stream().filter(b -> b.getId().equals(board2.getId())).findFirst()
-                           .orElseThrow(() -> new NoSuchElementException("Missing board2"));
-        validateBoard(board1.getName(), board1.getId(), out1);
-        validateBoard(board2.getName(), board2.getId(), out2);
-    }
-
-    ResultActions getBoards(RequestPostProcessor user) throws Exception {
-        return mockMvc.perform(get("/board").with(user))//
-                      .andDo(monitor());
-    }
-
-    @DisplayName("addBoardEntry, I'm the owner, I should see the board")
-    @Test
-    void test_addBoardEntry_owner_shouldCreateEntry() throws Exception {
-        RequestPostProcessor auth = mockAuth.user(USER1);
-        User user = accessOk(auth, USER1);
-        Board board = addBoardOk(auth, "board1", user.getId());
-        BoardEntry entry = addBoardEntryOk(auth, board.getId(), user.getId(), LocalDate.now(),
-                new BigDecimal("100" + ".15"), "CATEGORY", "description");
-        validateBoardEntry(board.getId(), user.getId(), LocalDate.now(), new BigDecimal("100.15"), "CATEGORY",
-                "description", entry);
-    }
-
-    BoardEntry addBoardEntryOk(RequestPostProcessor auth, UUID boardId, Long ownerId, LocalDate date,
-                               BigDecimal amount, String category, String description) throws Exception {
-        return cs.jsonPayload(addBoardEntry(auth, boardId, ownerId, date, amount, category, description).andExpect(ok()), BoardEntry.class);
-    }
-
-    void validateBoardEntry(UUID boardId, Long ownerId, LocalDate date, BigDecimal amount, String category,
-                            String description, BoardEntry actual) {
-        assertEquals(boardId, actual.getBoardId());
-        assertEquals(ownerId, actual.getOwnerId());
-        assertEquals(date, actual.getDate());
-        assertEquals(0, amount.compareTo(actual.getAmount()));
-        assertEquals(category, actual.getCategory());
-        assertEquals(description, actual.getDescription());
-    }
-
-    ResultActions addBoardEntry(RequestPostProcessor user, UUID boardId, Long ownerId, LocalDate date,
-                                BigDecimal amount, String category, String description) throws Exception {
-        BoardEntry request = new BoardEntry();
-        request.setBoardId(boardId);
-        request.setOwnerId(ownerId);
-        request.setAmount(amount);
-        request.setDescription(description);
-        request.setCategory(category);
-        request.setDate(date);
-
-        return mockMvc.perform(post("/board/" + boardId + "/entry") //
-                                                                    .with(csrf()) //
-                                                                    .with(user) //
-                                                                    .contentType(MediaType.APPLICATION_JSON) //
-                                                                    .content(cs.toJson(request)))//
-                      .andDo(monitor());
     }
 
     @DisplayName("addBoardEntry, I'm a member, I should see the board")
     @Test
-    void test_addBoardEntry_member_shouldCreateEntry() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_addBoardEntry_member_shouldCreateEntry() throws Exception {
         Board board1 = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board1.getId(), user2.getId(), BoardUserRole.MEMBER);
+        joinBoard(auth1, auth2, board1.getId());
 
         BoardEntry entry = addBoardEntryOk(auth2, board1.getId(), user2.getId(), LocalDate.now(), new BigDecimal("100"
                 + ".15"), "CATEGORY", "description");
@@ -309,469 +109,77 @@ public class BoardTests {
 
     @DisplayName("addBoardEntry, I'm not a member, it should fail")
     @Test
-    void test_addBoardEntry_notMember_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_addBoardEntry_notMember_shouldFail() throws Exception {
         Board board1 = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
         addBoardEntry(auth2, board1.getId(), user2.getId(), LocalDate.now(), new BigDecimal("100.15"), "CATEGORY",
-                "description") //
-                                                                                                                                  .andExpect(error403());
+                "description").andExpect(error403());
     }
 
-    @DisplayName("updateBoardEntry, I'm the owner, should update the entry")
+    @DisplayName("addBoardEntry, I'm the owner, I should see the board")
     @Test
-    void test_updateBoardEntry_owner_shouldUpdate() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user.getId(), LocalDate.of(2022, 01, 02),
-                new BigDecimal("100.15"), "CATEGORY", "description");
-        validateBoardEntry(board.getId(), user.getId(), LocalDate.of(2022, 01, 02), new BigDecimal("100.15"),
-                "CATEGORY", "description", entry);
-
-        BoardEntry updated = updateBoardEntryOk(auth1, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023
-                , 03, 04), new BigDecimal("10"), "NEW CATEGORY", "new description");
-        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
-                "CATEGORY", "new description", updated);
-        assertEquals(entry.getId(), updated.getId());
-
-        BoardEntry updated2 = getBoardEntriesOk(auth1, board.getId()).get(0);
-        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
-                "CATEGORY", "new description", updated2);
-        assertEquals(entry.getId(), updated2.getId());
+    public void test_addBoardEntry_owner_shouldCreateEntry() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.now(),
+                new BigDecimal("100" + ".15"), "CATEGORY", "description");
+        validateBoardEntry(board.getId(), user1.getId(), LocalDate.now(), new BigDecimal("100.15"), "CATEGORY",
+                "description", entry);
     }
 
-    BoardEntry updateBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId, Long ownerId,
-                                  LocalDate date, BigDecimal amount, String category, String description) throws Exception {
-        return cs.jsonPayload(updateBoardEntry(auth, boardId, boardEntryId, ownerId, date, amount, category,
-                description).andExpect(ok()), BoardEntry.class);
-    }
-
-    List<BoardEntry> getBoardEntriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardEntries(auth, boardId).andExpect(ok()),
-                new TypeReference<List<BoardEntry>>() {
-        });
-    }
-
-    ResultActions updateBoardEntry(RequestPostProcessor user, UUID boardId, UUID boardEntryId, Long ownerId,
-                                   LocalDate date, BigDecimal amount, String category, String description) throws Exception {
-        BoardEntry request = new BoardEntry();
-        request.setId(boardEntryId);
-        request.setBoardId(boardId);
-        request.setOwnerId(ownerId);
-        request.setAmount(amount);
-        request.setDescription(description);
-        request.setCategory(category);
-        request.setDate(date);
-
-        return mockMvc.perform(put("/board/" + boardId + "/entry") //
-                                                                   .with(csrf()) //
-                                                                   .with(user) //
-                                                                   .contentType(MediaType.APPLICATION_JSON) //
-                                                                   .content(cs.toJson(request)))//
-                      .andDo(monitor());
-    }
-
-    ResultActions getBoardEntries(RequestPostProcessor user, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/entries").with(user)).andDo(monitor());
-    }
-
-    @DisplayName("updateBoardEntry, I'm a member, should update the entry")
+    @DisplayName("addBoardInvite, I'm a member, I shouldn't be able to create an invite")
     @Test
-    void test_updateBoardEntry_member_shouldCreateEntry() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user.getId(), LocalDate.of(2022, 01, 02),
-                new BigDecimal("100.15"), "CATEGORY", "description");
-        validateBoardEntry(board.getId(), user.getId(), LocalDate.of(2022, 01, 02), new BigDecimal("100.15"),
-                "CATEGORY", "description", entry);
-
-        BoardEntry updated = updateBoardEntryOk(auth2, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023
-                , 03, 04), new BigDecimal("10"), "NEW CATEGORY", "new description");
-        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
-                "CATEGORY", "new description", updated);
-        assertEquals(entry.getId(), updated.getId());
-
-        BoardEntry updated2 = getBoardEntriesOk(auth2, board.getId()).get(0);
-        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
-                "CATEGORY", "new description", updated2);
-        assertEquals(entry.getId(), updated2.getId());
-    }
-
-    @DisplayName("updateBoardEntry, I'm not a member, it should fail")
-    @Test
-    void test_updateBoardEntry_notMember_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user.getId(), LocalDate.of(2022, 01, 02),
-                new BigDecimal("100.15"), "CATEGORY", "description");
-        validateBoardEntry(board.getId(), user.getId(), LocalDate.of(2022, 01, 02), new BigDecimal("100.15"),
-                "CATEGORY", "description", entry);
-
-        log.info("A user that is not part of the board cannot edit it");
-        updateBoardEntry(auth2, board.getId(), entry.getId(), user.getId(), LocalDate.of(2023, 03, 04),
-                new BigDecimal("10"), "NEW CATEGORY", "new description").andExpect(error403());
-
-        log.info("A user that is not part of the board cannot be assigned to its resources");
-        updateBoardEntry(auth1, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023, 03, 04),
-                new BigDecimal("10"), "NEW CATEGORY", "new description").andExpect(error403());
-    }
-
-    @DisplayName("addBoardUser, I'm the owner, assignment should work")
-    @Test
-    void test_addBoardUser_owner_shouldAssign() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_addBoardInvite_member_shouldFail() throws Exception {
         Board board = addBoardOk(auth1, "board1", user1.getId());
 
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
+        joinBoard(auth1, auth2, board.getId());
 
-        BoardUser userRole = addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-        validateBoardUser(user2.getId(), BoardUserRole.MEMBER, userRole);
-
-        userRole = addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.OWNER);
-        validateBoardUser(user2.getId(), BoardUserRole.OWNER, userRole);
+        addBoardInvite(auth2, board.getId()).andExpect(error403());
     }
 
-    void validateBoardUser(Long userId, BoardUserRole role, BoardUser actual) {
-        assertEquals(userId, actual.getUser().getId());
-        assertEquals(role, actual.getRole());
-    }
-
-    @DisplayName("addBoardUser, I'm a member, assignment should work")
+    @DisplayName("addBoardInvite, I'm not a member, I shouldn't be able to create an invite")
     @Test
-    void test_addBoardUser_member_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_addBoardInvite_notMember_shouldFail() throws Exception {
         Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        BoardUser userRole = addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-        validateBoardUser(user2.getId(), BoardUserRole.MEMBER, userRole);
-
-        RequestPostProcessor auth3 = mockAuth.user(USER3);
-        User user3 = accessOk(auth3, USER3);
-        addBoardUser(auth2, board.getId(), user3.getId(), BoardUserRole.MEMBER).andExpect(error403());
+        addBoardInvite(auth2, board.getId()).andExpect(error403());
     }
 
-    @DisplayName("addBoardUser, I'm not a member, assignment should fail")
+    @DisplayName("addBoardInvite, I'm the owner, I should be able to create the invite, the user should be able to " +
+            "use it and to join the board with role=MEMBER")
     @Test
-    void test_addBoardUser_notMember_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_addBoardInvite_owner_shouldAssign() throws Exception {
         Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUser(auth2, board.getId(), user2.getId(), BoardUserRole.MEMBER).andExpect(error403());
-    }
-
-    @DisplayName("getBoardUsers, I'm the owner, should work")
-    @Test
-    void test_getBoardUsers_owner_shouldWork() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        BoardUser userRole = addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-        validateBoardUser(user2.getId(), BoardUserRole.MEMBER, userRole);
-
+        joinBoard(auth1, auth2, board.getId());
         List<BoardUser> users = getBoardUsersOk(auth1, board.getId());
+
         assertEquals(2, users.size());
-        assertEquals(BoardUserRole.OWNER, users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst()
-                                               .orElseThrow(() -> new NoSuchElementException("User1 not found"))
-                                               .getRole());
-        assertEquals(BoardUserRole.MEMBER, users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst()
-                                                .orElseThrow(() -> new NoSuchElementException("User2 not found"))
-                                                .getRole());
+        BoardUser u1 = users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst().get();
+        assertNotNull(u1);
+        assertEquals(BoardUserRole.OWNER, u1.getRole());
+        BoardUser u2 = users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst().get();
+        assertNotNull(u2);
+        assertEquals(BoardUserRole.MEMBER, u2.getRole());
     }
 
-    List<BoardUser> getBoardUsersOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardUsers(auth, boardId).andExpect(ok()), new TypeReference<List<BoardUser>>() {
-        });
-    }
-
-    ResultActions getBoardUsers(RequestPostProcessor user, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/users").with(user)).andDo(monitor());
-    }
-
-    @DisplayName("getBoardUsers, I'm a member, should work")
+    @DisplayName("addBoardSplit, I'm a member, should fail")
     @Test
-    void test_getBoardUsers_member_shouldWork() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_addBoardSplit_member_shouldFail() throws Exception {
         Board board = addBoardOk(auth1, "board1", user1.getId());
+        joinBoard(auth1, auth2, board.getId());
 
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-
-        List<BoardUser> users = getBoardUsersOk(auth2, board.getId());
-        assertEquals(2, users.size());
-        assertEquals(BoardUserRole.OWNER, users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst()
-                                               .orElseThrow(() -> new NoSuchElementException("User1 not found"))
-                                               .getRole());
-        assertEquals(BoardUserRole.MEMBER, users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst()
-                                                .orElseThrow(() -> new NoSuchElementException("User2 not found"))
-                                                .getRole());
+        addBoardSplit(auth2, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("1")).andExpect(error403());
     }
 
-    @DisplayName("getBoardUsers, I'm not a member, should fail")
+    @DisplayName("addBoardSplit, I'm not a member, should fail")
     @Test
-    void test_getBoardUsers_notMember_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_addBoardSplit_notMember_shouldFail() throws Exception {
         Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUser(auth2, board.getId(), user2.getId(), BoardUserRole.MEMBER).andExpect(error403());
-    }
-
-    @DisplayName("getBoardEntries, I'm the owner, should retrieve all entries")
-    @Test
-    void test_getBoardEntries_owner_shouldWork() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
-        BoardUser userRole = addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-        validateBoardUser(user2.getId(), BoardUserRole.MEMBER, userRole);
-        log.info("User2 is assigned to the board");
-
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT",
-                null);
-        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT",
-                null);
-        List<BoardEntry> entries = getBoardEntriesOk(auth1, board.getId());
-        assertEquals(2, entries.size());
-    }
-
-    @DisplayName("getBoardEntries, I'm a member, should retrieve all entries")
-    @Test
-    void test_getBoardEntries_member_shouldWork() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT",
-                null);
-        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT",
-                null);
-        List<BoardEntry> entries = getBoardEntriesOk(auth2, board.getId());
-        assertEquals(2, entries.size());
-    }
-
-    @DisplayName("getBoardEntries, I'm not a member, should fail")
-    @Test
-    void test_getBoardEntries_notMember_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUser(auth2, board.getId(), user2.getId(), BoardUserRole.MEMBER).andExpect(error403());
-
-        RequestPostProcessor auth3 = mockAuth.user(USER3);
-        User user3 = accessOk(auth3, USER3);
-
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT",
-                null);
-        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT",
-                null);
-        getBoardEntries(auth3, board.getId()).andExpect(error403());
-    }
-
-    @DisplayName("getBoardEntry, I'm a member, should retrieve entry")
-    @Test
-    void test_getBoardEntry_member_shouldWork() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
-                new BigDecimal("123"), "CAT", null);
-        BoardEntry actual = getBoardEntryOk(auth2, board.getId(), entry.getId());
-        validateBoardEntry(entry.getBoardId(), entry.getOwnerId(), entry.getDate(), entry.getAmount(),
-                entry.getCategory(), entry.getDescription(), actual);
-    }
-
-    BoardEntry getBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
-        return cs.jsonPayload(getBoardEntry(auth, boardId, boardEntryId).andExpect(ok()), BoardEntry.class);
-    }
-
-    ResultActions getBoardEntry(RequestPostProcessor user, UUID boardId, UUID boardEntryId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/entry/" + boardEntryId).with(user)).andDo(monitor());
-    }
-
-    @DisplayName("getBoardEntry, I'm not a member, should fail")
-    @Test
-    void test_getBoardEntry_notMember_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
-                new BigDecimal("123"), "CAT", null);
-        getBoardEntry(auth2, board.getId(), entry.getId()).andExpect(error403());
-    }
-
-    @DisplayName("getBoardEntry, I'm a member, board and boardEntry are not connected, should fail")
-    @Test
-    void test_getBoardEntry_member_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-        Board board2 = addBoardOk(auth1, "board2", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
-                new BigDecimal("123"), "CAT", null);
-        getBoardEntry(auth1, board2.getId(), entry.getId()).andExpect(error500());
-    }
-
-    ResultMatcher error500() {
-        return status().isInternalServerError();
-    }
-
-    @DisplayName("deleteBoardEntry, I'm a member, should delete entry")
-    @Test
-    void test_deleteBoardEntry_member_shouldWork() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
-                new BigDecimal("123"), "CAT", null);
-
-        deleteBoardEntryOk(auth1, board.getId(), entry.getId());
-
-        getBoardEntry(auth1, board.getId(), entry.getId()).andExpect(error500());
-    }
-
-    void deleteBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
-        deleteBoardEntry(auth, boardId, boardEntryId).andExpect(ok());
-    }
-
-    ResultActions deleteBoardEntry(RequestPostProcessor user, UUID boardId, UUID boardEntryId) throws Exception {
-        return mockMvc.perform(delete("/board/" + boardId + "/entry/" + boardEntryId).with(csrf()).with(user))
-                      .andDo(monitor());
-    }
-
-    @DisplayName("deleteBoardEntry, I'm not a member, should fail")
-    @Test
-    void test_deleteBoardEntry_notMember_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
-                new BigDecimal("123"), "CAT", null);
-        deleteBoardEntry(auth2, board.getId(), entry.getId()).andExpect(error403());
-    }
-
-    @DisplayName("deleteBoardEntry, I'm a member, board and boardEntry are not connected, should fail")
-    @Test
-    void test_deleteBoardEntry_member_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-        Board board2 = addBoardOk(auth1, "board2", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-
-        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
-                new BigDecimal("123"), "CAT", null);
-        deleteBoardEntry(auth1, board2.getId(), entry.getId()).andExpect(error500());
-    }
-
-    @DisplayName("getCategories, should retrieve all entries")
-    @Test
-    void test_getCategories_shouldWork() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT1",
-                null);
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT2",
-                null);
-        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT2",
-                null);
-        List<String> entries = getCategoriesOk(auth1, board.getId());
-        assertEquals(2, entries.size());
-        assertTrue(entries.stream().anyMatch(c -> c.equals("CAT1")));
-        assertTrue(entries.stream().anyMatch(c -> c.equals("CAT2")));
-    }
-
-    List<String> getCategoriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getCategories(auth, boardId).andExpect(ok()), new TypeReference<List<String>>() {
-        });
-    }
-
-    ResultActions getCategories(RequestPostProcessor user, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/categories").with(user)).andDo(monitor());
+        addBoardSplit(auth2, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("1")).andExpect(error403());
     }
 
     @DisplayName("addBoardSplit, I'm the owner, should create split")
     @Test
-    void test_addBoardSplit_owner_shouldCreateSplit() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_addBoardSplit_owner_shouldCreateSplit() throws Exception {
         Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+        joinBoard(auth1, auth2, board.getId());
 
         BoardSplit s1 = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null, new BigDecimal(
                 "1"));
@@ -784,94 +192,59 @@ public class BoardTests {
         validateBoardSplits(Arrays.asList(s1, s2, s3, s4), splits);
     }
 
-    BoardSplit addBoardSplitOk(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear,
-                               Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
-        return cs.jsonPayload(addBoardSplit(auth, boardId, userId, fromYear, fromMonth, toYear, toMonth, value1).andExpect(ok()), BoardSplit.class);
-    }
-
-    List<BoardSplit> getBoardSplitsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardSplits(auth, boardId).andExpect(ok()), new TypeReference<List<BoardSplit>>() {
-        });
-    }
-
-    void validateBoardSplits(List<BoardSplit> expected, List<BoardSplit> actual) {
-        assertEquals(expected.size(), actual.size());
-        expected.forEach(e -> {
-            BoardSplit actualEntry = actual.stream().filter(a -> a.getId().equals(e.getId())).findFirst()
-                                           .orElseThrow(() -> new NoSuchElementException("Missing entry for " + e));
-            validateBoardSplit(e.getBoardId(), e.getUserId(), e.getFromYear(), e.getFromMonth(), e.getToYear(),
-                    e.getToMonth(), e.getValue1(), actualEntry);
-        });
-    }
-
-    ResultActions addBoardSplit(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear,
-                                Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
-        BoardSplit request = new BoardSplit();
-        request.setBoardId(boardId);
-        request.setUserId(userId);
-        request.setFromYear(fromYear);
-        request.setFromMonth(fromMonth);
-        request.setToYear(toYear);
-        request.setToMonth(toMonth);
-        request.setValue1(value1);
-
-        return mockMvc.perform(post("/board/" + boardId + "/split").with(csrf()).with(auth)
-                                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                                   .content(cs.toJson(request))).andDo(monitor());
-    }
-
-    ResultActions getBoardSplits(RequestPostProcessor user, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/splits").with(user)).andDo(monitor());
-    }
-
-    void validateBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear,
-                            Integer toMonth, BigDecimal value1, BoardSplit actual) {
-        assertEquals(boardId, actual.getBoardId());
-        assertEquals(userId, actual.getUserId());
-        assertEquals(fromYear, actual.getFromYear());
-        assertEquals(fromMonth, actual.getFromMonth());
-        assertEquals(toYear, actual.getToYear());
-        assertEquals(toMonth, actual.getToMonth());
-        assertEquals(0, value1.compareTo(actual.getValue1()));
-    }
-
-    @DisplayName("addBoardSplit, I'm a member, should fail")
+    @DisplayName("addBoard should create a new board")
     @Test
-    void test_addBoardSplit_member_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
-        Board board = addBoardOk(auth1, "board1", user1.getId());
-
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
-
-        addBoardSplit(auth2, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("1")).andExpect(error403());
+    public void test_addBoard_shouldCreateBoard() throws Exception {
+        addBoardOk(auth1, "board1", user1.getId());
     }
 
-    @DisplayName("addBoardSplit, I'm not a member, should fail")
+    @DisplayName("deleteBoardEntry, I'm a member, board and boardEntry are not connected, should fail")
     @Test
-    void test_addBoardSplit_notMember_shouldFail() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_deleteBoardEntry_member_shouldFail() throws Exception {
         Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board2 = addBoardOk(auth1, "board2", user1.getId());
 
         RequestPostProcessor auth2 = mockAuth.user(USER2);
         User user2 = accessOk(auth2, USER2);
 
-        addBoardSplit(auth2, board.getId(), user1.getId(), null, null, null, null, new BigDecimal("1")).andExpect(error403());
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+                new BigDecimal("123"), "CAT", null);
+        deleteBoardEntry(auth1, board2.getId(), entry.getId()).andExpect(error500());
+    }
+
+    @DisplayName("deleteBoardEntry, I'm a member, should delete entry")
+    @Test
+    public void test_deleteBoardEntry_member_shouldWork() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        RequestPostProcessor auth2 = mockAuth.user(USER2);
+        User user2 = accessOk(auth2, USER2);
+        joinBoard(auth1, auth2, board.getId());
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+                new BigDecimal("123"), "CAT", null);
+
+        deleteBoardEntryOk(auth1, board.getId(), entry.getId());
+
+        getBoardEntry(auth1, board.getId(), entry.getId()).andExpect(error500());
+    }
+
+    @DisplayName("deleteBoardEntry, I'm not a member, should fail")
+    @Test
+    public void test_deleteBoardEntry_notMember_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+                new BigDecimal("123"), "CAT", null);
+        deleteBoardEntry(auth2, board.getId(), entry.getId()).andExpect(error403());
     }
 
     @DisplayName("getBoardAggregatedData, part of the board, should retrieve aggregated data")
     @Test
-    void test_getBoardAggregatedData() throws Exception {
-        RequestPostProcessor auth1 = mockAuth.user(USER1);
-        User user1 = accessOk(auth1, USER1);
+    public void test_getBoardAggregatedData() throws Exception {
         Board board = addBoardOk(auth1, "board1", user1.getId());
 
-        RequestPostProcessor auth2 = mockAuth.user(USER2);
-        User user2 = accessOk(auth2, USER2);
-        addBoardUserOk(auth1, board.getId(), user2.getId(), BoardUserRole.MEMBER);
+        joinBoard(auth1, auth2, board.getId());
 
         addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2023, 1, 05), new BigDecimal("1"), "CAT1",
                 null);
@@ -891,19 +264,461 @@ public class BoardTests {
                 userAmount(user2.getId(), "1", "1", "0")), analysys.get(1));
     }
 
-    List<MonthlyUserAnalysis> getBoardAnalysisMonthUserOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+    @DisplayName("getBoardEntries, I'm a member, should retrieve all entries")
+    @Test
+    public void test_getBoardEntries_member_shouldWork() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        joinBoard(auth1, auth2, board.getId());
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT",
+                null);
+        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT",
+                null);
+        List<BoardEntry> entries = getBoardEntriesOk(auth2, board.getId());
+        assertEquals(2, entries.size());
+    }
+
+    @DisplayName("getBoardEntries, I'm not a member, should fail")
+    @Test
+    public void test_getBoardEntries_notMember_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT",
+                null);
+        getBoardEntries(auth3, board.getId()).andExpect(error403());
+    }
+
+    @DisplayName("getBoardEntries, I'm the owner, should retrieve all entries")
+    @Test
+    public void test_getBoardEntries_owner_shouldWork() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        joinBoard(auth1, auth2, board.getId());
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT",
+                null);
+        addBoardEntry(auth2, board.getId(), user2.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT",
+                null);
+        List<BoardEntry> entries = getBoardEntriesOk(auth1, board.getId());
+        assertEquals(2, entries.size());
+    }
+
+    @DisplayName("getBoardEntry, I'm a member, board and boardEntry are not connected, should fail")
+    @Test
+    public void test_getBoardEntry_member_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        Board board2 = addBoardOk(auth1, "board2", user1.getId());
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+                new BigDecimal("123"), "CAT", null);
+        getBoardEntry(auth1, board2.getId(), entry.getId()).andExpect(error500());
+    }
+
+    @DisplayName("getBoardEntry, I'm a member, should retrieve entry")
+    @Test
+    public void test_getBoardEntry_member_shouldWork() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        joinBoard(auth1, auth2, board.getId());
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+                new BigDecimal("123"), "CAT", null);
+        BoardEntry actual = getBoardEntryOk(auth2, board.getId(), entry.getId());
+        validateBoardEntry(entry.getBoardId(), entry.getOwnerId(), entry.getDate(), entry.getAmount(),
+                entry.getCategory(), entry.getDescription(), actual);
+    }
+
+    @DisplayName("getBoardEntry, I'm not a member, should fail")
+    @Test
+    public void test_getBoardEntry_notMember_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05),
+                new BigDecimal("123"), "CAT", null);
+        getBoardEntry(auth2, board.getId(), entry.getId()).andExpect(error403());
+    }
+
+    @DisplayName("getBoardUsers, I'm a member, should work")
+    @Test
+    public void test_getBoardUsers_member_shouldWork() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        joinBoard(auth1, auth2, board.getId());
+
+        List<BoardUser> users = getBoardUsersOk(auth2, board.getId());
+        assertEquals(2, users.size());
+        assertEquals(BoardUserRole.OWNER, users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst()
+                                               .orElseThrow(() -> new NoSuchElementException("User1 not found"))
+                                               .getRole());
+        assertEquals(BoardUserRole.MEMBER, users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst()
+                                                .orElseThrow(() -> new NoSuchElementException("User2 not found"))
+                                                .getRole());
+    }
+
+    @DisplayName("getBoardUsers, I'm not a member, should fail")
+    @Test
+    public void test_getBoardUsers_notMember_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        getBoardUsers(auth2, board.getId()).andExpect(error403());
+    }
+
+    @DisplayName("getBoardUsers, I'm the owner, should work")
+    @Test
+    public void test_getBoardUsers_owner_shouldWork() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        joinBoard(auth1, auth2, board.getId());
+
+        List<BoardUser> users = getBoardUsersOk(auth1, board.getId());
+        assertEquals(2, users.size());
+        assertEquals(BoardUserRole.OWNER, users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst()
+                                               .orElseThrow(() -> new NoSuchElementException("User1 not found"))
+                                               .getRole());
+        assertEquals(BoardUserRole.MEMBER, users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst()
+                                                .orElseThrow(() -> new NoSuchElementException("User2 not found"))
+                                                .getRole());
+    }
+
+    @DisplayName("getBoard, I'm a member, I should see the board")
+    @Test
+    public void test_getBoard_member_shouldReturnBoard() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        joinBoard(auth1, auth2, board.getId());
+        Board board1 = getBoardOk(auth2, board.getId().toString());
+        validateBoard("board1", board.getId(), board);
+    }
+
+    @DisplayName("getBoard, I'm not part of the board, it should fail")
+    @Test
+    public void test_getBoard_notMember_shouldFail() throws Exception {
+        Board board1 = addBoardOk(auth1, "board", user1.getId());
+        getBoard(auth2, board1.getId().toString()).andExpect(error403());
+    }
+
+    @DisplayName("getBoard, I'm the owner, I should see the board")
+    @Test
+    public void test_getBoard_owned_shouldReturnBoard() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1", user1.getId());
+        Board board = getBoardOk(auth1, board1.getId().toString());
+        validateBoard("board1", board1.getId(), board);
+    }
+
+    @DisplayName("getBoard, I'm unauthorized, should fail")
+    @Test
+    public void test_getBoard_unknown_shouldReturnBoard() throws Exception {
+        mockMvc.perform(get("/user")).andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("getBoards, multiple cases (owner, member, not a member)")
+    @Test
+    public void test_getBoards_shouldReturnBoards() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1", user1.getId());
+        log.info("user1 is owner of board1");
+
+        Board board2 = addBoardOk(auth2, "board2", user2.getId());
+        joinBoard(auth2, auth1, board2.getId());
+        log.info("user1 is member of board2");
+
+        Board board3 = addBoardOk(auth3, "board3", user3.getId());
+        log.info("user1 is not in board3");
+
+        List<Board> boards = getBoardsOk(auth1);
+        assertEquals(2, boards.size());
+        Board out1 = boards.stream().filter(b -> b.getId().equals(board1.getId())).findFirst()
+                           .orElseThrow(() -> new NoSuchElementException("Missing board1"));
+        Board out2 = boards.stream().filter(b -> b.getId().equals(board2.getId())).findFirst()
+                           .orElseThrow(() -> new NoSuchElementException("Missing board2"));
+        validateBoard(board1.getName(), board1.getId(), out1);
+        validateBoard(board2.getName(), board2.getId(), out2);
+    }
+
+    @DisplayName("getCategories, should retrieve all entries")
+    @Test
+    public void test_getCategories_shouldWork() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 05), new BigDecimal("123"), "CAT1",
+                null);
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT2",
+                null);
+        addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 10), new BigDecimal("456"), "CAT2",
+                null);
+        List<String> entries = getCategoriesOk(auth1, board.getId());
+        assertEquals(2, entries.size());
+        assertTrue(entries.stream().anyMatch(c -> c.equals("CAT1")));
+        assertTrue(entries.stream().anyMatch(c -> c.equals("CAT2")));
+    }
+
+    @DisplayName("updateBoardEntry, I'm a member, should update the entry")
+    @Test
+    public void test_updateBoardEntry_member_shouldCreateEntry() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        joinBoard(auth1, auth2, board.getId());
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 02),
+                new BigDecimal("100.15"), "CATEGORY", "description");
+        validateBoardEntry(board.getId(), user1.getId(), LocalDate.of(2022, 01, 02), new BigDecimal("100.15"),
+                "CATEGORY", "description", entry);
+
+        BoardEntry updated = updateBoardEntryOk(auth2, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023
+                , 03, 04), new BigDecimal("10"), "NEW CATEGORY", "new description");
+        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
+                "CATEGORY", "new description", updated);
+        assertEquals(entry.getId(), updated.getId());
+
+        BoardEntry updated2 = getBoardEntriesOk(auth2, board.getId()).get(0);
+        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
+                "CATEGORY", "new description", updated2);
+        assertEquals(entry.getId(), updated2.getId());
+    }
+
+    @DisplayName("updateBoardEntry, I'm not a member, it should fail")
+    @Test
+    public void test_updateBoardEntry_notMember_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 02),
+                new BigDecimal("100.15"), "CATEGORY", "description");
+        validateBoardEntry(board.getId(), user1.getId(), LocalDate.of(2022, 01, 02), new BigDecimal("100.15"),
+                "CATEGORY", "description", entry);
+
+        log.info("A user that is not part of the board cannot edit it");
+        updateBoardEntry(auth2, board.getId(), entry.getId(), user1.getId(), LocalDate.of(2023, 03, 04),
+                new BigDecimal("10"), "NEW CATEGORY", "new description").andExpect(error403());
+
+        log.info("A user that is not part of the board cannot be assigned to its resources");
+        updateBoardEntry(auth1, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023, 03, 04),
+                new BigDecimal("10"), "NEW CATEGORY", "new description").andExpect(error403());
+    }
+
+    @DisplayName("updateBoardEntry, I'm the owner, should update the entry")
+    @Test
+    public void test_updateBoardEntry_owner_shouldUpdate() throws Exception {
+        Board board = addBoardOk(auth1, "board1", user1.getId());
+        joinBoard(auth1, auth2, board.getId());
+
+        BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 01, 02),
+                new BigDecimal("100.15"), "CATEGORY", "description");
+        validateBoardEntry(board.getId(), user1.getId(), LocalDate.of(2022, 01, 02), new BigDecimal("100.15"),
+                "CATEGORY", "description", entry);
+
+        BoardEntry updated = updateBoardEntryOk(auth1, board.getId(), entry.getId(), user2.getId(), LocalDate.of(2023
+                , 03, 04), new BigDecimal("10"), "NEW CATEGORY", "new description");
+        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
+                "CATEGORY", "new description", updated);
+        assertEquals(entry.getId(), updated.getId());
+
+        BoardEntry updated2 = getBoardEntriesOk(auth1, board.getId()).get(0);
+        validateBoardEntry(board.getId(), user2.getId(), LocalDate.of(2023, 03, 04), new BigDecimal("10"), "NEW " +
+                "CATEGORY", "new description", updated2);
+        assertEquals(entry.getId(), updated2.getId());
+    }
+
+    private ResultActions access(RequestPostProcessor auth) throws Exception {
+        return mockMvc.perform(get("/user").with(auth)).andDo(monitor());
+    }
+
+    private User accessOk(RequestPostProcessor auth, String uid) throws Exception {
+        User out = cs.jsonPayload(access(auth).andExpect(ok()), User.class);
+        validateUser(null, uid, out);
+        return out;
+    }
+
+    private ResultActions addBoard(RequestPostProcessor auth, String name) throws Exception {
+        Board request = new Board();
+        request.setName(name);
+
+        return mockMvc.perform(post("/board") //
+                                              .with(csrf()) //
+                                              .with(auth) //
+                                              .contentType(MediaType.APPLICATION_JSON) //
+                                              .content(cs.toJson(request))) //
+                      .andDo(monitor());
+    }
+
+    private ResultActions addBoardEntry(RequestPostProcessor auth, UUID boardId, Long ownerId, LocalDate date,
+                                        BigDecimal amount, String category, String description) throws Exception {
+        BoardEntry request = new BoardEntry();
+        request.setBoardId(boardId);
+        request.setOwnerId(ownerId);
+        request.setAmount(amount);
+        request.setDescription(description);
+        request.setCategory(category);
+        request.setDate(date);
+
+        return mockMvc.perform(post("/board/" + boardId + "/entry").with(csrf()).with(auth)
+                                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                                   .content(cs.toJson(request))).andDo(monitor());
+    }
+
+    private BoardEntry addBoardEntryOk(RequestPostProcessor auth, UUID boardId, Long ownerId, LocalDate date,
+                                       BigDecimal amount, String category, String description) throws Exception {
+        return cs.jsonPayload(addBoardEntry(auth, boardId, ownerId, date, amount, category, description).andExpect(ok()), BoardEntry.class);
+    }
+
+    private ResultActions addBoardInvite(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return mockMvc.perform(post("/board/" + boardId + "/invite").with(csrf()).with(auth)
+                                                                    .contentType(MediaType.APPLICATION_JSON))
+                      .andDo(monitor());
+    }
+
+    private BoardInvite addBoardInviteOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayload(addBoardInvite(auth, boardId).andExpect(ok()), BoardInvite.class);
+    }
+
+    private Board addBoardOk(RequestPostProcessor auth, String boardName, Long ownerId) throws Exception {
+        Board board = cs.jsonPayload(addBoard(auth, boardName).andExpect(ok()), Board.class);
+        validateBoard(boardName, null, board);
+        return board;
+    }
+
+    private ResultActions addBoardSplit(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear,
+                                        Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
+        BoardSplit request = new BoardSplit();
+        request.setBoardId(boardId);
+        request.setUserId(userId);
+        request.setFromYear(fromYear);
+        request.setFromMonth(fromMonth);
+        request.setToYear(toYear);
+        request.setToMonth(toMonth);
+        request.setValue1(value1);
+
+        return mockMvc.perform(post("/board/" + boardId + "/split").with(csrf()).with(auth)
+                                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                                   .content(cs.toJson(request))).andDo(monitor());
+    }
+
+    private BoardSplit addBoardSplitOk(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear,
+                                       Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
+        return cs.jsonPayload(addBoardSplit(auth, boardId, userId, fromYear, fromMonth, toYear, toMonth, value1).andExpect(ok()), BoardSplit.class);
+    }
+
+    private ResultActions deleteBoardEntry(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
+        return mockMvc.perform(delete("/board/" + boardId + "/entry/" + boardEntryId).with(csrf()).with(auth))
+                      .andDo(monitor());
+    }
+
+    private void deleteBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
+        deleteBoardEntry(auth, boardId, boardEntryId).andExpect(ok());
+    }
+
+    private ResultMatcher error403() {
+        return status().isForbidden();
+    }
+
+    private ResultMatcher error500() {
+        return status().isInternalServerError();
+    }
+
+    private ResultActions getBoard(RequestPostProcessor auth, String boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId).with(auth))//
+                      .andDo(monitor());
+    }
+
+    private ResultActions getBoardAnalysisMonthUser(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/analysis/month-user").with(auth)).andDo(monitor());
+    }
+
+    private List<MonthlyUserAnalysis> getBoardAnalysisMonthUserOk(RequestPostProcessor auth, UUID boardId) throws Exception {
         return cs.jsonPayloadList(getBoardAnalysisMonthUser(auth, boardId).andExpect(ok()),
                 new TypeReference<List<MonthlyUserAnalysis>>() {
+                });
+    }
+
+    private ResultActions getBoardEntries(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/entries").with(auth)).andDo(monitor());
+    }
+
+    private List<BoardEntry> getBoardEntriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getBoardEntries(auth, boardId).andExpect(ok()),
+                new TypeReference<List<BoardEntry>>() {
+                });
+    }
+
+    private ResultActions getBoardEntry(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/entry/" + boardEntryId).with(auth)).andDo(monitor());
+    }
+
+    private BoardEntry getBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
+        return cs.jsonPayload(getBoardEntry(auth, boardId, boardEntryId).andExpect(ok()), BoardEntry.class);
+    }
+
+    private Board getBoardOk(RequestPostProcessor auth, String boardId) throws Exception {
+        return cs.jsonPayload(getBoard(auth, boardId).andExpect(ok()), Board.class);
+    }
+
+    private ResultActions getBoardSplits(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/splits").with(auth)).andDo(monitor());
+    }
+
+    private List<BoardSplit> getBoardSplitsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getBoardSplits(auth, boardId).andExpect(ok()), new TypeReference<List<BoardSplit>>() {
         });
     }
 
-    void validateMonthlyUserAnalysis(int year, int month, List<UserAmount> users, MonthlyUserAnalysis actual) {
-        assertEquals(year, actual.getYear());
-        assertEquals(month, actual.getMonth());
-        assertEquals(users, actual.getUsers());
+    private ResultActions getBoardUsers(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/users").with(auth)).andDo(monitor());
     }
 
-    UserAmount userAmount(long userId, String actual, String expected, String cumulatedCredit) {
+    private List<BoardUser> getBoardUsersOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getBoardUsers(auth, boardId).andExpect(ok()), new TypeReference<List<BoardUser>>() {
+        });
+    }
+
+    private ResultActions getBoards(RequestPostProcessor auth) throws Exception {
+        return mockMvc.perform(get("/board").with(auth))//
+                      .andDo(monitor());
+    }
+
+    private List<Board> getBoardsOk(RequestPostProcessor auth) throws Exception {
+        return cs.jsonPayloadList(getBoards(auth).andExpect(ok()), new TypeReference<List<Board>>() {
+        });
+    }
+
+    private ResultActions getCategories(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/categories").with(auth)).andDo(monitor());
+    }
+
+    private List<String> getCategoriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getCategories(auth, boardId).andExpect(ok()), new TypeReference<List<String>>() {
+        });
+    }
+
+    private void joinBoard(RequestPostProcessor ownerAuth, RequestPostProcessor joinerAuth, UUID boardId) throws Exception {
+        BoardInvite invite = addBoardInviteOk(ownerAuth, boardId);
+        useBoardInviteOk(joinerAuth, boardId, invite.getId());
+    }
+
+    ResultMatcher ok() {
+        return status().isOk();
+    }
+
+    private ResultActions updateBoardEntry(RequestPostProcessor auth, UUID boardId, UUID boardEntryId, Long ownerId,
+                                           LocalDate date, BigDecimal amount, String category, String description) throws Exception {
+        BoardEntry request = new BoardEntry();
+        request.setId(boardEntryId);
+        request.setBoardId(boardId);
+        request.setOwnerId(ownerId);
+        request.setAmount(amount);
+        request.setDescription(description);
+        request.setCategory(category);
+        request.setDate(date);
+
+        return mockMvc.perform(put("/board/" + boardId + "/entry").with(csrf()).with(auth)
+                                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                                  .content(cs.toJson(request))).andDo(monitor());
+    }
+
+    private BoardEntry updateBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId, Long ownerId,
+                                          LocalDate date, BigDecimal amount, String category, String description) throws Exception {
+        return cs.jsonPayload(updateBoardEntry(auth, boardId, boardEntryId, ownerId, date, amount, category,
+                description).andExpect(ok()), BoardEntry.class);
+    }
+
+    private ResultActions useBoardInvite(RequestPostProcessor auth, UUID boardId, UUID inviteId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/invite/" + inviteId).with(csrf()).with(auth))
+                      .andDo(monitor());
+    }
+
+    private void useBoardInviteOk(RequestPostProcessor auth, UUID boardId, UUID inviteId) throws Exception {
+        useBoardInvite(auth, boardId, inviteId).andExpect(ok());
+    }
+
+    private UserAmount userAmount(long userId, String actual, String expected, String cumulatedCredit) {
         UserAmount obj = new UserAmount();
         obj.setUserId(userId);
         obj.setActual(new BigDecimal(actual));
@@ -912,22 +727,81 @@ public class BoardTests {
         return obj;
     }
 
-    ResultActions getBoardAnalysisMonthUser(RequestPostProcessor user, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/analysis/month-user").with(user)).andDo(monitor());
+    private void validateBoard(String name, UUID boardId, Board actual) {
+        assertNotNull(actual.getId());
+        if (boardId != null) {
+            assertEquals(boardId, actual.getId());
+        }
+        if (name != null) {
+            assertEquals(name, actual.getName());
+        }
+        assertNotNull(actual.getLastUpdate());
+        assertNotNull(actual.getCreationDate());
     }
 
-    void validateUserAmounts(List<UserAmount> expected, List<UserAmount> actual) {
+    private void validateBoardEntry(UUID boardId, Long ownerId, LocalDate date, BigDecimal amount, String category,
+                                    String description, BoardEntry actual) {
+        assertEquals(boardId, actual.getBoardId());
+        assertEquals(ownerId, actual.getOwnerId());
+        assertEquals(date, actual.getDate());
+        assertEquals(0, amount.compareTo(actual.getAmount()));
+        assertEquals(category, actual.getCategory());
+        assertEquals(description, actual.getDescription());
+    }
+
+    private void validateBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear,
+                                    Integer toMonth, BigDecimal value1, BoardSplit actual) {
+        assertEquals(boardId, actual.getBoardId());
+        assertEquals(userId, actual.getUserId());
+        assertEquals(fromYear, actual.getFromYear());
+        assertEquals(fromMonth, actual.getFromMonth());
+        assertEquals(toYear, actual.getToYear());
+        assertEquals(toMonth, actual.getToMonth());
+        assertEquals(0, value1.compareTo(actual.getValue1()));
+    }
+
+    private void validateBoardSplits(List<BoardSplit> expected, List<BoardSplit> actual) {
+        assertEquals(expected.size(), actual.size());
+        expected.forEach(e -> {
+            BoardSplit actualEntry = actual.stream().filter(a -> a.getId().equals(e.getId())).findFirst()
+                                           .orElseThrow(() -> new NoSuchElementException("Missing entry for " + e));
+            validateBoardSplit(e.getBoardId(), e.getUserId(), e.getFromYear(), e.getFromMonth(), e.getToYear(),
+                    e.getToMonth(), e.getValue1(), actualEntry);
+        });
+    }
+
+    private void validateBoardUser(Long userId, BoardUserRole role, BoardUser actual) {
+        assertEquals(userId, actual.getUser().getId());
+        assertEquals(role, actual.getRole());
+    }
+
+    private void validateMonthlyUserAnalysis(int year, int month, List<UserAmount> users, MonthlyUserAnalysis actual) {
+        assertEquals(year, actual.getYear());
+        assertEquals(month, actual.getMonth());
+        assertEquals(users, actual.getUsers());
+    }
+
+    private void validateUser(Long id, String uid, User actual) {
+        assertEquals(uid, actual.getUid());
+        if (id != null) {
+            assertEquals(id, actual.getId());
+        }
+        String username = mockAuth.username(uid);
+        assertEquals(username, actual.getUsername());
+    }
+
+    private void validateUserAmount(UserAmount expected, UserAmount actual) {
+        assertEquals(expected.getUserId(), actual.getUserId());
+        assertEquals(0, expected.getExpected().compareTo(actual.getExpected()));
+        assertEquals(0, expected.getActual().compareTo(actual.getActual()));
+    }
+
+    private void validateUserAmounts(List<UserAmount> expected, List<UserAmount> actual) {
         assertEquals(expected.size(), actual.size());
         expected.forEach(e -> {
             UserAmount actualEntry = actual.stream().filter(a -> a.getUserId() == e.getUserId()).findFirst()
                                            .orElseThrow(() -> new NoSuchElementException("Missing entry for " + e));
             validateUserAmount(e, actualEntry);
         });
-    }
-
-    void validateUserAmount(UserAmount expected, UserAmount actual) {
-        assertEquals(expected.getUserId(), actual.getUserId());
-        assertEquals(0, expected.getExpected().compareTo(actual.getExpected()));
-        assertEquals(0, expected.getActual().compareTo(actual.getActual()));
     }
 }
