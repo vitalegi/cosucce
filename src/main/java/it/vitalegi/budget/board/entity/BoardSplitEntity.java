@@ -28,11 +28,11 @@ public class BoardSplitEntity {
     @Type(type = "org.hibernate.type.UUIDCharType")
     UUID id;
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_split__user__owner_id"))
     UserEntity user;
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_split__board__board_id"))
     BoardEntity board;
     Integer fromYear;

@@ -188,6 +188,19 @@ public class BoardService {
         log.info("DELETE_BOARD_INVITE board={}, invite={}", entryBoardId, id);
     }
 
+    public void deleteBoardSplit(UUID boardId, UUID boardSplitId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_EDIT);
+        Optional<BoardSplitEntity> entry = boardSplitRepository.findById(boardSplitId);
+        if (entry.isEmpty()) {
+            throw new IllegalArgumentException("entry doesn't exist");
+        }
+        BoardSplitEntity value = entry.get();
+        if (!value.getBoard().getId().equals(boardId)) {
+            throw new IllegalArgumentException("entry not related to this board. Entry=" + boardSplitId + ", Board=" + boardId);
+        }
+        boardSplitRepository.deleteById(boardSplitId);
+    }
+
     public Board getBoard(UUID id) {
         BoardEntity board = getBoardEntity(id);
         return mapper.map(board);
@@ -275,6 +288,24 @@ public class BoardService {
         BoardEntryEntity newEntry = boardEntryRepository.save(entry);
         log.info("Updated boardEntry. board={}, ownerId={}, entryId={}", boardId, boardEntry.getOwnerId(),
                 newEntry.getId());
+        return mapper.map(newEntry);
+    }
+
+    @Transactional
+    public BoardSplit updateBoardSplit(UUID boardId, BoardSplit boardSplit) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_EDIT);
+        log.info("Current user can edit board splits");
+
+        BoardSplitEntity entry = boardSplitRepository.findById(boardSplit.getId()).get();
+        entry.setToMonth(boardSplit.getToMonth());
+        entry.setFromMonth(boardSplit.getFromMonth());
+        entry.setToYear(boardSplit.getToYear());
+        entry.setFromYear(boardSplit.getFromYear());
+        entry.setValue1(boardSplit.getValue1());
+        UserEntity user = boardUserRepository.findUserBoard(boardId, boardSplit.getUserId()).getUser();
+        entry.setUser(user);
+        BoardSplitEntity newEntry = boardSplitRepository.save(entry);
+        log.info("Updated boardSplit. board={}, entryId={}", boardId, newEntry.getId());
         return mapper.map(newEntry);
     }
 

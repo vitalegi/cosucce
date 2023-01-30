@@ -68,7 +68,7 @@ public class BoardMapper {
 
     public BoardSplit map(BoardSplitEntity entity) {
         BoardSplit dto = ObjectUtil.copy(entity, new BoardSplit());
-        dto.setBoardId(entity.getId());
+        dto.setBoardId(entity.getBoard().getId());
         dto.setUserId(entity.getUser().getId());
         return dto;
     }

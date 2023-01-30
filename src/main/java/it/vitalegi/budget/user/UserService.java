@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.NoSuchElementException;
+
 @Performance(Type.SERVICE)
 @Log4j2
 @Service
@@ -32,12 +34,15 @@ public class UserService {
 
     public UserEntity getCurrentUserEntity() {
         String uid = authenticationService.getUid();
-        return userRepository.findByUid(uid);
+        UserEntity user = userRepository.findByUid(uid);
+        if (user == null) {
+            throw new NoSuchElementException("current user " + uid + " doesn't have a corresponding db entity");
+        }
+        return user;
     }
 
     public UserEntity getUserEntity(long id) {
-        return userRepository.findById(id)
-                             .get();
+        return userRepository.findById(id).get();
     }
 
     @Transactional

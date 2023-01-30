@@ -73,6 +73,13 @@ public class BoardResource {
         boardService.deleteBoardEntry(boardId, boardEntryId);
     }
 
+    @Operation(summary = "Delete board split")
+    @DeleteMapping(path = "/{boardId}/split/{boardSplitId}")
+    public void deleteBoardSplit(@PathVariable("boardId") UUID boardId,
+                                 @PathVariable("boardSplitId") UUID boardSplitId) {
+        boardService.deleteBoardSplit(boardId, boardSplitId);
+    }
+
     @Operation(summary = "Retrieve board")
     @GetMapping(path = "/{boardId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Board getBoard(@PathVariable("boardId") UUID boardId) {
@@ -127,6 +134,13 @@ public class BoardResource {
             MediaType.APPLICATION_JSON_VALUE)
     public BoardEntry updateBoardEntry(@PathVariable("boardId") UUID boardId, @RequestBody BoardEntry boardEntry) {
         return boardService.updateBoardEntry(boardId, boardEntry);
+    }
+
+    @Operation(summary = "Update existing split in board")
+    @PutMapping(path = "/{boardId}/split", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    public BoardSplit updateBoardSplit(@PathVariable("boardId") UUID boardId, @RequestBody BoardSplit boardSplit) {
+        return boardService.updateBoardSplit(boardId, boardSplit);
     }
 
     @Operation(summary = "Create new board invite")

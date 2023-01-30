@@ -199,7 +199,8 @@ public class BoardTests {
         addBoardOk(auth1, "board1");
     }
 
-    @DisplayName("GIVEN I am a member of the board WHEN I delete an entry of another board THEN I should receive " + "an" + " error")
+    @DisplayName("GIVEN I am a member of the board WHEN I delete an entry of another board THEN I should receive " +
+            "an" + " error")
     @Test
     public void test_deleteBoardEntry_member_shouldFail() throws Exception {
         Board board = addBoardOk(auth1, "board1");
@@ -233,6 +234,42 @@ public class BoardTests {
         BoardEntry entry = addBoardEntryOk(auth1, board.getId(), user1.getId(), LocalDate.of(2022, 1, 5),
                 new BigDecimal("123"), "CAT", null);
         deleteBoardEntry(auth2, board.getId(), entry.getId()).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am a member of the board WHEN I delete a split THEN I should receive an error")
+    @Test
+    public void test_deleteBoardSplit_member_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board.getId());
+
+        BoardSplit split = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null,
+                new BigDecimal("1"));
+
+        deleteBoardSplit(auth2, board.getId(), split.getId()).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am not a member of the board WHEN I delete a split configuration THEN I should receive an " + "error")
+    @Test
+    public void test_deleteBoardSplit_notMember_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+        BoardSplit split = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null,
+                new BigDecimal("1"));
+
+        deleteBoardSplit(auth3, board.getId(), split.getId()).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am the owner of the board WHEN I delete a split configuration THEN the split should be " +
+            "deleted")
+    @Test
+    public void test_deleteBoardSplit_owner_shouldDeleteSplit() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board.getId());
+
+        BoardSplit split = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null,
+                new BigDecimal("1"));
+        deleteBoardSplitOk(auth1, board.getId(), split.getId());
+        List<BoardSplit> splits = getBoardSplitsOk(auth1, board.getId());
+        assertTrue(splits.stream().noneMatch(s -> split.getId().equals(s.getId())));
     }
 
     // TODO split in multiple tests
@@ -281,7 +318,8 @@ public class BoardTests {
         getBoardEntries(auth3, board.getId()).andExpect(error403());
     }
 
-    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve all board entries THEN I should retrieve all " + "entries")
+    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve all board entries THEN I should retrieve all " +
+            "entries")
     @Test
     public void test_getBoardEntries_owner_shouldWork() throws Exception {
         Board board = addBoardOk(auth1, "board1");
@@ -354,8 +392,7 @@ public class BoardTests {
         getBoardUsers(auth2, board.getId()).andExpect(error403());
     }
 
-    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve board users of the board THEN I should retrieve "
-            + "the board users")
+    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve board users of the board THEN I should retrieve " + "the board users")
     @Test
     public void test_getBoardUsers_owner_shouldWork() throws Exception {
         Board board = addBoardOk(auth1, "board1");
@@ -401,8 +438,7 @@ public class BoardTests {
         mockMvc.perform(get("/user")).andExpect(status().isUnauthorized());
     }
 
-    @DisplayName("GIVEN I am a member of the board WHEN I retrieve the boards THEN I should receive only the boards "
-            + "I'm a member of")
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve the boards THEN I should receive only the boards " + "I'm a member of")
     @Test
     public void test_getBoards_shouldReturnBoards() throws Exception {
         Board board1 = addBoardOk(auth1, "board1");
@@ -509,6 +545,48 @@ public class BoardTests {
         assertEquals(entry.getId(), updated2.getId());
     }
 
+    @DisplayName("GIVEN I am a member of the board WHEN I update a split THEN I should receive an error")
+    @Test
+    public void test_updateBoardSplit_member_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board.getId());
+
+        BoardSplit split = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null,
+                new BigDecimal("1"));
+
+        updateBoardSplit(auth2, board.getId(), split.getId(), user1.getId(), 2022, 1, null, null,
+                new BigDecimal("1")).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am not a member of the board WHEN I update a split configuration THEN I should receive an " + "error")
+    @Test
+    public void test_updateBoardSplit_notMember_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+        BoardSplit split = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null,
+                new BigDecimal("1"));
+
+        updateBoardSplit(auth3, board.getId(), split.getId(), user1.getId(), 2022, 1, null, null,
+                new BigDecimal("1")).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am the owner of the board WHEN I update a split configuration THEN the split should be " +
+            "updated")
+    @Test
+    public void test_updateBoardSplit_owner_shouldUpdateSplit() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board.getId());
+
+        BoardSplit split = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null,
+                new BigDecimal("1"));
+
+        updateBoardSplitOk(auth1, board.getId(), split.getId(), user1.getId(), 2022, 1, null, null,
+                new BigDecimal("1"));
+
+        List<BoardSplit> splits = getBoardSplitsOk(auth1, board.getId());
+        assertEquals(1, splits.size());
+        validateBoardSplit(board.getId(), user1.getId(), 2022, 1, null, null, new BigDecimal("1"), splits.get(0));
+    }
+
     private ResultActions access(RequestPostProcessor auth) throws Exception {
         return mockMvc.perform(get("/user").with(auth)).andDo(monitor());
     }
@@ -597,6 +675,16 @@ public class BoardTests {
         deleteBoardEntry(auth, boardId, boardEntryId).andExpect(ok());
     }
 
+    private ResultActions deleteBoardSplit(RequestPostProcessor auth, UUID boardId, UUID splitId) throws Exception {
+        return mockMvc.perform(delete("/board/" + boardId + "/split/" + splitId).with(csrf()).with(auth)
+                                                                                .contentType(MediaType.APPLICATION_JSON))
+                      .andDo(monitor());
+    }
+
+    private void deleteBoardSplitOk(RequestPostProcessor auth, UUID boardId, UUID splitId) throws Exception {
+        deleteBoardSplit(auth, boardId, splitId).andExpect(ok());
+    }
+
     private ResultMatcher error403() {
         return status().isForbidden();
     }
@@ -615,9 +703,8 @@ public class BoardTests {
     }
 
     private List<MonthlyUserAnalysis> getBoardAnalysisMonthUserOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardAnalysisMonthUser(auth, boardId).andExpect(ok()),
-                new TypeReference<>() {
-                });
+        return cs.jsonPayloadList(getBoardAnalysisMonthUser(auth, boardId).andExpect(ok()), new TypeReference<>() {
+        });
     }
 
     private ResultActions getBoardEntries(RequestPostProcessor auth, UUID boardId) throws Exception {
@@ -625,9 +712,8 @@ public class BoardTests {
     }
 
     private List<BoardEntry> getBoardEntriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardEntries(auth, boardId).andExpect(ok()),
-                new TypeReference<>() {
-                });
+        return cs.jsonPayloadList(getBoardEntries(auth, boardId).andExpect(ok()), new TypeReference<>() {
+        });
     }
 
     private ResultActions getBoardEntry(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
@@ -708,6 +794,31 @@ public class BoardTests {
                                           LocalDate date, BigDecimal amount, String category, String description) throws Exception {
         return cs.jsonPayload(updateBoardEntry(auth, boardId, boardEntryId, ownerId, date, amount, category,
                 description).andExpect(ok()), BoardEntry.class);
+    }
+
+    private ResultActions updateBoardSplit(RequestPostProcessor auth, UUID boardId, UUID boardSplitId, long userId,
+                                           Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth,
+                                           BigDecimal value1) throws Exception {
+        BoardSplit request = new BoardSplit();
+        request.setId(boardSplitId);
+        request.setBoardId(boardId);
+        request.setUserId(userId);
+        request.setFromYear(fromYear);
+        request.setFromMonth(fromMonth);
+        request.setToYear(toYear);
+        request.setToMonth(toMonth);
+        request.setValue1(value1);
+
+        return mockMvc.perform(put("/board/" + boardId + "/split").with(csrf()).with(auth)
+                                                                  .contentType(MediaType.APPLICATION_JSON)
+                                                                  .content(cs.toJson(request))).andDo(monitor());
+    }
+
+    private BoardSplit updateBoardSplitOk(RequestPostProcessor auth, UUID boardId, UUID boardSplitId, long userId,
+                                          Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth,
+                                          BigDecimal value1) throws Exception {
+        return cs.jsonPayload(updateBoardSplit(auth, boardId, boardSplitId, userId, fromYear, fromMonth, toYear,
+                toMonth, value1).andExpect(ok()), BoardSplit.class);
     }
 
     private ResultActions useBoardInvite(RequestPostProcessor auth, UUID boardId, UUID inviteId) throws Exception {

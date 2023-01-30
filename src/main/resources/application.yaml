@@ -65,7 +65,8 @@ log:
     org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke,
     org.springframework.web.method.support.InvocableHandlerMethod,
     org.springframework.web.servlet.mvc.method.annotation,
-    org.springframework.web.filter
+    org.springframework.web.filter,
+    it.vitalegi.budget.metrics.PerformanceAspect.logExecutionTime
 
 metrics:
   skipIfLessThan: 50
