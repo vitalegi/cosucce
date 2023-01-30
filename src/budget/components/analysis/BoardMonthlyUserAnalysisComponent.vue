@@ -47,7 +47,7 @@ const columns = computed(() => {
       name: 'actual',
       required: true,
       label: 'Attuale',
-      field: (row: MonthlyUserAnalysis) => getUser(row).actual,
+      field: (row: MonthlyUserAnalysis) => getUserActual(row),
       format: (val: string) => formatCurrency(val),
       sortable: true,
     },
@@ -55,7 +55,7 @@ const columns = computed(() => {
       name: 'expected',
       required: true,
       label: 'Attesa',
-      field: (row: MonthlyUserAnalysis) => getUser(row).expected,
+      field: (row: MonthlyUserAnalysis) => getUserExpected(row),
       format: (val: string) => formatCurrency(val),
       sortable: true,
     },
@@ -63,10 +63,8 @@ const columns = computed(() => {
       name: 'monthCredit',
       required: true,
       label: 'Credito mensile',
-      field: (row: MonthlyUserAnalysis) => {
-        const entry = getUser(row);
-        return entry.expected - entry.actual;
-      },
+      field: (row: MonthlyUserAnalysis) =>
+        getUserExpected(row) - getUserActual(row),
       format: (val: string) => formatCurrency(val),
       sortable: true,
     },
@@ -74,7 +72,7 @@ const columns = computed(() => {
       name: 'monthCreditCumulated',
       required: true,
       label: 'Credito cumulato',
-      field: (row: MonthlyUserAnalysis) => getUser(row).cumulatedCredit,
+      field: (row: MonthlyUserAnalysis) => getCumulatedCredit(row),
       format: (val: string) => formatCurrency(val),
       sortable: true,
     },
@@ -89,6 +87,29 @@ const pagination = {
 
 const getUser = (row: MonthlyUserAnalysis): UserAmount => {
   return row.users.filter((u) => u.userId === props.user.id)[0];
+};
+
+const getUserActual = (row: MonthlyUserAnalysis): number => {
+  const user = getUser(row);
+  if (user) {
+    return user.actual;
+  }
+  return 0;
+};
+const getUserExpected = (row: MonthlyUserAnalysis): number => {
+  const user = getUser(row);
+  if (user) {
+    return user.expected;
+  }
+  return 0;
+};
+
+const getCumulatedCredit = (row: MonthlyUserAnalysis): number => {
+  const user = getUser(row);
+  if (user) {
+    return user.cumulatedCredit;
+  }
+  return 0;
 };
 
 const formatCurrency = (value: string) => NumberUtil.formatCurrency(value);

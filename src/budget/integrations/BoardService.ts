@@ -5,6 +5,7 @@ import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis'
 import { asString } from 'src/utils/JsonUtil';
 import api from '../../integrations/BackendService';
 import BoardInvite from 'src/budget/models/BoardInvite';
+import BoardSplit from 'src/budget/models/BoardSplit';
 
 export class BoardService {
   getBoards = async (): Promise<Board[]> => {
@@ -80,6 +81,29 @@ export class BoardService {
   ): Promise<MonthlyUserAnalysis[]> => {
     const out = await api.get(`/board/${boardId}/analysis/month-user`, null);
     return out.map(MonthlyUserAnalysis.fromJson);
+  };
+  addBoardSplit = async (boardSplit: BoardSplit): Promise<BoardSplit> => {
+    const out = await api.post(
+      `/board/${boardSplit.boardId}/split`,
+      null,
+      boardSplit
+    );
+    return BoardSplit.fromJson(out);
+  };
+  getBoardSplits = async (boardId: string): Promise<BoardSplit[]> => {
+    const out = await api.get(`/board/${boardId}/splits`, null);
+    return out.map(BoardSplit.fromJson);
+  };
+  deleteBoardSplit = async (boardId: string, id: string): Promise<void> => {
+    await api.delete(`/board/${boardId}/split/${id}`, null, {});
+  };
+  updateBoardSplit = async (boardSplit: BoardSplit): Promise<BoardSplit> => {
+    const out = await api.put(
+      `/board/${boardSplit.boardId}/split`,
+      null,
+      boardSplit
+    );
+    return BoardSplit.fromJson(out);
   };
 }
 

@@ -82,6 +82,24 @@ const routes: RouteRecordRaw[] = [
         },
         props: true,
       },
+      {
+        name: 'AddBoardSplit',
+        path: '/board/:boardId/split/add',
+        component: () => import('src/budget/pages/BoardSplitAddPage.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+        props: true,
+      },
+      {
+        name: 'EditBoardSplit',
+        path: '/board/:boardId/split/:boardSplitId/edit',
+        component: () => import('src/budget/pages/BoardSplitAddPage.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+        props: true,
+      },
     ],
   },
 

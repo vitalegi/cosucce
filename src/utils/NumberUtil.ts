@@ -53,4 +53,13 @@ export default class NumberUtil {
       currency: 'EUR',
     }).format(v);
   }
+
+  public static formatPercentage(value: number): string {
+    return (
+      new Intl.NumberFormat('it-IT', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(value * 100) + '%'
+    );
+  }
 }
