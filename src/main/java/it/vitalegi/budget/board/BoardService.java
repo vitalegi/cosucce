@@ -31,9 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -339,30 +337,7 @@ public class BoardService {
 
     protected List<BoardSplit> doGetBoardSplits(UUID boardId) {
         List<BoardSplitEntity> entries = boardSplitRepository.findByBoardId(boardId);
-        if (!entries.isEmpty()) {
-            return entries.stream().map(e -> mapper.map(e)).collect(Collectors.toList());
-        }
-        log.info("There are no entries, use an even split");
-
-        List<BoardUserEntity> boardUsers = boardUserRepository.findByBoard_Id(boardId);
-        BigDecimal ratio = BigDecimal.ONE.divide(BigDecimal.valueOf(boardUsers.size()), 2, RoundingMode.FLOOR);
-
-        List<BoardSplit> out = boardUsers.stream().map(u -> {
-                                             BoardSplit boardSplit = new BoardSplit();
-                                             boardSplit.setUserId(u.getUser().getId());
-                                             boardSplit.setBoardId(boardId);
-                                             boardSplit.setValue1(ratio);
-                                             return boardSplit;
-                                         }).sorted(Comparator.comparing(BoardSplit::getValue1))//
-                                         .collect(Collectors.toList());
-
-        BigDecimal sum = sum(out.stream().map(BoardSplit::getValue1));
-        if (sum.equals(BigDecimal.ONE)) {
-            return out;
-        }
-        log.info("Splits sum is not 100%, round up the highest value");
-        out.get(0).setValue1(out.get(0).getValue1().add(BigDecimal.ONE.subtract(sum)));
-        return out;
+        return entries.stream().map(e -> mapper.map(e)).collect(Collectors.toList());
     }
 
     protected BigDecimal sum(Stream<BigDecimal> values) {

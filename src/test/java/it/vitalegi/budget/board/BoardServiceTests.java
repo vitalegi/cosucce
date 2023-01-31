@@ -21,12 +21,10 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -132,41 +130,7 @@ public class BoardServiceTests {
         // verify that output is correct
         assertEquals(mapperMock, board);
     }
-
-    @DisplayName("getBoardSplits, if there are no splits available, create default ones with 1/n ratio")
-    @Test
-    void test_getBoardSplits_noSplits_shouldCreateDefaultValues() {
-        UUID boardId = UUID.randomUUID();
-        when(boardSplitRepository.findByBoardId(boardId)).thenReturn(new ArrayList<>());
-
-        BoardEntity board = randomBoard(boardId);
-        List<BoardUserEntity> boardUsers = new ArrayList<>();
-        boardUsers.add(boardUser(board));
-        boardUsers.add(boardUser(board));
-        boardUsers.add(boardUser(board));
-        when(boardUserRepository.findByBoard_Id(boardId)).thenReturn(boardUsers);
-
-        List<BoardSplit> out = service.getBoardSplits(boardId);
-        assertEquals(3, out.size());
-
-        boardUsers.forEach(boardUser -> {
-            List<Long> ids = out.stream()
-                                .map(BoardSplit::getUserId)
-                                .collect(Collectors.toList());
-            assertTrue(out.stream()
-                          .anyMatch(bs -> bs.getUserId() == boardUser.getUser()
-                                                                     .getId()), "Output doesn't " +
-                    "contain an entry for user " + boardUser.getUser()
-                                                            .getId() + ": " + ids);
-        });
-        assertEquals(new BigDecimal("0.34"), out.get(0)
-                                                .getValue1());
-        assertEquals(new BigDecimal("0.33"), out.get(1)
-                                                .getValue1());
-        assertEquals(new BigDecimal("0.33"), out.get(2)
-                                                .getValue1());
-    }
-
+    
     @DisplayName("getBoardSplits, with splits available, should return splits")
     @Test
     void test_getBoardSplits_splitsAvailable_shouldReturnExistingSplits() {
@@ -179,19 +143,9 @@ public class BoardServiceTests {
         entities.add(s2);
         when(boardSplitRepository.findByBoardId(boardId)).thenReturn(entities);
         List<BoardSplit> out = service.getBoardSplits(boardId);
-        assertEquals(s1.getValue1(),
-                out.stream()
-                   .filter(o -> o.getUserId() == s1.getUser()
-                                                   .getId())
-                   .findFirst()
-                   .orElse(null)
-                   .getValue1());
-        assertEquals(s2.getValue1(),
-                out.stream()
-                   .filter(o -> o.getUserId() == s2.getUser()
-                                                   .getId())
-                   .findFirst()
-                   .orElse(null)
-                   .getValue1());
+        assertEquals(s1.getValue1(), out.stream().filter(o -> o.getUserId() == s1.getUser().getId()).findFirst()
+                                        .orElse(null).getValue1());
+        assertEquals(s2.getValue1(), out.stream().filter(o -> o.getUserId() == s2.getUser().getId()).findFirst()
+                                        .orElse(null).getValue1());
     }
 }
