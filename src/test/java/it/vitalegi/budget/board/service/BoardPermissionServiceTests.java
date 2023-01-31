@@ -1,11 +1,11 @@
-package it.vitalegi.budget.board;
+package it.vitalegi.budget.board.service;
 
 import it.vitalegi.budget.auth.BoardGrant;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.entity.BoardUserEntity;
 import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.board.repository.BoardUserRepository;
-import it.vitalegi.budget.user.UserService;
+import it.vitalegi.budget.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

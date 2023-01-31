@@ -1,5 +1,12 @@
 # README
 
+## Dummy users
+
+| Username                     | Password |
+|------------------------------|----------|
+| qfissqpplnggydntig@tmmbt.net | password |
+| uhenczgtxmafibumxb@tmmwj.com | password |
+
 ## Prerequisites
 
 - JDK 11

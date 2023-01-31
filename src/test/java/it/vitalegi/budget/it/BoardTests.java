@@ -2,8 +2,8 @@ package it.vitalegi.budget.it;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import it.vitalegi.budget.board.analysis.dto.MonthlyUserAnalysis;
-import it.vitalegi.budget.board.analysis.dto.UserAmount;
+import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
+import it.vitalegi.budget.board.dto.analysis.UserAmount;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;

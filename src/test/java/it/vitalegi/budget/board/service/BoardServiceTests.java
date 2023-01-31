@@ -1,5 +1,6 @@
-package it.vitalegi.budget.board;
+package it.vitalegi.budget.board.service;
 
+import it.vitalegi.budget.board.BoardMock;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardSplit;
@@ -10,7 +11,7 @@ import it.vitalegi.budget.board.mapper.BoardMapper;
 import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.board.repository.BoardSplitRepository;
 import it.vitalegi.budget.board.repository.BoardUserRepository;
-import it.vitalegi.budget.user.UserService;
+import it.vitalegi.budget.user.service.UserService;
 import it.vitalegi.budget.user.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -130,7 +131,7 @@ public class BoardServiceTests {
         // verify that output is correct
         assertEquals(mapperMock, board);
     }
-    
+
     @DisplayName("getBoardSplits, with splits available, should return splits")
     @Test
     void test_getBoardSplits_splitsAvailable_shouldReturnExistingSplits() {

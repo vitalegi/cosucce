@@ -1,4 +1,4 @@
-package it.vitalegi.budget.board.analysis.dto;
+package it.vitalegi.budget.board.dto.analysis;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

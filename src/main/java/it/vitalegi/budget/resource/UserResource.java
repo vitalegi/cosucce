@@ -3,7 +3,7 @@ package it.vitalegi.budget.resource;
 import io.swagger.v3.oas.annotations.Operation;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
-import it.vitalegi.budget.user.UserService;
+import it.vitalegi.budget.user.service.UserService;
 import it.vitalegi.budget.user.dto.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

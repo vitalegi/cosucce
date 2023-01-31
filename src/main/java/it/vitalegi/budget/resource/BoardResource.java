@@ -1,8 +1,8 @@
 package it.vitalegi.budget.resource;
 
 import io.swagger.v3.oas.annotations.Operation;
-import it.vitalegi.budget.board.BoardService;
-import it.vitalegi.budget.board.analysis.dto.MonthlyUserAnalysis;
+import it.vitalegi.budget.board.service.BoardService;
+import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.dto.AddBoard;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
@@ -11,7 +11,7 @@ import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
-import it.vitalegi.budget.user.UserService;
+import it.vitalegi.budget.user.service.UserService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

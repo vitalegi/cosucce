@@ -1,9 +1,10 @@
 package it.vitalegi.budget.board.analysis;
 
-import it.vitalegi.budget.board.analysis.dto.MonthlyUserAnalysis;
-import it.vitalegi.budget.board.analysis.dto.UserAmount;
+import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
+import it.vitalegi.budget.board.dto.analysis.UserAmount;
 import it.vitalegi.budget.board.dto.BoardSplit;
-import it.vitalegi.budget.board.repository.util.BoardEntryGroupByMonthUserCategory;
+import it.vitalegi.budget.board.entity.BoardEntryGroupByMonthUserCategory;
+import it.vitalegi.budget.board.service.AggregatedAnalysisService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;

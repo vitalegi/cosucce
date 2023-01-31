@@ -1,8 +1,7 @@
-package it.vitalegi.budget.board;
+package it.vitalegi.budget.board.service;
 
 import it.vitalegi.budget.auth.BoardGrant;
-import it.vitalegi.budget.board.analysis.AggregatedAnalysisService;
-import it.vitalegi.budget.board.analysis.dto.MonthlyUserAnalysis;
+import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
@@ -20,10 +19,10 @@ import it.vitalegi.budget.board.repository.BoardInviteRepository;
 import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.board.repository.BoardSplitRepository;
 import it.vitalegi.budget.board.repository.BoardUserRepository;
-import it.vitalegi.budget.board.repository.util.BoardEntryGroupByMonthUserCategory;
+import it.vitalegi.budget.board.entity.BoardEntryGroupByMonthUserCategory;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
-import it.vitalegi.budget.user.UserService;
+import it.vitalegi.budget.user.service.UserService;
 import it.vitalegi.budget.user.entity.UserEntity;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package it.vitalegi.budget.user;
+package it.vitalegi.budget.user.service;
 
 import it.vitalegi.budget.auth.AuthenticationService;
 import it.vitalegi.budget.metrics.Performance;

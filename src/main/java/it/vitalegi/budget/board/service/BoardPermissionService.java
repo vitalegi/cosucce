@@ -1,4 +1,4 @@
-package it.vitalegi.budget.board;
+package it.vitalegi.budget.board.service;
 
 import it.vitalegi.budget.auth.BoardGrant;
 import it.vitalegi.budget.board.constant.BoardUserRole;
@@ -9,7 +9,7 @@ import it.vitalegi.budget.board.repository.BoardUserRepository;
 import it.vitalegi.budget.exception.PermissionException;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
-import it.vitalegi.budget.user.UserService;
+import it.vitalegi.budget.user.service.UserService;
 import it.vitalegi.budget.user.entity.UserEntity;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;

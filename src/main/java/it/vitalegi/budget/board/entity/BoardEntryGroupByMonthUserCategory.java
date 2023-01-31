@@ -1,4 +1,4 @@
-package it.vitalegi.budget.board.repository.util;
+package it.vitalegi.budget.board.entity;
 
 import lombok.Getter;
 import lombok.Setter;
