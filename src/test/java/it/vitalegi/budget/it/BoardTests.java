@@ -2,14 +2,14 @@ package it.vitalegi.budget.it;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
-import it.vitalegi.budget.board.dto.analysis.UserAmount;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
+import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
+import it.vitalegi.budget.board.dto.analysis.UserAmount;
 import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.user.dto.User;
 import it.vitalegi.budget.user.repository.UserRepository;
@@ -143,21 +143,11 @@ public class BoardTests {
         addBoardInvite(auth2, board.getId()).andExpect(error403());
     }
 
-    // TODO split in 3 tests
-    @DisplayName("GIVEN I am the owner of the board WHEN I create a new invite THEN the invite should be created, " + "the user should be able to use it, the user should join the board with role=MEMBER")
+    @DisplayName("GIVEN I am the owner of the board WHEN I create a new invite THEN the invite should be created")
     @Test
-    public void test_addBoardInvite_owner_shouldAssign() throws Exception {
+    public void test_addBoardInvite_owner_shouldCreate() throws Exception {
         Board board = addBoardOk(auth1, "board1");
-        joinBoard(auth1, auth2, board.getId());
-        List<BoardUser> users = getBoardUsersOk(auth1, board.getId());
-
-        assertEquals(2, users.size());
-        BoardUser u1 = users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst().orElse(null);
-        assertNotNull(u1);
-        assertEquals(BoardUserRole.OWNER, u1.getRole());
-        BoardUser u2 = users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst().orElse(null);
-        assertNotNull(u2);
-        assertEquals(BoardUserRole.MEMBER, u2.getRole());
+        addBoardInviteOk(auth1, board.getId());
     }
 
     @DisplayName("GIVEN I am a member of the board WHEN I add a new split THEN I should receive an error")
@@ -181,6 +171,7 @@ public class BoardTests {
     public void test_addBoardSplit_owner_shouldCreateSplit() throws Exception {
         Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
+        deleteAllBoardSplits(auth1, board);
 
         BoardSplit s1 = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null, new BigDecimal(
                 "1"));
@@ -277,8 +268,8 @@ public class BoardTests {
     @Test
     public void test_getBoardAggregatedData() throws Exception {
         Board board = addBoardOk(auth1, "board1");
-
         joinBoard(auth1, auth2, board.getId());
+        deleteAllBoardSplits(auth1, board);
 
         addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2023, 1, 5), new BigDecimal("1"), "CAT1", null);
         addBoardEntry(auth1, board.getId(), user1.getId(), LocalDate.of(2023, 2, 5), new BigDecimal("1"), "CAT1", null);
@@ -575,16 +566,34 @@ public class BoardTests {
     public void test_updateBoardSplit_owner_shouldUpdateSplit() throws Exception {
         Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
+        deleteAllBoardSplits(auth1, board);
 
         BoardSplit split = addBoardSplitOk(auth1, board.getId(), user1.getId(), null, null, null, null,
                 new BigDecimal("1"));
 
-        updateBoardSplitOk(auth1, board.getId(), split.getId(), user1.getId(), 2022, 1, null, null,
-                new BigDecimal("1"));
+        updateBoardSplitOk(auth1, board.getId(), split.getId(), user1.getId(), 2022, 1, null, null, new BigDecimal("1"
+        ));
 
         List<BoardSplit> splits = getBoardSplitsOk(auth1, board.getId());
         assertEquals(1, splits.size());
         validateBoardSplit(board.getId(), user1.getId(), 2022, 1, null, null, new BigDecimal("1"), splits.get(0));
+    }
+
+    @DisplayName("GIVEN I am the owner of the board and I created an invite WHEN an user that is not member uses the "
+            + "invite THEN the user should join with role=MEMBER")
+    @Test
+    public void test_useBoardInvite_notMember_shouldJoin() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board.getId());
+        List<BoardUser> users = getBoardUsersOk(auth1, board.getId());
+
+        assertEquals(2, users.size());
+        BoardUser u1 = users.stream().filter(u -> u.getUser().getId() == user1.getId()).findFirst().orElse(null);
+        assertNotNull(u1);
+        assertEquals(BoardUserRole.OWNER, u1.getRole());
+        BoardUser u2 = users.stream().filter(u -> u.getUser().getId() == user2.getId()).findFirst().orElse(null);
+        assertNotNull(u2);
+        assertEquals(BoardUserRole.MEMBER, u2.getRole());
     }
 
     private ResultActions access(RequestPostProcessor auth) throws Exception {
@@ -664,6 +673,13 @@ public class BoardTests {
     private BoardSplit addBoardSplitOk(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear,
                                        Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
         return cs.jsonPayload(addBoardSplit(auth, boardId, userId, fromYear, fromMonth, toYear, toMonth, value1).andExpect(ok()), BoardSplit.class);
+    }
+
+    private void deleteAllBoardSplits(RequestPostProcessor auth, Board board) throws Exception {
+        List<BoardSplit> splits = getBoardSplitsOk(auth, board.getId());
+        for (BoardSplit split : splits) {
+            deleteBoardSplitOk(auth, board.getId(), split.getId());
+        }
     }
 
     private ResultActions deleteBoardEntry(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {

@@ -1,15 +1,16 @@
 package it.vitalegi.budget.board.service;
 
 import it.vitalegi.budget.auth.BoardGrant;
-import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
+import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
+import it.vitalegi.budget.board.entity.BoardEntryGroupByMonthUserCategory;
 import it.vitalegi.budget.board.entity.BoardInviteEntity;
 import it.vitalegi.budget.board.entity.BoardSplitEntity;
 import it.vitalegi.budget.board.entity.BoardUserEntity;
@@ -19,11 +20,10 @@ import it.vitalegi.budget.board.repository.BoardInviteRepository;
 import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.board.repository.BoardSplitRepository;
 import it.vitalegi.budget.board.repository.BoardUserRepository;
-import it.vitalegi.budget.board.entity.BoardEntryGroupByMonthUserCategory;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
-import it.vitalegi.budget.user.service.UserService;
 import it.vitalegi.budget.user.entity.UserEntity;
+import it.vitalegi.budget.user.service.UserService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -85,6 +85,9 @@ public class BoardService {
         entity.setRole(BoardUserRole.OWNER.name());
         boardUserRepository.save(entity);
         log.info("User is owner of board. Board={}, User={}", out.getId(), owner.getId());
+
+        doAddBoardSplit(out, owner, null, null, null, null, BigDecimal.ONE);
+        log.info("Initialize board with 100% ratio on owner");
         return mapper.map(out);
     }
 
@@ -142,20 +145,8 @@ public class BoardService {
             throw new IllegalArgumentException("User " + userId + " is not part of the board");
         }
         log.info("Requested user is part of the board");
-
         UserEntity userEntity = userService.getUserEntity(userId);
-        BoardSplitEntity boardSplitEntity = new BoardSplitEntity();
-        boardSplitEntity.setUser(userEntity);
-        boardSplitEntity.setBoard(boardEntity);
-        boardSplitEntity.setFromMonth(fromMonth);
-        boardSplitEntity.setFromYear(fromYear);
-        boardSplitEntity.setToMonth(toMonth);
-        boardSplitEntity.setToYear(toYear);
-        boardSplitEntity.setValue1(value);
-
-        BoardSplitEntity out = boardSplitRepository.save(boardSplitEntity);
-        log.info("board split rule created. Board={}, rule={}", boardId, out.getId());
-        return mapper.map(out);
+        return doAddBoardSplit(boardEntity, userEntity, fromYear, fromMonth, toYear, toMonth, value);
     }
 
     public void deleteBoardEntry(UUID boardId, UUID boardEntryId) {
@@ -332,6 +323,22 @@ public class BoardService {
         entity.setUser(currentUser);
         entity.setRole(BoardUserRole.MEMBER.name());
         boardUserRepository.save(entity);
+    }
+
+    protected BoardSplit doAddBoardSplit(BoardEntity boardEntity, UserEntity userEntity, Integer fromYear,
+                                         Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value) {
+        BoardSplitEntity boardSplitEntity = new BoardSplitEntity();
+        boardSplitEntity.setUser(userEntity);
+        boardSplitEntity.setBoard(boardEntity);
+        boardSplitEntity.setFromMonth(fromMonth);
+        boardSplitEntity.setFromYear(fromYear);
+        boardSplitEntity.setToMonth(toMonth);
+        boardSplitEntity.setToYear(toYear);
+        boardSplitEntity.setValue1(value);
+
+        BoardSplitEntity out = boardSplitRepository.save(boardSplitEntity);
+        log.info("board split rule created. Board={}, rule={}", boardEntity.getId(), out.getId());
+        return mapper.map(out);
     }
 
     protected List<BoardSplit> doGetBoardSplits(UUID boardId) {
