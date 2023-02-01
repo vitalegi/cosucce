@@ -2,6 +2,7 @@ package it.vitalegi.budget.it;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import it.vitalegi.budget.auth.BoardGrant;
 import it.vitalegi.budget.board.constant.BoardUserRole;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
@@ -34,7 +35,13 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_EDIT;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_EDIT;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_MANAGE_MEMBER;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_USER_ROLE_EDIT;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_VIEW;
 import static it.vitalegi.budget.it.HttpMonitor.monitor;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -471,6 +478,35 @@ public class BoardTests {
         assertTrue(entries.stream().anyMatch(c -> c.equals("CAT2")));
     }
 
+    @DisplayName("GIVEN I am a member of the board WHEN I get my grants THEN grants should be the ones for MEMBER")
+    @Test
+    public void test_getGrants_member_shouldRetrieveOnlyMemberGrants() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        List<BoardGrant> grants = getGrantsOk(auth2, board1.getId());
+        assertArrayEquals(grants.toArray(), Arrays.asList(BOARD_VIEW, BOARD_ENTRY_EDIT).toArray());
+    }
+
+    @DisplayName("GIVEN I am not a member of the board WHEN I get my grants THEN grants should be empty")
+    @Test
+    public void test_getGrants_notMember_shouldNotRetrieveAnyGrant() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        List<BoardGrant> grants = getGrantsOk(auth3, board1.getId());
+        assertEquals(0, grants.size());
+    }
+
+    @DisplayName("GIVEN I am the owner of the board WHEN I get my grants THEN grants should be the ones for OWNER")
+    @Test
+    public void test_getGrants_owner_shouldRetrieveOwnerGrants() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        List<BoardGrant> grants = getGrantsOk(auth1, board1.getId());
+        assertArrayEquals(grants.toArray(), Arrays.asList(BOARD_VIEW, BOARD_EDIT, BOARD_ENTRY_EDIT,
+                                                          BOARD_USER_ROLE_EDIT, BOARD_MANAGE_MEMBER)
+                                                  .toArray());
+    }
+
     @DisplayName("GIVEN I am a member of the board WHEN I update a board entry THEN the entry should be updated")
     @Test
     public void test_updateBoardEntry_member_shouldCreateEntry() throws Exception {
@@ -778,6 +814,16 @@ public class BoardTests {
 
     private List<String> getCategoriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
         return cs.jsonPayloadList(getCategories(auth, boardId).andExpect(ok()), new TypeReference<>() {
+        });
+    }
+
+    private ResultActions getGrants(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/grants").with(auth))//
+                      .andDo(monitor());
+    }
+
+    private List<BoardGrant> getGrantsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getGrants(auth, boardId).andExpect(ok()), new TypeReference<>() {
         });
     }
 

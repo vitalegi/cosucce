@@ -9,13 +9,14 @@ import it.vitalegi.budget.board.repository.BoardUserRepository;
 import it.vitalegi.budget.exception.PermissionException;
 import it.vitalegi.budget.metrics.Performance;
 import it.vitalegi.budget.metrics.Type;
-import it.vitalegi.budget.user.service.UserService;
 import it.vitalegi.budget.user.entity.UserEntity;
+import it.vitalegi.budget.user.service.UserService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,16 +65,25 @@ public class BoardPermissionService {
         }
     }
 
+    public List<BoardGrant> getGrants(UUID boardId) {
+        long userId = userService.getCurrentUser().getId();
+        return getGrants(userId, boardId);
+    }
+
+    public List<BoardGrant> getGrants(long userId, UUID boardId) {
+        BoardUserEntity role = boardUserRepository.findUserBoard(boardId, userId);
+        if (role != null) {
+            BoardUserRole userRole = BoardUserRole.valueOf(role.getRole());
+            return RBAC.get(userRole);
+        }
+        return Collections.emptyList();
+    }
+
     protected boolean hasGrant(long userId, UUID boardId, BoardGrant grant) {
         Optional<BoardEntity> board = boardRepository.findById(boardId);
         if (board.isEmpty()) {
             return false;
         }
-        BoardUserEntity role = boardUserRepository.findUserBoard(boardId, userId);
-        if (role != null) {
-            BoardUserRole userRole = BoardUserRole.valueOf(role.getRole());
-            return RBAC.get(userRole).contains(grant);
-        }
-        return false;
+        return getGrants(userId, boardId).contains(grant);
     }
 }
