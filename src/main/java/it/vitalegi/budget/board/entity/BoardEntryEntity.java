@@ -6,11 +6,13 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -31,11 +33,13 @@ public class BoardEntryEntity {
     @NotNull
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_entry__user__owner_id"))
+    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
     UserEntity owner;
 
     @NotNull
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_entry__board__board_id"))
+    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
     BoardEntity board;
 
     @NotNull LocalDate date;

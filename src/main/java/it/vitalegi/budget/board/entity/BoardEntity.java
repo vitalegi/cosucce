@@ -6,6 +6,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -26,10 +27,10 @@ public class BoardEntity {
     @Type(type = "org.hibernate.type.UUIDCharType")
     UUID id;
 
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "board", fetch = FetchType.LAZY)
     Set<BoardEntryEntity> boardEntries;
 
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "board", fetch = FetchType.LAZY)
     Set<BoardUserEntity> boardUsers;
 
     @NotNull String name;
