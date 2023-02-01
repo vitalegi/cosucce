@@ -7,13 +7,12 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import com.tngtech.archunit.library.Architectures;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
-//@AnalyzeClasses(packages = "it.vitalegi", importOptions = ImportOption.DoNotIncludeTests.class)
 public class ArchitectureTests {
     static JavaClasses classes;
     Architectures.LayeredArchitecture architecture;
@@ -77,16 +76,10 @@ public class ArchitectureTests {
         architecture.check(classes);
     }
 
-    @DisplayName("javax.transaction.Transactional annotation is not used")
-    @Test
-    void test_transactionalAnnotation() {
-        ArchRuleDefinition.noCodeUnits().that().areAnnotatedWith(javax.transaction.Transactional.class).should()
-                          .beDeclaredIn("..");
-    }
-
-    @Disabled("implement")
     @DisplayName("a @Transactional code unit is called only by Presentation")
     @Test
     void test_transactional_isCalledOnlyByPresentation() {
+        ArchRuleDefinition.codeUnits().that().areAnnotatedWith(Transactional.class).should().onlyBeCalled()
+                          .byClassesThat().resideInAPackage("..resource..").check(classes);
     }
 }
