@@ -16,9 +16,21 @@
           ]"
         />
         <q-input outlined v-model="fromYear" label="Da anno" hint="2022" />
-        <q-input outlined v-model="fromMonth" label="Da mese" hint="12" />
+        <q-select
+          label="Da mese"
+          outlined
+          clearable
+          :options="months"
+          v-model="fromMonth"
+        />
         <q-input outlined v-model="toYear" label="A anno" hint="2022" />
-        <q-input outlined v-model="toMonth" label="A mese" hint="12" />
+        <q-select
+          label="A mese"
+          outlined
+          clearable
+          :options="months"
+          v-model="toMonth"
+        />
         <q-input
           outlined
           v-model="percentage"
@@ -37,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
 import SelectValue from 'src/models/SelectValue';
 import { asInt } from 'src/utils/JsonUtil';
@@ -54,6 +66,32 @@ const props = defineProps({
     type: String,
     required: false,
   },
+});
+
+const monthToSelect = (month: number): SelectValue => {
+  const months = [
+    'Gennaio',
+    'Febbraio',
+    'Marzo',
+    'Aprile',
+    'Maggio',
+    'Giugno',
+    'Luglio',
+    'Agosto',
+    'Settembre',
+    'Ottobre',
+    'Novembre',
+    'Dicembre',
+  ];
+  return new SelectValue(months[month], `${month}`);
+};
+
+const months = computed(() => {
+  const months = new Array<SelectValue>();
+  for (let i = 0; i < 12; i++) {
+    months.push(monthToSelect(i));
+  }
+  return months;
 });
 
 const router = useRouter();
@@ -85,8 +123,8 @@ const loadData = async (boardId: string): Promise<void> => {
     );
     fromYear.value = entry.fromYear;
     toYear.value = entry.toYear;
-    fromMonth.value = entry.fromMonth;
-    toMonth.value = entry.toMonth;
+    fromMonth.value = entry.fromMonth ? monthToSelect(entry.fromMonth) : null;
+    toMonth.value = entry.toMonth ? monthToSelect(entry.toMonth) : null;
     percentage.value = entry.value1 * 100;
   }
 };
@@ -124,9 +162,9 @@ const onSubmit = async (): Promise<void> => {
   entry.boardId = props.boardId;
   entry.userId = asInt(user.value.value);
   entry.fromYear = fromYear.value;
-  entry.fromMonth = fromMonth.value;
+  entry.fromMonth = fromMonth.value ? fromMonth.value.value : null;
   entry.toYear = toYear.value;
-  entry.toMonth = toMonth.value;
+  entry.toMonth = toMonth.value ? toMonth.value.value : null;
   entry.value1 = percentage.value / 100;
 
   if (props.boardSplitId) {
