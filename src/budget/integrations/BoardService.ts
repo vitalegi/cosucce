@@ -105,6 +105,10 @@ export class BoardService {
     );
     return BoardSplit.fromJson(out);
   };
+  getGrants = async (boardId: string): Promise<string[]> => {
+    const out = await api.get(`/board/${boardId}/grants`, null);
+    return out.map(asString);
+  };
 }
 
 export default new BoardService();

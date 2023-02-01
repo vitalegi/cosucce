@@ -6,7 +6,12 @@
         <q-space />
         <div class="q-pa-xs q-gutter-sm">
           <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
-          <q-btn round icon="settings" @click="openBoardSettings()" />
+          <q-btn
+            round
+            icon="settings"
+            @click="openBoardSettings()"
+            v-if="showSettingsButton"
+          />
         </div>
       </div>
       <div class="q-pa-xs col-12">
@@ -59,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
 import Board from 'src/budget/models/Board';
 import BoardEntry from 'src/budget/models/BoardEntry';
@@ -82,6 +87,7 @@ const board = ref(new Board());
 const boardEntries = ref(new Array<BoardEntry>());
 const monthlyUserAnalysis = ref(new Array<MonthlyUserAnalysis>());
 const members = ref(new Array<BoardUser>());
+const grants = ref(new Array<string>());
 
 const reloadAnalysis = async (boardId: string): Promise<void> => {
   monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
@@ -93,6 +99,7 @@ const loadData = async (boardId: string): Promise<void> => {
   board.value = await boardService.getBoard(boardId);
   members.value = await boardService.getBoardUsers(boardId);
   boardEntries.value = await boardService.getBoardEntries(boardId);
+  grants.value = await boardService.getGrants(boardId);
   reloadAnalysis(boardId);
 };
 
@@ -143,4 +150,8 @@ const deleteBoardEntry = async (): Promise<void> => {
   await reloadAnalysis(props.boardId);
   resetDialogDeleteBoardEntry();
 };
+
+const showSettingsButton = computed(
+  () => grants.value.filter((grant) => grant === 'BOARD_EDIT').length > 0
+);
 </script>
