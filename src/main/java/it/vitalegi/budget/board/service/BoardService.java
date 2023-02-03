@@ -165,6 +165,12 @@ public class BoardService {
         return doAddBoardSplit(boardEntity, userEntity, fromYear, fromMonth, toYear, toMonth, value);
     }
 
+    public void deleteBoard(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_DELETE);
+        boardRepository.deleteById(boardId);
+        log.info("Deleted board {}", boardId);
+    }
+
     public void deleteBoardEntry(UUID boardId, UUID boardEntryId) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
         Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);

@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_DELETE;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_EDIT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_EDIT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_IMPORT;
@@ -42,7 +43,7 @@ public class BoardPermissionService {
     static {
         RBAC = new HashMap<>();
         RBAC.put(OWNER, Arrays.asList(BOARD_VIEW, BOARD_EDIT, BOARD_ENTRY_EDIT, BOARD_USER_ROLE_EDIT,
-                BOARD_MANAGE_MEMBER, BOARD_ENTRY_IMPORT));
+                BOARD_MANAGE_MEMBER, BOARD_ENTRY_IMPORT, BOARD_DELETE));
         RBAC.put(MEMBER, Arrays.asList(BOARD_VIEW, BOARD_ENTRY_EDIT));
     }
 

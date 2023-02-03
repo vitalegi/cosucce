@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_DELETE;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_EDIT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_EDIT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_IMPORT;
@@ -301,6 +302,34 @@ public class BoardTests {
         assertTrue(splits.stream().noneMatch(s -> split.getId().equals(s.getId())));
     }
 
+    @DisplayName("GIVEN I am a member of the board WHEN I delete the board THEN I should receive an error")
+    @Test
+    public void test_deleteBoard_member_shouldFail() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        deleteBoard(auth2, board1.getId()).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am not member of the board WHEN I delete the board THEN I should receive an error")
+    @Test
+    public void test_deleteBoard_notMember_shouldFail() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        deleteBoard(auth3, board1.getId()).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am the owner of the board WHEN I delete the board THEN the board should be deleted")
+    @Test
+    public void test_deleteBoard_owner_shouldDeleteBoard() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        addBoardSplitOk(auth1, board1.getId(), user1.getId(), null, null, null, null, new BigDecimal("1"));
+        addBoardEntry(auth1, board1.getId(), user1.getId(), LocalDate.of(2023, 1, 5), new BigDecimal("1"), "CAT1",
+                null);
+
+        deleteBoardOk(auth1, board1.getId());
+    }
+
     // TODO split in multiple tests
     @DisplayName("GIVEN I am a user WHEN I retrieve board aggregated data THEN I should receive data")
     @Test
@@ -534,7 +563,8 @@ public class BoardTests {
         joinBoard(auth1, auth2, board1.getId());
         List<BoardGrant> grants = getGrantsOk(auth1, board1.getId());
         assertArrayEquals(grants.toArray(), Arrays.asList(BOARD_VIEW, BOARD_EDIT, BOARD_ENTRY_EDIT,
-                                                          BOARD_USER_ROLE_EDIT, BOARD_MANAGE_MEMBER, BOARD_ENTRY_IMPORT)
+                                                          BOARD_USER_ROLE_EDIT, BOARD_MANAGE_MEMBER,
+                                                          BOARD_ENTRY_IMPORT, BOARD_DELETE)
                                                   .toArray());
     }
 
@@ -775,6 +805,10 @@ public class BoardTests {
         }
     }
 
+    private ResultActions deleteBoard(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return mockMvc.perform(delete("/board/" + boardId).with(csrf()).with(auth)).andDo(monitor());
+    }
+
     private ResultActions deleteBoardEntry(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
         return mockMvc.perform(delete("/board/" + boardId + "/entry/" + boardEntryId).with(csrf()).with(auth))
                       .andDo(monitor());
@@ -782,6 +816,10 @@ public class BoardTests {
 
     private void deleteBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
         deleteBoardEntry(auth, boardId, boardEntryId).andExpect(ok());
+    }
+
+    private void deleteBoardOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        deleteBoard(auth, boardId).andExpect(ok());
     }
 
     private ResultActions deleteBoardSplit(RequestPostProcessor auth, UUID boardId, UUID splitId) throws Exception {

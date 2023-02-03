@@ -83,6 +83,11 @@ public class BoardResource {
                                  @PathVariable("boardEntryId") UUID boardEntryId) {
         boardService.deleteBoardEntry(boardId, boardEntryId);
     }
+    @Operation(summary = "Delete board")
+    @DeleteMapping(path = "/{boardId}")
+    public void deleteBoard(@PathVariable("boardId") UUID boardId) {
+        boardService.deleteBoard(boardId);
+    }
 
     @Operation(summary = "Delete board split")
     @DeleteMapping(path = "/{boardId}/split/{boardSplitId}")
