@@ -33,6 +33,16 @@ export class BoardService {
     return BoardEntry.fromJson(out);
   };
 
+  addBoardEntries = async (
+    boardId: string,
+    entries: Array<BoardEntry>
+  ): Promise<Array<BoardEntry>> => {
+    const out = await api.post(`/board/${boardId}/entries`, null, {
+      entries: entries,
+    });
+    return out.map(BoardEntry.fromJson);
+  };
+
   updateBoardEntry = async (
     boardId: string,
     entry: BoardEntry
