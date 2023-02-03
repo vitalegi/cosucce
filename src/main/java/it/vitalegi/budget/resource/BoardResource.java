@@ -3,6 +3,7 @@ package it.vitalegi.budget.resource;
 import io.swagger.v3.oas.annotations.Operation;
 import it.vitalegi.budget.auth.BoardGrant;
 import it.vitalegi.budget.board.dto.AddBoard;
+import it.vitalegi.budget.board.dto.AddBoardEntries;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardInvite;
@@ -44,6 +45,14 @@ public class BoardResource {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Board addBoard(@RequestBody AddBoard board) {
         return boardService.addBoard(board.getName());
+    }
+
+    @Operation(summary = "Add board entries")
+    @PostMapping(path = "/{boardId}/entries", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    public List<BoardEntry> addBoardEntries(@PathVariable("boardId") UUID boardId,
+                                            @RequestBody AddBoardEntries request) {
+        return boardService.addBoardEntries(boardId, request.getEntries());
     }
 
     @Operation(summary = "Add new entry to board")

@@ -4,6 +4,7 @@ package it.vitalegi.budget.it;
 import com.fasterxml.jackson.core.type.TypeReference;
 import it.vitalegi.budget.auth.BoardGrant;
 import it.vitalegi.budget.board.constant.BoardUserRole;
+import it.vitalegi.budget.board.dto.AddBoardEntries;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardInvite;
@@ -31,12 +32,14 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_EDIT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_EDIT;
+import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_IMPORT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_MANAGE_MEMBER;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_USER_ROLE_EDIT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_VIEW;
@@ -101,6 +104,34 @@ public class BoardTests {
         auth3 = mockAuth.user(USER3);
         user3 = accessOk(auth3, USER3);
 
+    }
+
+    @DisplayName("GIVEN I am a member of the board WHEN I import new entries THEN I should receive an error")
+    @Test
+    public void test_addBoardEntries_member_shouldFail() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        addBoardEntries(auth2, board1.getId(), Collections.emptyList()).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am not member of the board WHEN I import new entries THEN I should receive an error")
+    @Test
+    public void test_addBoardEntries_notMember_shouldFail() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        addBoardEntries(auth2, board1.getId(), Collections.emptyList()).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am the owner of the board WHEN I import new entries THEN the entries should be created")
+    @Test
+    public void test_addBoardEntries_owner_shouldCreateEntry() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        BoardEntry entry1 = boardEntry(null, user1.getId(), LocalDate.now(), new BigDecimal("123.12"), "A",
+                "description1");
+        BoardEntry entry2 = boardEntry(null, user2.getId(), LocalDate.now(), new BigDecimal("123.12"), "A",
+                "description2");
+        List<BoardEntry> entries = addBoardEntriesOk(auth1, board1.getId(), Arrays.asList(entry1, entry2));
+        assertEquals(2, entries.size());
     }
 
     @DisplayName("GIVEN I am a member of the board WHEN I add a new entry THEN the entry should be created")
@@ -503,7 +534,7 @@ public class BoardTests {
         joinBoard(auth1, auth2, board1.getId());
         List<BoardGrant> grants = getGrantsOk(auth1, board1.getId());
         assertArrayEquals(grants.toArray(), Arrays.asList(BOARD_VIEW, BOARD_EDIT, BOARD_ENTRY_EDIT,
-                                                          BOARD_USER_ROLE_EDIT, BOARD_MANAGE_MEMBER)
+                                                          BOARD_USER_ROLE_EDIT, BOARD_MANAGE_MEMBER, BOARD_ENTRY_IMPORT)
                                                   .toArray());
     }
 
@@ -654,6 +685,19 @@ public class BoardTests {
                       .andDo(monitor());
     }
 
+    private ResultActions addBoardEntries(RequestPostProcessor auth, UUID boardId, List<BoardEntry> entries) throws Exception {
+        AddBoardEntries request = new AddBoardEntries();
+        request.setEntries(entries);
+        return mockMvc.perform(post("/board/" + boardId + "/entries").with(csrf()).with(auth)
+                                                                     .contentType(MediaType.APPLICATION_JSON)
+                                                                     .content(cs.toJson(request))).andDo(monitor());
+    }
+
+    private List<BoardEntry> addBoardEntriesOk(RequestPostProcessor auth, UUID boardId, List<BoardEntry> entries) throws Exception {
+        return cs.jsonPayloadList(addBoardEntries(auth, boardId, entries).andExpect(ok()), new TypeReference<>() {
+        });
+    }
+
     private ResultActions addBoardEntry(RequestPostProcessor auth, UUID boardId, Long ownerId, LocalDate date,
                                         BigDecimal amount, String category, String description) throws Exception {
         BoardEntry request = new BoardEntry();
@@ -709,6 +753,19 @@ public class BoardTests {
     private BoardSplit addBoardSplitOk(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear,
                                        Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
         return cs.jsonPayload(addBoardSplit(auth, boardId, userId, fromYear, fromMonth, toYear, toMonth, value1).andExpect(ok()), BoardSplit.class);
+    }
+
+    private BoardEntry boardEntry(UUID boardId, Long ownerId, LocalDate date, BigDecimal amount, String category,
+                                  String description) {
+
+        BoardEntry entry = new BoardEntry();
+        entry.setBoardId(boardId);
+        entry.setOwnerId(ownerId);
+        entry.setAmount(amount);
+        entry.setDescription(description);
+        entry.setCategory(category);
+        entry.setDate(date);
+        return entry;
     }
 
     private void deleteAllBoardSplits(RequestPostProcessor auth, Board board) throws Exception {

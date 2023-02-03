@@ -31,9 +31,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -91,6 +94,32 @@ public class BoardService {
         return mapper.map(out);
     }
 
+    @Transactional
+    public List<BoardEntry> addBoardEntries(UUID boardId, List<BoardEntry> entries) {
+        UserEntity user = userService.getCurrentUserEntity();
+        boardPermissionService.checkGrant(user, boardId, BoardGrant.BOARD_ENTRY_IMPORT);
+        log.info("Current user can edit board entries");
+
+        BoardEntity board = boardRepository.findById(boardId).get();
+
+        List<BoardUserEntity> members = boardUserRepository.findByBoard_Id(boardId);
+        Map<Long, UserEntity> users = members.stream().map(u -> u.getUser()).distinct()
+                                             .collect(Collectors.toMap(UserEntity::getId, Function.identity()));
+        log.info("Available users: {}", users.entrySet().stream().map(Map.Entry::getKey).map(k -> "" + k)
+                                             .collect(Collectors.joining(", ")));
+        log.info("Start import procedure for {} entries", entries.size());
+        List<BoardEntry> importedEntries = new ArrayList<>();
+        for (int i = 0; i < entries.size(); i++) {
+            BoardEntry entry = entries.get(i);
+            UserEntity owner = users.get(entry.getOwnerId());
+            if (owner == null) {
+                throw new IllegalArgumentException("Cannot find owner for entry " + i + ": " + entry);
+            }
+            importedEntries.add(doAddBoardEntry(board, entry, owner));
+        }
+        return importedEntries;
+    }
+
     public BoardEntry addBoardEntry(UUID boardId, BoardEntry boardEntry) {
         UserEntity user = userService.getCurrentUserEntity();
         boardPermissionService.checkGrant(user, boardId, BoardGrant.BOARD_ENTRY_EDIT);
@@ -101,20 +130,7 @@ public class BoardService {
         log.info("Author {} can edit board entries", author.getId());
 
         BoardEntity board = boardRepository.findById(boardId).get();
-
-        BoardEntryEntity entry = new BoardEntryEntity();
-        entry.setBoard(board);
-        entry.setDate(boardEntry.getDate());
-        LocalDateTime now = LocalDateTime.now();
-        entry.setCreationDate(now);
-        entry.setLastUpdate(now);
-        entry.setOwner(author);
-        entry.setCategory(boardEntry.getCategory());
-        entry.setDescription(boardEntry.getDescription());
-        entry.setAmount(boardEntry.getAmount());
-        BoardEntryEntity newEntry = boardEntryRepository.save(entry);
-        log.info("Created boardEntry. board={}, ownerId={}, entryId={}", boardId, author.getId(), newEntry.getId());
-        return mapper.map(newEntry);
+        return doAddBoardEntry(board, boardEntry, author);
     }
 
     public BoardInvite addBoardInvite(UUID boardId) {
@@ -187,6 +203,23 @@ public class BoardService {
             throw new IllegalArgumentException("entry not related to this board. Entry=" + boardSplitId + ", Board=" + boardId);
         }
         boardSplitRepository.deleteById(boardSplitId);
+    }
+
+    public BoardEntry doAddBoardEntry(BoardEntity board, BoardEntry boardEntry, UserEntity author) {
+        BoardEntryEntity entry = new BoardEntryEntity();
+        entry.setBoard(board);
+        entry.setDate(boardEntry.getDate());
+        LocalDateTime now = LocalDateTime.now();
+        entry.setCreationDate(now);
+        entry.setLastUpdate(now);
+        entry.setOwner(author);
+        entry.setCategory(boardEntry.getCategory());
+        entry.setDescription(boardEntry.getDescription());
+        entry.setAmount(boardEntry.getAmount());
+        BoardEntryEntity newEntry = boardEntryRepository.save(entry);
+        log.info("Created boardEntry. board={}, ownerId={}, entryId={}", board.getId(), author.getId(),
+                newEntry.getId());
+        return mapper.map(newEntry);
     }
 
     public Board getBoard(UUID id) {
