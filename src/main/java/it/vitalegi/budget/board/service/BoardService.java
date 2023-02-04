@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -328,11 +329,11 @@ public class BoardService {
         entry.setFromMonth(boardSplit.getFromMonth());
         entry.setToYear(boardSplit.getToYear());
         entry.setFromYear(boardSplit.getFromYear());
-        entry.setValue1(boardSplit.getValue1());
+        entry.setValue1(processBoardSplitValue(boardSplit.getValue1()));
         UserEntity user = boardUserRepository.findUserBoard(boardId, boardSplit.getUserId()).getUser();
         entry.setUser(user);
         BoardSplitEntity newEntry = boardSplitRepository.save(entry);
-        log.info("Updated boardSplit. board={}, entryId={}", boardId, newEntry.getId());
+        log.info("Updated boardSplit. board={}, entryId={}, value={}", boardId, newEntry.getId(), entry.getValue1());
         return mapper.map(newEntry);
     }
 
@@ -373,16 +374,21 @@ public class BoardService {
         boardSplitEntity.setFromYear(fromYear);
         boardSplitEntity.setToMonth(toMonth);
         boardSplitEntity.setToYear(toYear);
-        boardSplitEntity.setValue1(value);
+        boardSplitEntity.setValue1(processBoardSplitValue(value));
 
         BoardSplitEntity out = boardSplitRepository.save(boardSplitEntity);
-        log.info("board split rule created. Board={}, rule={}", boardEntity.getId(), out.getId());
+        log.info("board split rule created. Board={}, rule={}, value={}", boardEntity.getId(), out.getId(),
+                out.getValue1());
         return mapper.map(out);
     }
 
     protected List<BoardSplit> doGetBoardSplits(UUID boardId) {
         List<BoardSplitEntity> entries = boardSplitRepository.findByBoardId(boardId);
         return entries.stream().map(e -> mapper.map(e)).collect(Collectors.toList());
+    }
+
+    protected BigDecimal processBoardSplitValue(BigDecimal value) {
+        return value.setScale(4, RoundingMode.HALF_UP);
     }
 
     protected BigDecimal sum(Stream<BigDecimal> values) {
