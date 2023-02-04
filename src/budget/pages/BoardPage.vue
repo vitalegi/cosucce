@@ -6,7 +6,7 @@
         <q-space />
         <div class="q-pa-xs q-gutter-sm">
           <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
-          <q-btn round icon="download" @click="exportBoardEntries()" />
+          <q-btn round icon="content_copy" @click="exportBoardEntries()" />
           <q-btn
             round
             icon="settings"
