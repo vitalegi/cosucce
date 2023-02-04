@@ -25,6 +25,10 @@ export class BoardService {
     return Board.fromJson(out);
   };
 
+  deleteBoard = async (id: string): Promise<void> => {
+    await api.delete(`/board/${id}`, null, {});
+  };
+
   addBoardEntry = async (
     boardId: string,
     entry: BoardEntry
