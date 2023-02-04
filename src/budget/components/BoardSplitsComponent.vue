@@ -95,7 +95,7 @@ const formatDate = (year: number | null, month: number | null): string => {
   if (year === null || month === null) {
     return '-';
   }
-  return formatYearMonth(year, month);
+  return formatYearMonth(year, month - 1);
 };
 
 const getPercentageAsText = (split: BoardSplit): string => {

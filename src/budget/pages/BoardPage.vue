@@ -6,6 +6,7 @@
         <q-space />
         <div class="q-pa-xs q-gutter-sm">
           <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
+          <q-btn round icon="download" @click="exportBoardEntries()" />
           <q-btn
             round
             icon="settings"
@@ -73,6 +74,7 @@ import BoardMonthlyUsersAnalysisComponent from 'src/budget/components/analysis/B
 import BoardEntriesComponent from 'src/budget/components/BoardEntriesComponent.vue';
 import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis';
 import BoardUser from 'src/budget/models/BoardUser';
+import { toQDateFormat } from 'src/utils/DateUtil';
 
 const props = defineProps({
   boardId: {
@@ -116,6 +118,20 @@ watch(
 
 const addNewBoardEntry = (): void => {
   router.push(`/board/${props.boardId}/add`);
+};
+
+const exportBoardEntries = async (): Promise<void> => {
+  const entries = await boardService.getBoardEntries(props.boardId);
+  const members = await boardService.getBoardUsers(props.boardId);
+  const text = entries
+    .map(
+      (e) =>
+        `${toQDateFormat(e.date)};${
+          members.filter((m) => m.user.id === e.ownerId)[0].user.username
+        };${e.category};${e.description};${e.amount}`
+    )
+    .join('\n');
+  await navigator.clipboard.writeText(text);
 };
 
 const editBoardEntry = (boardEntryId: string): void => {

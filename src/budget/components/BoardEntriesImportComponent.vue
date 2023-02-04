@@ -51,7 +51,7 @@ const text = ref('06/01/2023	50,15 € 	Bollette	Gas 2023-01	foo.bar@gmail.com')
 
 const parseDate = (date: string): Date => {
   const el = date.split('/');
-  return new Date(asInt(el[2]), asInt(el[1]), asInt(el[0]));
+  return new Date(Date.UTC(asInt(el[2]), asInt(el[1]) - 1, asInt(el[0])));
 };
 
 const getUserId = (username: string): number => {
@@ -68,7 +68,7 @@ const usernames = computed(() =>
 );
 
 const parseAmount = (value: string): number => {
-  const num = value.replace(',', '.').trim().split(' ')[0];
+  const num = value.replace('.', '').replace(',', '.').trim().split(' ')[0];
   return asDecimal(num);
 };
 

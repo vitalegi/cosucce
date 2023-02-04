@@ -4,20 +4,39 @@
       <div class="text-subtitle2">Analisi</div>
     </q-card-section>
     <q-separator />
-    <q-card-section v-for="user in users" :key="user.id">
-      <BoardMonthlyUserAnalysisComponent :user="user.user" :entries="entries">
-      </BoardMonthlyUserAnalysisComponent>
-    </q-card-section>
+    <q-tabs
+      v-model="tab"
+      dense
+      class="text-grey"
+      active-color="primary"
+      indicator-color="primary"
+      align="justify"
+      narrow-indicator
+    >
+      <q-tab
+        v-for="(user, index) in users"
+        :key="user.id"
+        :name="index"
+        :label="user.user.username"
+      />
+    </q-tabs>
+    <q-separator />
+    <q-tab-panels v-model="tab" animated>
+      <q-tab-panel v-for="(user, index) in users" :key="user.id" :name="index">
+        <BoardMonthlyUserAnalysisComponent :user="user.user" :entries="entries">
+        </BoardMonthlyUserAnalysisComponent>
+      </q-tab-panel>
+    </q-tab-panels>
   </q-card>
 </template>
 
 <script setup lang="ts">
-import MonthlyUserAnalysis from 'src/models/budget/analysis/MonthlyUserAnalysis';
+import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis';
 import BoardMonthlyUserAnalysisComponent from 'src/budget/components/analysis/BoardMonthlyUserAnalysisComponent.vue';
-import { PropType } from 'vue';
-import BoardUser from 'src/models/budget/BoardUser';
+import { PropType, ref } from 'vue';
+import BoardUser from 'src/budget/models/BoardUser';
 
-defineProps({
+const props = defineProps({
   users: {
     type: Array as PropType<Array<BoardUser>>,
     required: true,
@@ -27,4 +46,6 @@ defineProps({
     required: true,
   },
 });
+
+const tab = ref(0);
 </script>

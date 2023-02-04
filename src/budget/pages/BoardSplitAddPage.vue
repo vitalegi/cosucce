@@ -53,7 +53,6 @@ import { computed, ref, watch } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
 import SelectValue from 'src/models/SelectValue';
 import { asInt } from 'src/utils/JsonUtil';
-import NumberUtil from 'src/utils/NumberUtil';
 import { useRouter } from 'vue-router';
 import BoardSplit from 'src/budget/models/BoardSplit';
 
@@ -83,7 +82,7 @@ const monthToSelect = (month: number): SelectValue => {
     'Novembre',
     'Dicembre',
   ];
-  return new SelectValue(months[month], `${month}`);
+  return new SelectValue(months[month], `${month + 1}`);
 };
 
 const months = computed(() => {
@@ -123,8 +122,10 @@ const loadData = async (boardId: string): Promise<void> => {
     );
     fromYear.value = entry.fromYear;
     toYear.value = entry.toYear;
-    fromMonth.value = entry.fromMonth ? monthToSelect(entry.fromMonth) : null;
-    toMonth.value = entry.toMonth ? monthToSelect(entry.toMonth) : null;
+    fromMonth.value = entry.fromMonth
+      ? monthToSelect(entry.fromMonth - 1)
+      : null;
+    toMonth.value = entry.toMonth ? monthToSelect(entry.toMonth - 1) : null;
     percentage.value = entry.value1 * 100;
   }
 };

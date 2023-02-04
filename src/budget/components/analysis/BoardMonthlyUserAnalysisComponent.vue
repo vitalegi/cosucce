@@ -39,7 +39,7 @@ const columns = computed(() => {
       label: 'Data',
       field: (row: MonthlyUserAnalysis) => row.year * 12 + row.month,
       format: (val: string, row: MonthlyUserAnalysis) =>
-        formatYearMonth(row.year, row.month),
+        formatYearMonth(row.year, row.month - 1),
       align: 'left',
       sortable: true,
     },
