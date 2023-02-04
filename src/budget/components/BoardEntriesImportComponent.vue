@@ -9,10 +9,7 @@
           v-model="text"
           filled
           type="textarea"
-          :rules="[
-            (val) => (val && val.trim().length !== 0) || 'Valore obbligatorio',
-            (val) => isValid || 'Testo non valido',
-          ]"
+          :rules="[(val) => isValid || 'Testo non valido']"
           :hint="`Autori accettati: ${usernames}`"
         />
         <q-btn label="Carica" type="submit" color="primary" />

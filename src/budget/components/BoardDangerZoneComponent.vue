@@ -16,7 +16,7 @@
           outline
           color="negative"
           label="Elimina"
-          @click="showDialogDelete = true"
+          @click="showDialogDeleteBoard = true"
         />
       </q-card-section>
       <q-separator />
