@@ -64,7 +64,8 @@ module.exports = configure(function (ctx) {
       publicPath: '/',
       // analyze: true,
       env: {
-        VUE_APP_FIREBASE_PUBLIC_CONFIG: process.env.VUE_APP_FIREBASE_PUBLIC_CONFIG,
+        VUE_APP_FIREBASE_PUBLIC_CONFIG:
+          process.env.VUE_APP_FIREBASE_PUBLIC_CONFIG,
         VUE_APP_BACKEND: process.env.VUE_APP_BACKEND,
       },
       // rawDefine: {}

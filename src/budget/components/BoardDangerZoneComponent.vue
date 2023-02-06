@@ -12,7 +12,12 @@
           </div>
         </div>
         <q-space />
-        <q-btn outline color="negative" label="Elimina" @click="showDialogDeleteBoard = true" />
+        <q-btn
+          outline
+          color="negative"
+          label="Elimina"
+          @click="showDialogDeleteBoard = true"
+        />
       </q-card-section>
       <q-separator />
       <q-card-section class="row">
@@ -23,7 +28,12 @@
           </div>
         </div>
         <q-space />
-        <q-btn outline color="negative" label="Elimina" @click="showDialogDeleteEntries = true" />
+        <q-btn
+          outline
+          color="negative"
+          label="Elimina"
+          @click="showDialogDeleteEntries = true"
+        />
       </q-card-section>
     </q-card>
   </div>
@@ -38,7 +48,12 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Annulla" v-close-popup @click="resetDialogDeleteBoard()" />
+        <q-btn
+          flat
+          label="Annulla"
+          v-close-popup
+          @click="resetDialogDeleteBoard()"
+        />
         <q-btn flat label="Conferma" v-close-popup @click="deleteBoard()" />
       </q-card-actions>
     </q-card>
@@ -54,8 +69,18 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Annulla" v-close-popup @click="resetDialogDeleteEntries()" />
-        <q-btn flat label="Conferma" v-close-popup @click="deleteBoardEntries()" />
+        <q-btn
+          flat
+          label="Annulla"
+          v-close-popup
+          @click="resetDialogDeleteEntries()"
+        />
+        <q-btn
+          flat
+          label="Conferma"
+          v-close-popup
+          @click="deleteBoardEntries()"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>

@@ -2,7 +2,14 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+        <q-btn
+          flat
+          dense
+          round
+          icon="menu"
+          aria-label="Menu"
+          @click="toggleLeftDrawer"
+        />
 
         <q-toolbar-title class="title">
           <router-link to="/">Budget</router-link>
@@ -17,7 +24,13 @@
           Le tue board
         </q-item-label>
 
-        <q-item v-for="board in boards" :key="board.id" clickable tag="router-link" :to="`/board/${board.id}`">
+        <q-item
+          v-for="board in boards"
+          :key="board.id"
+          clickable
+          tag="router-link"
+          :to="`/board/${board.id}`"
+        >
           <q-item-section>
             <q-item-label>{{ board.name }}</q-item-label>
             <q-item-label caption>{{
@@ -31,8 +44,12 @@
     <q-page-container>
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs>
-          <q-breadcrumbs-el v-for="(breadcrumb, index) in breadcrumbs" :key="index" :label="breadcrumb.label"
-            :to="breadcrumb.route" />
+          <q-breadcrumbs-el
+            v-for="(breadcrumb, index) in breadcrumbs"
+            :key="index"
+            :label="breadcrumb.label"
+            :to="breadcrumb.route"
+          />
         </q-breadcrumbs>
       </div>
       <router-view />
@@ -62,12 +79,11 @@ function toggleLeftDrawer() {
 
 const logout = (): void => {
   router.push('/logout');
-}
+};
 </script>
 
 <style lang="scss" scoped>
 .title {
-
   a {
     color: inherit;
   }

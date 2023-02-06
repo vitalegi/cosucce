@@ -1,11 +1,23 @@
 <template>
-  <q-table :dense="true" :flat="true" :rows="entries" :columns="boardEntriesColumns" row-key="name"
-    :binary-state-sort="true" :pagination="pagination">
+  <q-table
+    :dense="true"
+    :flat="true"
+    :rows="entries"
+    :columns="boardEntriesColumns"
+    row-key="name"
+    :binary-state-sort="true"
+    :pagination="pagination"
+  >
     <template v-slot:body-cell-actions="props">
       <q-td :props="props">
         <div class="q-pt-xs q-gutter-sm">
           <q-btn round icon="edit" size="xs" @click="editEntry(props.row.id)" />
-          <q-btn round icon="delete" size="xs" @click="deleteEntry(props.row.id)" />
+          <q-btn
+            round
+            icon="delete"
+            size="xs"
+            @click="deleteEntry(props.row.id)"
+          />
         </div>
       </q-td>
     </template>
@@ -110,7 +122,6 @@ const boardEntriesColumns = [
 const pagination = ref({
   sortBy: 'lastUpdate',
   descending: true,
-
 });
 
 const emit = defineEmits(['editEntry', 'deleteEntry']);

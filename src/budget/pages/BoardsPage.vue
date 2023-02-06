@@ -6,7 +6,11 @@
         <q-btn flat color="primary" @click="newBoard()">New</q-btn>
         <q-btn flat color="primary" @click="joinBoard()"> Join </q-btn>
       </div>
-      <div v-for="board in boards" :key="board.id" class="q-pa-xs col-xs-12 col-sm-4 col-md-3">
+      <div
+        v-for="board in boards"
+        :key="board.id"
+        class="q-pa-xs col-xs-12 col-sm-4 col-md-3"
+      >
         <q-card @click="goToBoard(board.id)">
           <q-card-section>
             <div class="text-h6">{{ board.name }}</div>

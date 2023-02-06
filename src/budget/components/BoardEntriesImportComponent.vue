@@ -5,8 +5,13 @@
     </div>
     <div class="q-pa-xs col-12 row justify-center">
       <q-form @submit="onSubmit" class="col-12 q-gutter-y-md column">
-        <q-input v-model="text" filled type="textarea" :rules="[(val) => isValid || 'Testo non valido']"
-          :hint="`Autori accettati: ${usernames}`" />
+        <q-input
+          v-model="text"
+          filled
+          type="textarea"
+          :rules="[(val) => isValid || 'Testo non valido']"
+          :hint="`Autori accettati: ${usernames}`"
+        />
         <q-btn label="Carica" type="submit" color="primary" />
         <div class="col">
           <div v-if="isValid">
@@ -98,10 +103,7 @@ const isValid = computed(() => {
 
 const onSubmit = () => {
   spinner.sync(async () => {
-    boardService.addBoardEntries(
-      props.boardId,
-      toBoardEntries(text.value)
-    );
+    boardService.addBoardEntries(props.boardId, toBoardEntries(text.value));
     text.value = '';
   });
 };

@@ -1,19 +1,44 @@
 <template>
   <q-page>
     <div class="q-pa-md row justify-center">
-      <q-form @submit="onSubmit" class="col-12 q-gutter-y-md column" style="max-width: 500px">
+      <q-form
+        @submit="onSubmit"
+        class="col-12 q-gutter-y-md column"
+        style="max-width: 500px"
+      >
         <q-date class="self-center" v-model="date" />
-        <q-select label="Autore" outlined :options="authorEntries" v-model="author" :rules="[
-          (val) => (val && val.value.length !== 0) || 'Valore obbligatorio',
-        ]" />
-        <q-select label="Categoria" outlined :options="categories" v-model="category" use-input input-debounce="0"
-          new-value-mode="add-unique" :rules="[
+        <q-select
+          label="Autore"
+          outlined
+          :options="authorEntries"
+          v-model="author"
+          :rules="[
+            (val) => (val && val.value.length !== 0) || 'Valore obbligatorio',
+          ]"
+        />
+        <q-select
+          label="Categoria"
+          outlined
+          :options="categories"
+          v-model="category"
+          use-input
+          input-debounce="0"
+          new-value-mode="add-unique"
+          :rules="[
             (val) => (val && val.trim().length !== 0) || 'Valore obbligatorio',
-          ]" />
+          ]"
+        />
         <q-input outlined v-model="description" label="Descrizione" />
-        <q-input outlined v-model="amount" :step="0.01" label="Importo" type="number" :rules="[
-          (val) => (val && validateAmount(val)) || 'Valore obbligatorio',
-        ]" />
+        <q-input
+          outlined
+          v-model="amount"
+          :step="0.01"
+          label="Importo"
+          type="number"
+          :rules="[
+            (val) => (val && validateAmount(val)) || 'Valore obbligatorio',
+          ]"
+        />
         <q-btn label="Submit" type="submit" color="primary" />
       </q-form>
     </div>

@@ -7,11 +7,19 @@
         <div class="q-pa-xs q-gutter-sm">
           <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
           <q-btn round icon="content_copy" @click="exportBoardEntries()" />
-          <q-btn round icon="settings" @click="openBoardSettings()" v-if="showSettingsButton" />
+          <q-btn
+            round
+            icon="settings"
+            @click="openBoardSettings()"
+            v-if="showSettingsButton"
+          />
         </div>
       </div>
       <div class="q-pa-xs col-12">
-        <BoardMonthlyUsersAnalysisComponent :users="members" :entries="monthlyUserAnalysis">
+        <BoardMonthlyUsersAnalysisComponent
+          :users="members"
+          :entries="monthlyUserAnalysis"
+        >
         </BoardMonthlyUsersAnalysisComponent>
       </div>
       <div class="q-pa-xs col-12">
@@ -20,8 +28,12 @@
             <div class="text-subtitle2">Dati</div>
           </q-card-section>
           <q-separator />
-          <BoardEntriesComponent :entries="boardEntries" :users="members" @editEntry="editBoardEntry"
-            @deleteEntry="showDialogDeleteBoardEntry" />
+          <BoardEntriesComponent
+            :entries="boardEntries"
+            :users="members"
+            @editEntry="editBoardEntry"
+            @deleteEntry="showDialogDeleteBoardEntry"
+          />
         </q-card>
       </div>
     </div>
@@ -33,8 +45,19 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Annulla" v-close-popup @click="resetDialogDeleteBoardEntry()" />
-          <q-btn flat label="Procedi" color="primary" v-close-popup @click="deleteBoardEntry()" />
+          <q-btn
+            flat
+            label="Annulla"
+            v-close-popup
+            @click="resetDialogDeleteBoardEntry()"
+          />
+          <q-btn
+            flat
+            label="Procedi"
+            color="primary"
+            v-close-popup
+            @click="deleteBoardEntry()"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -103,7 +126,8 @@ const exportBoardEntries = async (): Promise<void> => {
     const text = entries
       .map(
         (e) =>
-          `${toQDateFormat(e.date)};${members.filter((m) => m.user.id === e.ownerId)[0].user.username
+          `${toQDateFormat(e.date)};${
+            members.filter((m) => m.user.id === e.ownerId)[0].user.username
           };${e.category};${e.description};${e.amount}`
       )
       .join('\n');
@@ -139,7 +163,9 @@ const deleteBoardEntry = async (): Promise<void> => {
   await spinner.sync(async () => {
     await boardService.deleteBoardEntry(props.boardId, boardEntryId);
     // cleanup data
-    boardEntries.value = boardEntries.value.filter((e) => e.id !== boardEntryId);
+    boardEntries.value = boardEntries.value.filter(
+      (e) => e.id !== boardEntryId
+    );
     monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
       props.boardId
     );

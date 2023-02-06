@@ -20,10 +20,26 @@
           Condividi il codice seguente per permettere ad altre persone di unirsi
           a questa board:
         </div>
-        <q-input class="col-12" outlined v-model="token" label="Token" :readonly="true">
+        <q-input
+          class="col-12"
+          outlined
+          v-model="token"
+          label="Token"
+          :readonly="true"
+        >
           <template v-slot:append>
-            <q-icon v-if="!done" name="content_copy" @click.stop.prevent="copy()" class="cursor-pointer" />
-            <q-icon v-if="done" name="check" class="cursor-pointer" style="color: green" />
+            <q-icon
+              v-if="!done"
+              name="content_copy"
+              @click.stop.prevent="copy()"
+              class="cursor-pointer"
+            />
+            <q-icon
+              v-if="done"
+              name="check"
+              class="cursor-pointer"
+              style="color: green"
+            />
           </template>
         </q-input>
       </q-card-section>

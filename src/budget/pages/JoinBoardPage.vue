@@ -1,8 +1,17 @@
 <template>
   <q-page>
     <div class="q-pa-md row justify-center">
-      <q-form @submit="join" class="col-12 q-gutter-y-md column" style="max-width: 500px">
-        <q-input outlined v-model="token" label="Token" :rules="[(val) => validToken(val) || 'Token non valido']" />
+      <q-form
+        @submit="join"
+        class="col-12 q-gutter-y-md column"
+        style="max-width: 500px"
+      >
+        <q-input
+          outlined
+          v-model="token"
+          label="Token"
+          :rules="[(val) => validToken(val) || 'Token non valido']"
+        />
 
         <q-btn label="Unisciti" type="submit" color="primary" />
         <q-btn flat label="Annulla" v-close-popup @click="back()" />
