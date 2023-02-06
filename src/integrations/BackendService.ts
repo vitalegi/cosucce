@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { Method } from 'axios';
 import { getUser } from 'src/boot/firebase';
+import { Notify } from 'quasar';
 
 const baseUrl = process.env.VUE_APP_BACKEND;
 if (baseUrl === undefined) {
@@ -16,14 +17,37 @@ class BackendService {
   ): Promise<any> => {
     const user = await getUser();
     const idToken = await user?.getIdToken();
-    const out = await axios.request({
-      url: `${baseUrl}${url}`,
-      params: queryParams,
-      method: method,
-      headers: { Authorization: `Bearer ${idToken}` },
-      data: data,
-    });
-    return out.data;
+    try {
+      const out = await axios.request({
+        url: `${baseUrl}${url}`,
+        params: queryParams,
+        method: method,
+        headers: { Authorization: `Bearer ${idToken}` },
+        data: data,
+      });
+      return out.data;
+    } catch (e) {
+      if (e && e.response && e.response.status) {
+        if (e.response.status === 403) {
+          Notify.create({
+            message: 'Accesso non autorizzato',
+          });
+        } else if (e.response.status === 500) {
+          Notify.create({
+            message: 'Errore lato server, verificare i log',
+          });
+        } else {
+          Notify.create({
+            message: `Errore ${e.response.status}`,
+          });
+        }
+      } else {
+        Notify.create({
+          message: 'Verificare la connettività',
+        });
+      }
+      throw e;
+    }
   };
 
   get = async (url: string, queryParams: any): Promise<any> => {
