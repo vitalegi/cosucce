@@ -43,6 +43,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('src/budget/pages/BoardPage.vue'),
         meta: {
           requiresAuth: true,
+          breadcrumb: 'BOARD',
         },
         props: true,
       },
@@ -52,6 +53,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('src/budget/pages/JoinBoardPage.vue'),
         meta: {
           requiresAuth: true,
+          breadcrumb: 'BOARD_JOIN',
         },
         props: true,
       },
@@ -61,6 +63,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('src/budget/pages/BoardSettingsPage.vue'),
         meta: {
           requiresAuth: true,
+          breadcrumb: 'BOARD_SETTINGS',
         },
         props: true,
       },
@@ -70,6 +73,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('src/budget/pages/BoardEntryAddPage.vue'),
         meta: {
           requiresAuth: true,
+          breadcrumb: 'BOARD_ENTRY_ADD',
         },
         props: true,
       },
@@ -79,24 +83,27 @@ const routes: RouteRecordRaw[] = [
         component: () => import('src/budget/pages/BoardEntryAddPage.vue'),
         meta: {
           requiresAuth: true,
+          breadcrumb: 'BOARD_ENTRY_EDIT',
         },
         props: true,
       },
       {
         name: 'AddBoardSplit',
-        path: '/board/:boardId/split/add',
+        path: '/board/:boardId/settings/split/add',
         component: () => import('src/budget/pages/BoardSplitAddPage.vue'),
         meta: {
           requiresAuth: true,
+          breadcrumb: 'BOARD_SPLIT_ADD',
         },
         props: true,
       },
       {
         name: 'EditBoardSplit',
-        path: '/board/:boardId/split/:boardSplitId/edit',
+        path: '/board/:boardId/settings/split/:boardSplitId/edit',
         component: () => import('src/budget/pages/BoardSplitAddPage.vue'),
         meta: {
           requiresAuth: true,
+          breadcrumb: 'BOARD_SPLIT_EDIT',
         },
         props: true,
       },

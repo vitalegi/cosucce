@@ -8,6 +8,10 @@ import {
 import { isAuthenticated } from 'boot/firebase';
 
 import routes from './routes';
+import {
+  getBreadcrumbs,
+  useBreadcrumbsStore,
+} from 'src/stores/breadcrumb-store';
 
 /*
  * If not building with SSR mode, you can
@@ -43,7 +47,8 @@ export default route(function (/* { store, ssrContext } */) {
     }
     isAuthenticated().then((authenticated) => {
       if (authenticated) {
-        console.log('authenticated');
+        const breadcrumbsStore = useBreadcrumbsStore();
+        breadcrumbsStore.refresh(getBreadcrumbs(to));
         next();
         return;
       }

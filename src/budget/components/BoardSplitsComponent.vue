@@ -152,10 +152,10 @@ const showDialogDeleteBoardEntry = (split: BoardSplit): void => {
 const router = useRouter();
 
 const addBoardSplit = (): void => {
-  router.push(`/board/${props.boardId}/split/add`);
+  router.push(`/board/${props.boardId}/settings/split/add`);
 };
 
 const editBoardSplit = (split: BoardSplit): void => {
-  router.push(`/board/${props.boardId}/split/${split.id}/edit`);
+  router.push(`/board/${props.boardId}/settings/split/${split.id}/edit`);
 };
 </script>

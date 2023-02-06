@@ -29,6 +29,12 @@
     </q-drawer>
 
     <q-page-container>
+      <div class="q-pa-md q-gutter-sm">
+        <q-breadcrumbs>
+          <q-breadcrumbs-el v-for="(breadcrumb, index) in breadcrumbs" :key="index" :label="breadcrumb.label"
+            :to="breadcrumb.route" />
+        </q-breadcrumbs>
+      </div>
       <router-view />
     </q-page-container>
   </q-layout>
@@ -38,12 +44,15 @@
 import { ref, computed } from 'vue';
 import { useBoardsStore } from 'src/budget/stores/boards-store';
 import { useRouter } from 'vue-router';
+import { useBreadcrumbsStore } from 'src/stores/breadcrumb-store';
 
 const router = useRouter();
 
 const boardsStore = useBoardsStore();
 const boards = computed(() => boardsStore.boards);
 
+const breadcrumbStore = useBreadcrumbsStore();
+const breadcrumbs = computed(() => breadcrumbStore.breadcrumbs);
 
 const leftDrawerOpen = ref(false);
 
