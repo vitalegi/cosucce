@@ -22,26 +22,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
-import Board from 'src/budget/models/Board';
 import { useRouter } from 'vue-router';
+import { useBoardsStore } from 'src/budget/stores/boards-store';
+import { computed } from 'vue';
 
 const router = useRouter();
-
-const getBoards = async (): Promise<Board[]> => {
-  return await boardService.getBoards();
-};
-
-const boards = ref(new Array<Board>());
-
-getBoards().then((b) => boards.value.push(...b));
+const boardsStore = useBoardsStore();
+const boards = computed(() => boardsStore.boards);
 
 const goToBoard = (boardId: string): void => {
   router.push(`/board/${boardId}`);
 };
 const newBoard = async (): Promise<void> => {
   const board = await boardService.addBoard('La mia board');
+  await boardsStore.update();
   router.push(`/board/${board.id}`);
 };
 

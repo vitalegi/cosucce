@@ -89,7 +89,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
-import BoardInvite from 'src/budget/models/BoardInvite';
+import { useBoardsStore } from 'src/budget/stores/boards-store';
+
+const boardsStore = useBoardsStore();
 
 const props = defineProps({
   boardId: {
@@ -105,7 +107,8 @@ const resetDialogDeleteBoard = (): void => {
 };
 
 const deleteBoard = async (): Promise<void> => {
-  boardService.deleteBoard(props.boardId);
+  await boardService.deleteBoard(props.boardId);
+  await boardsStore.update();
   resetDialogDeleteBoard();
 };
 

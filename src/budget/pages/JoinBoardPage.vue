@@ -25,6 +25,9 @@ import { ref } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
 import { useRouter } from 'vue-router';
 import BoardInvite from 'src/budget/models/BoardInvite';
+import { useBoardsStore } from 'src/budget/stores/boards-store';
+
+const boardsStore = useBoardsStore();
 
 const router = useRouter();
 
@@ -41,9 +44,10 @@ const validToken = (val: string): boolean => {
   }
 };
 
-const join = (): void => {
+const join = async (): Promise<void> => {
   const decoded = decodeToken(token.value);
-  boardService.useBoardInvite(decoded.boardId, decoded.id);
+  await boardService.useBoardInvite(decoded.boardId, decoded.id);
+  await boardsStore.update();
   router.push('/');
 };
 

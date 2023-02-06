@@ -48,18 +48,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import boardService from 'src/budget/integrations/BoardService';
-import Board from 'src/budget/models/Board';
+import { ref, computed } from 'vue';
+import { useBoardsStore } from 'src/budget/stores/boards-store';
+
+const boardsStore = useBoardsStore();
+const boards = computed(() => boardsStore.boards);
+
 
 const leftDrawerOpen = ref(false);
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
-
-const boards = ref(new Array<Board>());
-boardService.getBoards().then((b) => boards.value.push(...b));
 </script>
 
 <style lang="scss" scoped>
