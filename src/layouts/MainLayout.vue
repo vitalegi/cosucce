@@ -2,19 +2,12 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
+        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title class="title">
           <router-link to="/">Budget</router-link>
         </q-toolbar-title>
-        <router-link to="/logout">Esci</router-link>
+        <q-btn round flat icon="logout" @click="logout()" />
       </q-toolbar>
     </q-header>
 
@@ -24,13 +17,7 @@
           Le tue board
         </q-item-label>
 
-        <q-item
-          v-for="board in boards"
-          :key="board.id"
-          clickable
-          tag="router-link"
-          :to="`/board/${board.id}`"
-        >
+        <q-item v-for="board in boards" :key="board.id" clickable tag="router-link" :to="`/board/${board.id}`">
           <q-item-section>
             <q-item-label>{{ board.name }}</q-item-label>
             <q-item-label caption>{{
@@ -50,6 +37,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useBoardsStore } from 'src/budget/stores/boards-store';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const boardsStore = useBoardsStore();
 const boards = computed(() => boardsStore.boards);
@@ -60,13 +50,19 @@ const leftDrawerOpen = ref(false);
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
+
+const logout = (): void => {
+  router.push('/logout');
+}
 </script>
 
 <style lang="scss" scoped>
 .title {
+
   a {
     color: inherit;
   }
+
   a:link {
     text-decoration: none;
   }

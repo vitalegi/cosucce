@@ -10,6 +10,7 @@ class Spinner {
   show = (): void => {
     Loading.show({
       spinner: QSpinnerGears,
+      delay: 200,
       // other props
     });
   };
