@@ -1,17 +1,8 @@
 <template>
   <q-page>
     <div class="q-pa-md row justify-center">
-      <q-form
-        @submit="join"
-        class="col-12 q-gutter-y-md column"
-        style="max-width: 500px"
-      >
-        <q-input
-          outlined
-          v-model="token"
-          label="Token"
-          :rules="[(val) => validToken(val) || 'Token non valido']"
-        />
+      <q-form @submit="join" class="col-12 q-gutter-y-md column" style="max-width: 500px">
+        <q-input outlined v-model="token" label="Token" :rules="[(val) => validToken(val) || 'Token non valido']" />
 
         <q-btn label="Unisciti" type="submit" color="primary" />
         <q-btn flat label="Annulla" v-close-popup @click="back()" />
@@ -26,6 +17,7 @@ import boardService from 'src/budget/integrations/BoardService';
 import { useRouter } from 'vue-router';
 import BoardInvite from 'src/budget/models/BoardInvite';
 import { useBoardsStore } from 'src/budget/stores/boards-store';
+import spinner from 'src/utils/Spinner';
 
 const boardsStore = useBoardsStore();
 
@@ -45,9 +37,11 @@ const validToken = (val: string): boolean => {
 };
 
 const join = async (): Promise<void> => {
-  const decoded = decodeToken(token.value);
-  await boardService.useBoardInvite(decoded.boardId, decoded.id);
-  await boardsStore.update();
+  await spinner.sync(async () => {
+    const decoded = decodeToken(token.value);
+    await boardService.useBoardInvite(decoded.boardId, decoded.id);
+    await boardsStore.update();
+  });
   router.push('/');
 };
 

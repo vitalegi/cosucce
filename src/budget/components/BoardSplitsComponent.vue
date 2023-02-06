@@ -6,22 +6,12 @@
       <q-btn round color="primary" icon="add" @click="addBoardSplit()" />
     </div>
     <div class="q-pa-xs col-12">
-      <q-table
-        :flat="true"
-        :rows="boardSplits"
-        :columns="columns"
-        row-key="id"
-        :binary-state-sort="true"
-      >
+      <q-table :flat="true" :rows="boardSplits" :columns="columns" row-key="id" :binary-state-sort="true">
         <template v-slot:body-cell-actions="props">
           <q-td :props="props">
             <div class="q-pa-xs q-gutter-sm">
               <q-btn round icon="edit" @click="editBoardSplit(props.row)" />
-              <q-btn
-                round
-                icon="delete"
-                @click="showDialogDeleteBoardEntry(props.row)"
-              />
+              <q-btn round icon="delete" @click="showDialogDeleteBoardEntry(props.row)" />
             </div>
           </q-td>
         </template>
@@ -37,19 +27,8 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn
-          flat
-          label="Annulla"
-          v-close-popup
-          @click="resetDialogDeleteBoardSplit()"
-        />
-        <q-btn
-          flat
-          label="Procedi"
-          color="primary"
-          v-close-popup
-          @click="deleteBoardSplit()"
-        />
+        <q-btn flat label="Annulla" v-close-popup @click="resetDialogDeleteBoardSplit()" />
+        <q-btn flat label="Procedi" color="primary" v-close-popup @click="deleteBoardSplit()" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -63,6 +42,7 @@ import boardService from 'src/budget/integrations/BoardService';
 import { formatYearMonth } from 'src/utils/DateUtil';
 import NumberUtil from 'src/utils/NumberUtil';
 import { useRouter } from 'vue-router';
+import spinner from 'src/utils/Spinner';
 
 const props = defineProps({
   boardId: {
@@ -159,7 +139,9 @@ const resetDialogDeleteBoardSplit = (): void => {
 };
 
 const deleteBoardSplit = (): void => {
-  boardService.deleteBoardSplit(props.boardId, deleteBoardSplitId.value);
+  spinner.sync(async () => {
+    boardService.deleteBoardSplit(props.boardId, deleteBoardSplitId.value);
+  });
 };
 
 const showDialogDeleteBoardEntry = (split: BoardSplit): void => {

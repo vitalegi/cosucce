@@ -20,26 +20,10 @@
           Condividi il codice seguente per permettere ad altre persone di unirsi
           a questa board:
         </div>
-        <q-input
-          class="col-12"
-          outlined
-          v-model="token"
-          label="Token"
-          :readonly="true"
-        >
+        <q-input class="col-12" outlined v-model="token" label="Token" :readonly="true">
           <template v-slot:append>
-            <q-icon
-              v-if="!done"
-              name="content_copy"
-              @click.stop.prevent="copy()"
-              class="cursor-pointer"
-            />
-            <q-icon
-              v-if="done"
-              name="check"
-              class="cursor-pointer"
-              style="color: green"
-            />
+            <q-icon v-if="!done" name="content_copy" @click.stop.prevent="copy()" class="cursor-pointer" />
+            <q-icon v-if="done" name="check" class="cursor-pointer" style="color: green" />
           </template>
         </q-input>
       </q-card-section>
@@ -56,6 +40,7 @@ import { computed, ref, watch } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
 import BoardMembersList from 'src/budget/components/BoardMembersList.vue';
 import BoardInvite from 'src/budget/models/BoardInvite';
+import spinner from 'src/utils/Spinner';
 
 const props = defineProps({
   boardId: {
@@ -79,8 +64,10 @@ const resetDialogShare = (): void => {
 };
 
 const getInvite = async (): Promise<void> => {
-  invite.value = await boardService.addBoardInvite(props.boardId);
-  showDialogShare.value = true;
+  await spinner.sync(async () => {
+    invite.value = await boardService.addBoardInvite(props.boardId);
+    showDialogShare.value = true;
+  });
 };
 
 const token = computed(() => invite.value.encodeToken());

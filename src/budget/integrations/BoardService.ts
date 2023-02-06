@@ -7,6 +7,12 @@ import api from '../../integrations/BackendService';
 import BoardInvite from 'src/budget/models/BoardInvite';
 import BoardSplit from 'src/budget/models/BoardSplit';
 
+const sleep = (ms: number): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};
+
 export class BoardService {
   getBoards = async (): Promise<Board[]> => {
     const out = await api.get('/board', null);

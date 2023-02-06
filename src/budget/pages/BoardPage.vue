@@ -7,19 +7,11 @@
         <div class="q-pa-xs q-gutter-sm">
           <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
           <q-btn round icon="content_copy" @click="exportBoardEntries()" />
-          <q-btn
-            round
-            icon="settings"
-            @click="openBoardSettings()"
-            v-if="showSettingsButton"
-          />
+          <q-btn round icon="settings" @click="openBoardSettings()" v-if="showSettingsButton" />
         </div>
       </div>
       <div class="q-pa-xs col-12">
-        <BoardMonthlyUsersAnalysisComponent
-          :users="members"
-          :entries="monthlyUserAnalysis"
-        >
+        <BoardMonthlyUsersAnalysisComponent :users="members" :entries="monthlyUserAnalysis">
         </BoardMonthlyUsersAnalysisComponent>
       </div>
       <div class="q-pa-xs col-12">
@@ -28,12 +20,8 @@
             <div class="text-subtitle2">Dati</div>
           </q-card-section>
           <q-separator />
-          <BoardEntriesComponent
-            :entries="boardEntries"
-            :users="members"
-            @editEntry="editBoardEntry"
-            @deleteEntry="showDialogDeleteBoardEntry"
-          />
+          <BoardEntriesComponent :entries="boardEntries" :users="members" @editEntry="editBoardEntry"
+            @deleteEntry="showDialogDeleteBoardEntry" />
         </q-card>
       </div>
     </div>
@@ -45,19 +33,8 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn
-            flat
-            label="Annulla"
-            v-close-popup
-            @click="resetDialogDeleteBoardEntry()"
-          />
-          <q-btn
-            flat
-            label="Procedi"
-            color="primary"
-            v-close-popup
-            @click="deleteBoardEntry()"
-          />
+          <q-btn flat label="Annulla" v-close-popup @click="resetDialogDeleteBoardEntry()" />
+          <q-btn flat label="Procedi" color="primary" v-close-popup @click="deleteBoardEntry()" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -75,6 +52,7 @@ import BoardEntriesComponent from 'src/budget/components/BoardEntriesComponent.v
 import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis';
 import BoardUser from 'src/budget/models/BoardUser';
 import { toQDateFormat } from 'src/utils/DateUtil';
+import spinner from 'src/utils/Spinner';
 
 const props = defineProps({
   boardId: {
@@ -91,18 +69,16 @@ const monthlyUserAnalysis = ref(new Array<MonthlyUserAnalysis>());
 const members = ref(new Array<BoardUser>());
 const grants = ref(new Array<string>());
 
-const reloadAnalysis = async (boardId: string): Promise<void> => {
-  monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
-    boardId
-  );
-};
-
 const loadData = async (boardId: string): Promise<void> => {
-  board.value = await boardService.getBoard(boardId);
-  members.value = await boardService.getBoardUsers(boardId);
-  boardEntries.value = await boardService.getBoardEntries(boardId);
-  grants.value = await boardService.getGrants(boardId);
-  reloadAnalysis(boardId);
+  await spinner.sync(async () => {
+    board.value = await boardService.getBoard(boardId);
+    members.value = await boardService.getBoardUsers(boardId);
+    boardEntries.value = await boardService.getBoardEntries(boardId);
+    grants.value = await boardService.getGrants(boardId);
+    monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
+      boardId
+    );
+  });
 };
 
 loadData(props.boardId);
@@ -121,17 +97,18 @@ const addNewBoardEntry = (): void => {
 };
 
 const exportBoardEntries = async (): Promise<void> => {
-  const entries = await boardService.getBoardEntries(props.boardId);
-  const members = await boardService.getBoardUsers(props.boardId);
-  const text = entries
-    .map(
-      (e) =>
-        `${toQDateFormat(e.date)};${
-          members.filter((m) => m.user.id === e.ownerId)[0].user.username
-        };${e.category};${e.description};${e.amount}`
-    )
-    .join('\n');
-  await navigator.clipboard.writeText(text);
+  await spinner.sync(async () => {
+    const entries = await boardService.getBoardEntries(props.boardId);
+    const members = await boardService.getBoardUsers(props.boardId);
+    const text = entries
+      .map(
+        (e) =>
+          `${toQDateFormat(e.date)};${members.filter((m) => m.user.id === e.ownerId)[0].user.username
+          };${e.category};${e.description};${e.amount}`
+      )
+      .join('\n');
+    await navigator.clipboard.writeText(text);
+  });
 };
 
 const editBoardEntry = (boardEntryId: string): void => {
@@ -159,12 +136,16 @@ const resetDialogDeleteBoardEntry = (): void => {
 
 const deleteBoardEntry = async (): Promise<void> => {
   const boardEntryId = deleteBoardEntryId.value;
-  await boardService.deleteBoardEntry(props.boardId, boardEntryId);
+  await spinner.sync(async () => {
+    await boardService.deleteBoardEntry(props.boardId, boardEntryId);
+    // cleanup data
+    boardEntries.value = boardEntries.value.filter((e) => e.id !== boardEntryId);
+    monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
+      props.boardId
+    );
 
-  // cleanup data
-  boardEntries.value = boardEntries.value.filter((e) => e.id !== boardEntryId);
-  await reloadAnalysis(props.boardId);
-  resetDialogDeleteBoardEntry();
+    resetDialogDeleteBoardEntry();
+  });
 };
 
 const showSettingsButton = computed(

@@ -1,44 +1,19 @@
 <template>
   <q-page>
     <div class="q-pa-md row justify-center">
-      <q-form
-        @submit="onSubmit"
-        class="col-12 q-gutter-y-md column"
-        style="max-width: 500px"
-      >
+      <q-form @submit="onSubmit" class="col-12 q-gutter-y-md column" style="max-width: 500px">
         <q-date class="self-center" v-model="date" />
-        <q-select
-          label="Autore"
-          outlined
-          :options="authorEntries"
-          v-model="author"
-          :rules="[
-            (val) => (val && val.value.length !== 0) || 'Valore obbligatorio',
-          ]"
-        />
-        <q-select
-          label="Categoria"
-          outlined
-          :options="categories"
-          v-model="category"
-          use-input
-          input-debounce="0"
-          new-value-mode="add-unique"
-          :rules="[
+        <q-select label="Autore" outlined :options="authorEntries" v-model="author" :rules="[
+          (val) => (val && val.value.length !== 0) || 'Valore obbligatorio',
+        ]" />
+        <q-select label="Categoria" outlined :options="categories" v-model="category" use-input input-debounce="0"
+          new-value-mode="add-unique" :rules="[
             (val) => (val && val.trim().length !== 0) || 'Valore obbligatorio',
-          ]"
-        />
+          ]" />
         <q-input outlined v-model="description" label="Descrizione" />
-        <q-input
-          outlined
-          v-model="amount"
-          :step="0.01"
-          label="Importo"
-          type="number"
-          :rules="[
-            (val) => (val && validateAmount(val)) || 'Valore obbligatorio',
-          ]"
-        />
+        <q-input outlined v-model="amount" :step="0.01" label="Importo" type="number" :rules="[
+          (val) => (val && validateAmount(val)) || 'Valore obbligatorio',
+        ]" />
         <q-btn label="Submit" type="submit" color="primary" />
       </q-form>
     </div>
@@ -57,6 +32,7 @@ import SelectValue from 'src/models/SelectValue';
 import { asInt } from 'src/utils/JsonUtil';
 import NumberUtil from 'src/utils/NumberUtil';
 import { useRouter } from 'vue-router';
+import spinner from 'src/utils/Spinner';
 
 const props = defineProps({
   boardId: {
@@ -86,23 +62,25 @@ const authorEntries = computed(() =>
 );
 
 const loadData = async (boardId: string): Promise<void> => {
-  user.value = await userService.getUser();
-  users.value = await boardService.getBoardUsers(boardId);
-  categories.value = await boardService.getBoardCategories(boardId);
-  author.value = new SelectValue(user.value.username, `${user.value.id}`);
+  await spinner.sync(async () => {
+    user.value = await userService.getUser();
+    users.value = await boardService.getBoardUsers(boardId);
+    categories.value = await boardService.getBoardCategories(boardId);
+    author.value = new SelectValue(user.value.username, `${user.value.id}`);
 
-  if (props.boardEntryId) {
-    const entry = await boardService.getBoardEntry(
-      props.boardId,
-      props.boardEntryId
-    );
-    date.value = toQDateFormat(entry.date);
-    const user = users.value.filter((u) => u.user.id === entry.ownerId)[0];
-    author.value = new SelectValue(user.user.username, `${user.user.id}`);
-    category.value = entry.category;
-    description.value = entry.description;
-    amount.value = entry.amount;
-  }
+    if (props.boardEntryId) {
+      const entry = await boardService.getBoardEntry(
+        props.boardId,
+        props.boardEntryId
+      );
+      date.value = toQDateFormat(entry.date);
+      const user = users.value.filter((u) => u.user.id === entry.ownerId)[0];
+      author.value = new SelectValue(user.user.username, `${user.user.id}`);
+      category.value = entry.category;
+      description.value = entry.description;
+      amount.value = entry.amount;
+    }
+  });
 };
 
 loadData(props.boardId);
@@ -130,12 +108,14 @@ const onSubmit = async (): Promise<void> => {
   }
   entry.description = description.value;
   entry.amount = amount.value;
-  if (props.boardEntryId) {
-    entry.id = props.boardEntryId;
-    await boardService.updateBoardEntry(props.boardId, entry);
-  } else {
-    await boardService.addBoardEntry(props.boardId, entry);
-  }
+  await spinner.sync(async () => {
+    if (props.boardEntryId) {
+      entry.id = props.boardEntryId;
+      await boardService.updateBoardEntry(props.boardId, entry);
+    } else {
+      await boardService.addBoardEntry(props.boardId, entry);
+    }
+  });
   router.push(`/board/${props.boardId}`);
 };
 
