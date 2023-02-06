@@ -69,7 +69,7 @@ const boardEntriesColumns = [
   {
     name: 'ownerId',
     required: true,
-    label: 'Proprietario',
+    label: 'Autore',
     field: (row: any) => getUsername(row.ownerId),
     align: 'left',
     sortable: true,
@@ -102,7 +102,7 @@ const boardEntriesColumns = [
   {
     name: 'lastUpdate',
     required: true,
-    label: 'Ultimo aggiornamento',
+    label: 'Update',
     field: 'lastUpdate',
     format: (value: string, row: BoardEntry) =>
       formatElapsedTime(row.lastUpdate, now),

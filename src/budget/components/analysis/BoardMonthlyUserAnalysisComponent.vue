@@ -46,7 +46,7 @@ const columns = computed(() => {
     {
       name: 'actual',
       required: true,
-      label: 'Attuale',
+      label: 'Effettiva',
       field: (row: MonthlyUserAnalysis) => getUserActual(row),
       format: (val: string) => formatCurrency(val),
       sortable: true,
