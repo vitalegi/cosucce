@@ -10,6 +10,7 @@ import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
+import it.vitalegi.budget.board.dto.analysis.MonthlyAnalysis;
 import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.dto.analysis.UserAmount;
 import it.vitalegi.budget.board.repository.BoardRepository;
@@ -351,6 +352,54 @@ public class BoardTests {
                 userAmount(user2.getId(), "0", "0.5", "0.5")), analysys.get(0));
         validateMonthlyUserAnalysis(2023, 2, Arrays.asList(userAmount(user1.getId(), "1", "1", "0"),
                 userAmount(user2.getId(), "1", "1", "0")), analysys.get(1));
+    }
+
+
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve board analysis by month THEN the analysis should " +
+            "be returned")
+    @Test
+    public void test_getBoardAnalysisMonth_member_shouldReturnData() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        addBoardSplitOk(auth1, board1.getId(), user1.getId(), null, null, null, null, new BigDecimal("0.5"));
+        addBoardSplitOk(auth1, board1.getId(), user2.getId(), null, null, null, null, new BigDecimal("0.5"));
+        addBoardEntry(auth1, board1.getId(), user1.getId(), LocalDate.of(2023, 1, 5), new BigDecimal("1"), "CAT1",
+                null);
+        addBoardEntry(auth1, board1.getId(), user1.getId(), LocalDate.of(2023, 2, 5), new BigDecimal("2"), "CAT1",
+                null);
+
+        List<MonthlyAnalysis> analysis = getBoardAnalysisMonthOk(auth2, board1.getId());
+        assertEquals(2, analysis.size());
+        validateMonthlyAnalysis(2023, 1, new BigDecimal("1"), analysis.get(0));
+        validateMonthlyAnalysis(2023, 2, new BigDecimal("2"), analysis.get(1));
+    }
+
+    @DisplayName("GIVEN I am not member of the board  WHEN I retrieve board analysis by month THEN I should receive " +
+            "an error")
+    @Test
+    public void test_getBoardAnalysisMonth_notMember_shouldFail() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        deleteBoard(auth3, board1.getId()).andExpect(error403());
+    }
+
+    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve board analysis by month THEN the analysis should " +
+            "be returned")
+    @Test
+    public void test_getBoardAnalysisMonth_owner_shouldReturnData() throws Exception {
+        Board board1 = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board1.getId());
+        addBoardSplitOk(auth1, board1.getId(), user1.getId(), null, null, null, null, new BigDecimal("0.5"));
+        addBoardSplitOk(auth1, board1.getId(), user2.getId(), null, null, null, null, new BigDecimal("0.5"));
+        addBoardEntry(auth1, board1.getId(), user1.getId(), LocalDate.of(2023, 1, 5), new BigDecimal("1"), "CAT1",
+                null);
+        addBoardEntry(auth1, board1.getId(), user1.getId(), LocalDate.of(2023, 2, 5), new BigDecimal("2"), "CAT1",
+                null);
+
+        List<MonthlyAnalysis> analysis = getBoardAnalysisMonthOk(auth1, board1.getId());
+        assertEquals(2, analysis.size());
+        validateMonthlyAnalysis(2023, 1, new BigDecimal("1"), analysis.get(0));
+        validateMonthlyAnalysis(2023, 2, new BigDecimal("2"), analysis.get(1));
     }
 
     @DisplayName("GIVEN I am a member of the board WHEN I retrieve all board entries THEN I should retrieve all " +
@@ -845,6 +894,15 @@ public class BoardTests {
                       .andDo(monitor());
     }
 
+    private ResultActions getBoardAnalysisMonth(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return mockMvc.perform(get("/board/" + boardId + "/analysis/month").with(auth)).andDo(monitor());
+    }
+
+    private List<MonthlyAnalysis> getBoardAnalysisMonthOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+        return cs.jsonPayloadList(getBoardAnalysisMonth(auth, boardId).andExpect(ok()), new TypeReference<>() {
+        });
+    }
+
     private ResultActions getBoardAnalysisMonthUser(RequestPostProcessor auth, UUID boardId) throws Exception {
         return mockMvc.perform(get("/board/" + boardId + "/analysis/month-user").with(auth)).andDo(monitor());
     }
@@ -1037,6 +1095,12 @@ public class BoardTests {
             validateBoardSplit(e.getBoardId(), e.getUserId(), e.getFromYear(), e.getFromMonth(), e.getToYear(),
                     e.getToMonth(), e.getValue1(), actualEntry);
         });
+    }
+
+    private void validateMonthlyAnalysis(int year, int month, BigDecimal amount, MonthlyAnalysis actual) {
+        assertEquals(year, actual.getYear());
+        assertEquals(month, actual.getMonth());
+        assertTrue(amount.compareTo(actual.getAmount()) == 0);
     }
 
     private void validateMonthlyUserAnalysis(int year, int month, List<UserAmount> users, MonthlyUserAnalysis actual) {

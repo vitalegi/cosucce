@@ -6,8 +6,10 @@ import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
+import it.vitalegi.budget.board.dto.analysis.MonthlyAnalysis;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
+import it.vitalegi.budget.board.entity.BoardEntryGroupByMonth;
 import it.vitalegi.budget.board.entity.BoardInviteEntity;
 import it.vitalegi.budget.board.entity.BoardSplitEntity;
 import it.vitalegi.budget.board.entity.BoardUserEntity;
@@ -77,6 +79,11 @@ public class BoardMapper {
         BoardInvite dto = ObjectUtil.copy(entity, new BoardInvite());
         dto.setBoardId(entity.getBoard().getId());
         dto.setOwnerId(entity.getOwner().getId());
+        return dto;
+    }
+
+    public MonthlyAnalysis map(BoardEntryGroupByMonth entity) {
+        MonthlyAnalysis dto = ObjectUtil.copy(entity, new MonthlyAnalysis());
         return dto;
     }
 }

@@ -1,6 +1,7 @@
 package it.vitalegi.budget.board.repository;
 
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
+import it.vitalegi.budget.board.entity.BoardEntryGroupByMonth;
 import it.vitalegi.budget.board.entity.BoardEntryGroupByMonthUserCategory;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -19,6 +20,13 @@ public interface BoardEntryRepository extends CrudRepository<BoardEntryEntity, U
 
     @Query("SELECT DISTINCT be.category FROM BoardEntry be WHERE be.board.id = :boardId")
     List<String> findCategories(@Param("boardId") UUID boardId);
+
+    @Query("SELECT new it.vitalegi.budget.board.entity.BoardEntryGroupByMonth(YEAR(be.date), " +
+            "MONTH(be.date), SUM(be.amount)) " + //
+            "FROM BoardEntry be WHERE be.board.id = :boardId " + //
+            "GROUP BY YEAR(be.date), MONTH(be.date) " +
+            "ORDER BY YEAR(be.date), MONTH(be.date)")
+    List<BoardEntryGroupByMonth> getAggregatedBoardEntriesByMonth(@Param("boardId") UUID boardId);
 
     @Query("SELECT new it.vitalegi.budget.board.entity.BoardEntryGroupByMonthUserCategory(YEAR(be.date), " +
             "MONTH(be.date), be.owner.id, be.category, SUM(be.amount)) " + //

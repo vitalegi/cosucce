@@ -1,8 +1,8 @@
 package it.vitalegi.budget.board.analysis;
 
+import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.dto.analysis.UserAmount;
-import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.entity.BoardEntryGroupByMonthUserCategory;
 import it.vitalegi.budget.board.service.AggregatedAnalysisService;
 import lombok.extern.log4j.Log4j2;
@@ -30,101 +30,15 @@ public class AggregatedAnalysisServiceTests {
 
     AggregatedAnalysisService analysisService;
 
-    protected List<LocalDate> months(LocalDate firstDate, LocalDate lastDate) {
-        List<LocalDate> dates = new ArrayList<>();
-        LocalDate currentDate = firstDate;
-        while (!currentDate.isAfter(lastDate)) {
-            dates.add(currentDate);
-            currentDate = currentDate.plusMonths(1);
-        }
-        return dates;
-    }
-
-    protected List<Long> userIds(int n) {
-        return LongStream.range(0, n)
-                         .mapToObj(v -> v)
-                         .collect(Collectors.toList());
-    }
-
-    List<BoardEntryGroupByMonthUserCategory> entries(LocalDate fromDate, LocalDate toDate, long userId,
-                                                     String category, String value) {
-        return months(fromDate, toDate).stream()
-                                       .map(date -> entry(date.getYear(), date.getMonthValue(), userId,
-                                               category, value))
-                                       .collect(Collectors.toList());
-    }
-
-    BoardEntryGroupByMonthUserCategory entry(int year, int month, long userId, String category, String value) {
-        return new BoardEntryGroupByMonthUserCategory(year, month, userId, category, new BigDecimal(value));
-    }
-
-    UserAmount getUserAmount(MonthlyUserAnalysis analysis, long userId) {
-        UserAmount value = analysis.getUsers()
-                                   .stream()
-                                   .filter(u -> u.getUserId() == userId)
-                                   .findFirst()
-                                   .orElse(null);
-        if (value != null) {
-            return value;
-        }
-        throw new NullPointerException("Cannot find " + userId + " in " + analysis);
-    }
-
     @BeforeEach
-    void init() {
+    public void init() {
         analysisService = new AggregatedAnalysisService();
-    }
-
-    void performanceTest(int years, int users, int ms) {
-        assertTimeout(Duration.ofMillis(ms), () -> performanceTest(years, users));
-    }
-
-    void performanceTest(int years, int users) {
-        List<BoardEntryGroupByMonthUserCategory> entries = new ArrayList<>();
-        List<BoardSplit> splits = new ArrayList<>();
-
-        LocalDate from = LocalDate.of(2020, 01, 01);
-        LocalDate to = LocalDate.of(2020 + years, 01, 01);
-
-        BigDecimal ratio = BigDecimal.ONE.divide(BigDecimal.valueOf(users), MathContext.DECIMAL32);
-        List<Long> ids = userIds(users);
-        ids.forEach(id -> {
-            entries.addAll(entries(from, to, id, "", "1"));
-            splits.add(split(id, ratio));
-        });
-        analysisService.getBoardAnalysisByMonthUser(entries, splits);
-    }
-
-    BoardSplit split(long userId, String value) {
-        return split(userId, null, null, null, null, new BigDecimal(value));
-    }
-
-    BoardSplit split(long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth,
-                     BigDecimal value) {
-        BoardSplit split = new BoardSplit();
-        split.setId(UUID.randomUUID());
-        split.setBoardId(UUID.randomUUID());
-        split.setUserId(userId);
-        split.setFromYear(fromYear);
-        split.setFromMonth(fromMonth);
-        split.setToYear(toYear);
-        split.setToMonth(toMonth);
-        split.setValue1(value);
-        return split;
-    }
-
-    BoardSplit split(long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, String value) {
-        return split(userId, fromYear, fromMonth, toYear, toMonth, new BigDecimal(value));
-    }
-
-    BoardSplit split(long userId, BigDecimal value) {
-        return split(userId, null, null, null, null, value);
     }
 
     @DisplayName("getAnalysisByMonth should return the list of expenses, actual and expected, by user, by month, " +
             "using the default split")
     @Test
-    void test_getAnalysisByMonth_defaultSplit_shouldWork() {
+    public void test_getAnalysisByMonth_defaultSplit_shouldWork() {
         List<BoardEntryGroupByMonthUserCategory> entries = new ArrayList<>();
         entries.add(entry(2023, 1, 1, "a", "1"));
         entries.add(entry(2023, 1, 2, "a", "1"));
@@ -145,7 +59,7 @@ public class AggregatedAnalysisServiceTests {
     @DisplayName("getAnalysisByMonth should return the list of expenses, actual and expected, by user, by month, " +
             "using the most detailed split available")
     @Test
-    void test_getAnalysisByMonth_multipleSplits_shouldWork() {
+    public void test_getAnalysisByMonth_multipleSplits_shouldWork() {
         List<BoardEntryGroupByMonthUserCategory> entries = new ArrayList<>();
         LocalDate from = LocalDate.of(2020, 01, 01);
         LocalDate to = LocalDate.of(2020, 12, 01);
@@ -216,27 +130,27 @@ public class AggregatedAnalysisServiceTests {
     @Disabled("Make test non blocker")
     @DisplayName("getAnalysisByMonth - performance analysis - 20 years, 2 users - should complete in time")
     @Test
-    void test_getAnalysisByMonth_performanceTest1() {
+    public void test_getAnalysisByMonth_performanceTest1() {
         performanceTest(20, 2, 100);
     }
 
     @Disabled("Make test non blocker")
     @DisplayName("getAnalysisByMonth - performance analysis - 10 years, 10 users - should complete in time")
     @Test
-    void test_getAnalysisByMonth_performanceTest2() {
+    public void test_getAnalysisByMonth_performanceTest2() {
         performanceTest(10, 10, 100);
     }
 
     @Disabled("Make test non blocker")
     @DisplayName("getAnalysisByMonth - performance analysis - 20 years, 20 users - should complete in time")
     @Test
-    void test_getAnalysisByMonth_performanceTest3() {
+    public void test_getAnalysisByMonth_performanceTest3() {
         performanceTest(20, 20, 200);
     }
 
     @DisplayName("getAnalysisByMonth should return the list of expenses, actual and expected, by user, by month")
     @Test
-    void test_getAnalysisByMonth_shouldWork() {
+    public void test_getAnalysisByMonth_shouldWork() {
         List<BoardEntryGroupByMonthUserCategory> entries = new ArrayList<>();
         entries.add(entry(2023, 1, 1, "a", "1"));
         entries.add(entry(2023, 1, 2, "a", "1"));
@@ -252,6 +166,92 @@ public class AggregatedAnalysisServiceTests {
                              .size());
         validateUserAmount(entry, 1, "1", "1", "0");
         validateUserAmount(entry, 2, "1", "1", "0");
+    }
+
+    protected List<LocalDate> months(LocalDate firstDate, LocalDate lastDate) {
+        List<LocalDate> dates = new ArrayList<>();
+        LocalDate currentDate = firstDate;
+        while (!currentDate.isAfter(lastDate)) {
+            dates.add(currentDate);
+            currentDate = currentDate.plusMonths(1);
+        }
+        return dates;
+    }
+
+    protected List<Long> userIds(int n) {
+        return LongStream.range(0, n)
+                         .mapToObj(v -> v)
+                         .collect(Collectors.toList());
+    }
+
+    List<BoardEntryGroupByMonthUserCategory> entries(LocalDate fromDate, LocalDate toDate, long userId,
+                                                     String category, String value) {
+        return months(fromDate, toDate).stream()
+                                       .map(date -> entry(date.getYear(), date.getMonthValue(), userId,
+                                               category, value))
+                                       .collect(Collectors.toList());
+    }
+
+    BoardEntryGroupByMonthUserCategory entry(int year, int month, long userId, String category, String value) {
+        return new BoardEntryGroupByMonthUserCategory(year, month, userId, category, new BigDecimal(value));
+    }
+
+    UserAmount getUserAmount(MonthlyUserAnalysis analysis, long userId) {
+        UserAmount value = analysis.getUsers()
+                                   .stream()
+                                   .filter(u -> u.getUserId() == userId)
+                                   .findFirst()
+                                   .orElse(null);
+        if (value != null) {
+            return value;
+        }
+        throw new NullPointerException("Cannot find " + userId + " in " + analysis);
+    }
+
+    void performanceTest(int years, int users, int ms) {
+        assertTimeout(Duration.ofMillis(ms), () -> performanceTest(years, users));
+    }
+
+    void performanceTest(int years, int users) {
+        List<BoardEntryGroupByMonthUserCategory> entries = new ArrayList<>();
+        List<BoardSplit> splits = new ArrayList<>();
+
+        LocalDate from = LocalDate.of(2020, 01, 01);
+        LocalDate to = LocalDate.of(2020 + years, 01, 01);
+
+        BigDecimal ratio = BigDecimal.ONE.divide(BigDecimal.valueOf(users), MathContext.DECIMAL32);
+        List<Long> ids = userIds(users);
+        ids.forEach(id -> {
+            entries.addAll(entries(from, to, id, "", "1"));
+            splits.add(split(id, ratio));
+        });
+        analysisService.getBoardAnalysisByMonthUser(entries, splits);
+    }
+
+    BoardSplit split(long userId, String value) {
+        return split(userId, null, null, null, null, new BigDecimal(value));
+    }
+
+    BoardSplit split(long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth,
+                     BigDecimal value) {
+        BoardSplit split = new BoardSplit();
+        split.setId(UUID.randomUUID());
+        split.setBoardId(UUID.randomUUID());
+        split.setUserId(userId);
+        split.setFromYear(fromYear);
+        split.setFromMonth(fromMonth);
+        split.setToYear(toYear);
+        split.setToMonth(toMonth);
+        split.setValue1(value);
+        return split;
+    }
+
+    BoardSplit split(long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, String value) {
+        return split(userId, fromYear, fromMonth, toYear, toMonth, new BigDecimal(value));
+    }
+
+    BoardSplit split(long userId, BigDecimal value) {
+        return split(userId, null, null, null, null, value);
     }
 
     MonthlyUserAnalysis validateAndGetMonthlyUserAnalysis(int year, int month, int expectedIndex,

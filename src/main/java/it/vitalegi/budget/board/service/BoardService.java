@@ -7,6 +7,7 @@ import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
+import it.vitalegi.budget.board.dto.analysis.MonthlyAnalysis;
 import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.entity.BoardEntity;
 import it.vitalegi.budget.board.entity.BoardEntryEntity;
@@ -234,6 +235,13 @@ public class BoardService {
         return mapper.map(board);
     }
 
+    public List<MonthlyAnalysis> getBoardAnalysisByMonth(UUID boardId) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        var entries = boardEntryRepository.getAggregatedBoardEntriesByMonth(boardId);
+        return entries.stream().map(mapper::map)
+                      .collect(Collectors.toList());
+    }
+
     public List<MonthlyUserAnalysis> getBoardAnalysisByMonthUser(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
         List<BoardEntryGroupByMonthUserCategory> entries =
@@ -393,6 +401,12 @@ public class BoardService {
 
     protected BigDecimal sum(Stream<BigDecimal> values) {
         return values.reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+    }
+
+    protected void validateBoardSplit(Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth) {
+        if (fromYear != null && fromMonth == null) {
+            throw new IllegalArgumentException("fromYear and fromMonth must ");
+        }
     }
 
 }

@@ -31,15 +31,11 @@ public class AggregatedAnalysisService {
             return data;
         }
 
-        LocalDate firstDate = entries.stream().map(this::date).min(LocalDate::compareTo)
-                                     .orElseThrow(() -> new IllegalArgumentException("Cannot find a valid date"));
-        LocalDate lastDate = entries.stream().map(this::date).max(LocalDate::compareTo)
-                                    .orElseThrow(() -> new IllegalArgumentException("Cannot find a valid date"));
+        LocalDate firstDate = getFirstDate(entries);
+        LocalDate lastDate = getLastDate(entries);
 
-        List<MonthlyUserAnalysis> analysis = months(firstDate, lastDate).stream() //
-                                                                        .map(date -> analyzeByMonthUser(date, entries
-                                                                                , splits)) //
-                                                                        .collect(Collectors.toList());
+        var analysis = months(firstDate, lastDate).stream().map(date -> analyzeByMonthUser(date, entries, splits))
+                                                  .collect(Collectors.toList());
 
         computeCumulativeCredit(analysis);
 
@@ -192,5 +188,15 @@ public class AggregatedAnalysisService {
         u.setUserId(userId);
         u.setActual(BigDecimal.ZERO);
         return u;
+    }
+
+    private LocalDate getFirstDate(List<BoardEntryGroupByMonthUserCategory> entries) {
+        return entries.stream().map(this::date).min(LocalDate::compareTo)
+                      .orElseThrow(() -> new IllegalArgumentException("Cannot find a valid date"));
+    }
+
+    private LocalDate getLastDate(List<BoardEntryGroupByMonthUserCategory> entries) {
+        return entries.stream().map(this::date).max(LocalDate::compareTo)
+                      .orElseThrow(() -> new IllegalArgumentException("Cannot find a valid date"));
     }
 }

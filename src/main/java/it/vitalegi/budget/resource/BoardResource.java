@@ -9,6 +9,7 @@ import it.vitalegi.budget.board.dto.BoardEntry;
 import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
+import it.vitalegi.budget.board.dto.analysis.MonthlyAnalysis;
 import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.service.BoardPermissionService;
 import it.vitalegi.budget.board.service.BoardService;
@@ -102,10 +103,16 @@ public class BoardResource {
         return boardService.getBoard(boardId);
     }
 
-    @Operation(summary = "Retrieve board analysis")
+    @Operation(summary = "Retrieve board analysis, by month and user")
     @GetMapping(path = "/{boardId}/analysis/month-user", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<MonthlyUserAnalysis> getBoardAnalysisMonthUser(@PathVariable("boardId") UUID boardId) {
         return boardService.getBoardAnalysisByMonthUser(boardId);
+    }
+
+    @Operation(summary = "Retrieve board analysis, by month")
+    @GetMapping(path = "/{boardId}/analysis/month", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<MonthlyAnalysis> getBoardAnalysisMonth(@PathVariable("boardId") UUID boardId) {
+        return boardService.getBoardAnalysisByMonth(boardId);
     }
 
     @Operation(summary = "Retrieve board's categories")
