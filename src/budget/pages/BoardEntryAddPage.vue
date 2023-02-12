@@ -6,7 +6,24 @@
         class="col-12 q-gutter-y-md column"
         style="max-width: 500px"
       >
-        <q-date class="self-center" v-model="date" />
+        <q-input outlined filled readonly v-model="date">
+          <template v-slot:append>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy
+                cover
+                transition-show="scale"
+                transition-hide="scale"
+              >
+                <q-date v-model="date">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-date>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+
         <q-select
           label="Autore"
           outlined
@@ -39,7 +56,12 @@
             (val) => (val && validateAmount(val)) || 'Valore obbligatorio',
           ]"
         />
-        <q-btn label="Submit" type="submit" color="primary" />
+        <q-btn
+          label="Submit"
+          type="submit"
+          color="primary"
+          :disable="!canSubmit"
+        />
       </q-form>
     </div>
   </q-page>
@@ -58,6 +80,7 @@ import { asInt } from 'src/utils/JsonUtil';
 import NumberUtil from 'src/utils/NumberUtil';
 import { useRouter } from 'vue-router';
 import spinner from 'src/utils/Spinner';
+import { isNotNullOrEmpty } from 'src/utils/StringUtil';
 
 const props = defineProps({
   boardId: {
@@ -118,6 +141,10 @@ watch(
     loadData(newBoardId);
   }
 );
+
+const canSubmit = computed((): boolean => {
+  return isNotNullOrEmpty(date.value);
+});
 
 const onSubmit = async (): Promise<void> => {
   const entry = new BoardEntry();

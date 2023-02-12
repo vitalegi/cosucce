@@ -4,3 +4,7 @@ export const leftPadding = (str: string, len: number, char: string): string => {
   }
   return str;
 };
+
+export const isNotNullOrEmpty = (str: string): boolean => {
+  return str !== null && str !== undefined && str.trim() !== '';
+};
