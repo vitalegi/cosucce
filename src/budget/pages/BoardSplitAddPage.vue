@@ -1,18 +1,47 @@
 <template>
   <q-page>
     <div class="q-pa-md row justify-center">
-      <q-form @submit="onSubmit" class="col-12 q-gutter-y-md column" style="max-width: 500px">
-        <q-select label="Utente" outlined :options="members" v-model="user" :rules="[
-          (val) => (val && val.value.length !== 0) || 'Valore obbligatorio',
-        ]" />
+      <q-form
+        @submit="onSubmit"
+        class="col-12 q-gutter-y-md column"
+        style="max-width: 500px"
+      >
+        <q-select
+          label="Utente"
+          outlined
+          :options="members"
+          v-model="user"
+          :rules="[
+            (val) => (val && val.value.length !== 0) || 'Valore obbligatorio',
+          ]"
+        />
         <q-input outlined v-model="fromYear" label="Da anno" hint="2022" />
-        <q-select label="Da mese" outlined clearable :options="months" v-model="fromMonth" />
+        <q-select
+          label="Da mese"
+          outlined
+          clearable
+          :options="months"
+          v-model="fromMonth"
+        />
         <q-input outlined v-model="toYear" label="A anno" hint="2022" />
-        <q-select label="A mese" outlined clearable :options="months" v-model="toMonth" />
-        <q-input outlined v-model="percentage" :step="0.01" label="Percentuale" type="number" :rules="[
-          (val) =>
-            (val && val >= 0 && val <= 100) || 'Valore obbligatorio [0, 100]',
-        ]" />
+        <q-select
+          label="A mese"
+          outlined
+          clearable
+          :options="months"
+          v-model="toMonth"
+        />
+        <q-input
+          outlined
+          v-model="percentage"
+          :step="0.01"
+          label="Percentuale"
+          type="number"
+          :rules="[
+            (val) =>
+              (val && val >= 0 && val <= 100) || 'Valore obbligatorio [0, 100]',
+          ]"
+        />
         <q-btn label="Submit" type="submit" color="primary" />
       </q-form>
     </div>
