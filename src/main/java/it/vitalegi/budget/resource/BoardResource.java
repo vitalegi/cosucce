@@ -78,16 +78,17 @@ public class BoardResource {
                 split.getToYear(), split.getToMonth(), split.getValue1());
     }
 
+    @Operation(summary = "Delete board")
+    @DeleteMapping(path = "/{boardId}")
+    public void deleteBoard(@PathVariable("boardId") UUID boardId) {
+        boardService.deleteBoard(boardId);
+    }
+
     @Operation(summary = "Delete board entry")
     @DeleteMapping(path = "/{boardId}/entry/{boardEntryId}")
     public void deleteBoardEntry(@PathVariable("boardId") UUID boardId,
                                  @PathVariable("boardEntryId") UUID boardEntryId) {
         boardService.deleteBoardEntry(boardId, boardEntryId);
-    }
-    @Operation(summary = "Delete board")
-    @DeleteMapping(path = "/{boardId}")
-    public void deleteBoard(@PathVariable("boardId") UUID boardId) {
-        boardService.deleteBoard(boardId);
     }
 
     @Operation(summary = "Delete board split")
@@ -103,16 +104,16 @@ public class BoardResource {
         return boardService.getBoard(boardId);
     }
 
-    @Operation(summary = "Retrieve board analysis, by month and user")
-    @GetMapping(path = "/{boardId}/analysis/month-user", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<MonthlyUserAnalysis> getBoardAnalysisMonthUser(@PathVariable("boardId") UUID boardId) {
-        return boardService.getBoardAnalysisByMonthUser(boardId);
-    }
-
     @Operation(summary = "Retrieve board analysis, by month")
     @GetMapping(path = "/{boardId}/analysis/month", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<MonthlyAnalysis> getBoardAnalysisMonth(@PathVariable("boardId") UUID boardId) {
         return boardService.getBoardAnalysisByMonth(boardId);
+    }
+
+    @Operation(summary = "Retrieve board analysis, by month and user")
+    @GetMapping(path = "/{boardId}/analysis/month-user", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<MonthlyUserAnalysis> getBoardAnalysisMonthUser(@PathVariable("boardId") UUID boardId) {
+        return boardService.getBoardAnalysisByMonthUser(boardId);
     }
 
     @Operation(summary = "Retrieve board's categories")
@@ -163,6 +164,13 @@ public class BoardResource {
             MediaType.APPLICATION_JSON_VALUE)
     public BoardEntry updateBoardEntry(@PathVariable("boardId") UUID boardId, @RequestBody BoardEntry boardEntry) {
         return boardService.updateBoardEntry(boardId, boardEntry);
+    }
+
+    @Operation(summary = "Changes the name of the board")
+    @PostMapping(path = "/{boardId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    public Board updateBoardName(@PathVariable("boardId") UUID boardId, @RequestBody AddBoard board) {
+        return boardService.updateBoard(boardId, board.getName());
     }
 
     @Operation(summary = "Update existing split in board")

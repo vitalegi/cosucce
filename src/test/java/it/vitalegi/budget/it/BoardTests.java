@@ -4,6 +4,7 @@ package it.vitalegi.budget.it;
 import com.fasterxml.jackson.core.type.TypeReference;
 import it.vitalegi.budget.auth.BoardGrant;
 import it.vitalegi.budget.board.constant.BoardUserRole;
+import it.vitalegi.budget.board.dto.AddBoard;
 import it.vitalegi.budget.board.dto.AddBoardEntries;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
@@ -520,7 +521,7 @@ public class BoardTests {
     public void test_getBoard_member_shouldReturnBoard() throws Exception {
         Board board = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board.getId());
-        Board board1 = getBoardOk(auth2, board.getId().toString());
+        Board board1 = getBoardOk(auth2, board.getId());
         validateBoard("board1", board.getId(), board1);
     }
 
@@ -528,14 +529,14 @@ public class BoardTests {
     @Test
     public void test_getBoard_notMember_shouldFail() throws Exception {
         Board board1 = addBoardOk(auth1, "board");
-        getBoard(auth2, board1.getId().toString()).andExpect(error403());
+        getBoard(auth2, board1.getId()).andExpect(error403());
     }
 
     @DisplayName("GIVEN I am the owner of the board WHEN I retrieve the board THEN I should retrieve the board")
     @Test
     public void test_getBoard_owned_shouldReturnBoard() throws Exception {
         Board board1 = addBoardOk(auth1, "board1");
-        Board board = getBoardOk(auth1, board1.getId().toString());
+        Board board = getBoardOk(auth1, board1.getId());
         validateBoard("board1", board1.getId(), board);
     }
 
@@ -681,6 +682,39 @@ public class BoardTests {
                 "CATEGORY", "new description", updated2);
         assertEquals(entry.getId(), updated2.getId());
     }
+
+    @DisplayName("GIVEN I am a member of the board WHEN I update board's name THEN I should receive an error")
+    @Test
+    public void test_updateBoardName_member_shouldCreateEntry() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board.getId());
+
+        updateBoardName(auth2, board.getId(), "new name").andExpect(error403());
+        Board out = getBoardOk(auth1, board.getId());
+        assertEquals("board1", out.getName());
+    }
+
+    @DisplayName("GIVEN I am not a member of the board WHEN I update board's name THEN I should receive an error")
+    @Test
+    public void test_updateBoardName_notMember_shouldFail() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+
+        updateBoardName(auth3, board.getId(), "new name").andExpect(error403());
+        Board out = getBoardOk(auth1, board.getId());
+        assertEquals("board1", out.getName());
+    }
+
+    @DisplayName("GIVEN I am the owner of the board WHEN I update board's name THEN the name should be updated")
+    @Test
+    public void test_updateBoardName_owner_shouldUpdate() throws Exception {
+        Board board = addBoardOk(auth1, "board1");
+        joinBoard(auth1, auth2, board.getId());
+
+        updateBoardNameOk(auth1, board.getId(), "new name");
+        Board out = getBoardOk(auth1, board.getId());
+        assertEquals("new name", out.getName());
+    }
+
 
     @DisplayName("GIVEN I am a member of the board WHEN I update a split THEN I should receive an error")
     @Test
@@ -889,7 +923,7 @@ public class BoardTests {
         return status().isInternalServerError();
     }
 
-    private ResultActions getBoard(RequestPostProcessor auth, String boardId) throws Exception {
+    private ResultActions getBoard(RequestPostProcessor auth, UUID boardId) throws Exception {
         return mockMvc.perform(get("/board/" + boardId).with(auth))//
                       .andDo(monitor());
     }
@@ -929,7 +963,7 @@ public class BoardTests {
         return cs.jsonPayload(getBoardEntry(auth, boardId, boardEntryId).andExpect(ok()), BoardEntry.class);
     }
 
-    private Board getBoardOk(RequestPostProcessor auth, String boardId) throws Exception {
+    private Board getBoardOk(RequestPostProcessor auth, UUID boardId) throws Exception {
         return cs.jsonPayload(getBoard(auth, boardId).andExpect(ok()), Board.class);
     }
 
@@ -1009,6 +1043,19 @@ public class BoardTests {
                                           LocalDate date, BigDecimal amount, String category, String description) throws Exception {
         return cs.jsonPayload(updateBoardEntry(auth, boardId, boardEntryId, ownerId, date, amount, category,
                 description).andExpect(ok()), BoardEntry.class);
+    }
+
+    private ResultActions updateBoardName(RequestPostProcessor auth, UUID boardId, String name) throws Exception {
+        AddBoard request = new AddBoard();
+        request.setName(name);
+
+        return mockMvc.perform(post("/board/" + boardId).with(csrf()).with(auth)
+                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                        .content(cs.toJson(request))).andDo(monitor());
+    }
+
+    private Board updateBoardNameOk(RequestPostProcessor auth, UUID boardId, String name) throws Exception {
+        return cs.jsonPayload(updateBoardName(auth, boardId, name).andExpect(ok()), Board.class);
     }
 
     private ResultActions updateBoardSplit(RequestPostProcessor auth, UUID boardId, UUID boardSplitId, long userId,

@@ -306,6 +306,17 @@ public class BoardService {
     }
 
     @Transactional
+    public Board updateBoard(UUID boardId, String name) {
+        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_EDIT);
+        BoardEntity board = boardRepository.findById(boardId).get();
+        board.setName(name);
+        board.setLastUpdate(LocalDateTime.now());
+        BoardEntity out = boardRepository.save(board);
+        log.info("Board is updated. Board={}", out.getId());
+        return mapper.map(out);
+    }
+
+    @Transactional
     public BoardEntry updateBoardEntry(UUID boardId, BoardEntry boardEntry) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
         log.info("Current user can edit board entries");
