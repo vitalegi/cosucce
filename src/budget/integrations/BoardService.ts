@@ -31,6 +31,12 @@ export class BoardService {
     });
     return Board.fromJson(out);
   };
+  updateBoardName = async (id: string, name: string): Promise<Board> => {
+    const out = await api.put(`/board/${id}`, null, {
+      name: name,
+    });
+    return Board.fromJson(out);
+  };
 
   deleteBoard = async (id: string): Promise<void> => {
     await api.delete(`/board/${id}`, null, {});

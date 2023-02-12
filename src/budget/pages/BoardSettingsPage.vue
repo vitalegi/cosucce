@@ -1,6 +1,7 @@
 <template>
   <q-page>
     <div class="q-pa-md row">
+      <BoardChangeNameComponent :board-id="boardId" />
       <BoardMembersComponent :boardId="boardId" />
       <BoardSplitsComponent :boardId="boardId" />
       <BoardEntriesImportComponent :boardId="boardId" />
@@ -14,6 +15,7 @@ import BoardMembersComponent from 'src/budget/components/BoardMembersComponent.v
 import BoardSplitsComponent from 'src/budget/components/BoardSplitsComponent.vue';
 import BoardEntriesImportComponent from 'src/budget/components/BoardEntriesImportComponent.vue';
 import BoardDangerZoneComponent from 'src/budget/components/BoardDangerZoneComponent.vue';
+import BoardChangeNameComponent from 'src/budget/components/BoardChangeNameComponent.vue';
 
 defineProps({
   boardId: {
