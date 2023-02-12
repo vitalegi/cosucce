@@ -64,7 +64,7 @@ const columns = computed(() => {
       required: true,
       label: 'Credito mensile',
       field: (row: MonthlyUserAnalysis) =>
-        getUserExpected(row) - getUserActual(row),
+        getUserActual(row) - getUserExpected(row),
       format: (val: string) => formatCurrency(val),
       sortable: true,
     },
