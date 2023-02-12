@@ -5,6 +5,7 @@
       <BoardMembersComponent :boardId="boardId" />
       <BoardSplitsComponent :boardId="boardId" />
       <BoardEntriesImportComponent :boardId="boardId" />
+      <BoardEntriesExportComponent :boardId="boardId" />
       <BoardDangerZoneComponent :boardId="boardId" />
     </div>
   </q-page>
@@ -14,6 +15,7 @@
 import BoardMembersComponent from 'src/budget/components/BoardMembersComponent.vue';
 import BoardSplitsComponent from 'src/budget/components/BoardSplitsComponent.vue';
 import BoardEntriesImportComponent from 'src/budget/components/BoardEntriesImportComponent.vue';
+import BoardEntriesExportComponent from 'src/budget/components/BoardEntriesExportComponent.vue';
 import BoardDangerZoneComponent from 'src/budget/components/BoardDangerZoneComponent.vue';
 import BoardChangeNameComponent from 'src/budget/components/BoardChangeNameComponent.vue';
 

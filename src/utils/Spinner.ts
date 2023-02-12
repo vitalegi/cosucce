@@ -17,10 +17,10 @@ class Spinner {
   hide = (): void => {
     Loading.hide();
   };
-  sync = async (fn: () => Promise<void>): Promise<void> => {
+  sync = async <E>(fn: () => Promise<E>): Promise<E> => {
     try {
       this.show();
-      await fn();
+      return await fn();
     } finally {
       this.hide();
     }

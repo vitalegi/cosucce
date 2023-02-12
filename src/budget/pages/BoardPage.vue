@@ -3,17 +3,6 @@
     <div class="q-pa-md row">
       <div class="q-pa-xs col-12 row">
         <div class="text-h6">{{ board.name }}</div>
-        <q-space />
-        <div class="q-pa-xs q-gutter-sm">
-          <q-btn round color="primary" icon="add" @click="addNewBoardEntry()" />
-          <q-btn round icon="content_copy" @click="exportBoardEntries()" />
-          <q-btn
-            round
-            icon="settings"
-            @click="openBoardSettings()"
-            v-if="showSettingsButton"
-          />
-        </div>
       </div>
       <div class="q-pa-xs col-12">
         <BoardMonthlyAnalysisComponent :entries="monthlyAnalysis" />
@@ -64,6 +53,18 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-page-sticky position="top-right" :offset="[18, 18]">
+      <div class="q-gutter-xs">
+        <q-btn
+          fab-mini
+          icon="settings"
+          color="secondary"
+          @click="openBoardSettings()"
+          v-if="showSettingsButton"
+        />
+        <q-btn fab icon="add" color="primary" @click="addNewBoardEntry()" />
+      </div>
+    </q-page-sticky>
   </q-page>
 </template>
 
@@ -77,7 +78,6 @@ import BoardMonthlyUsersAnalysisComponent from 'src/budget/components/analysis/B
 import BoardEntriesComponent from 'src/budget/components/BoardEntriesComponent.vue';
 import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis';
 import BoardUser from 'src/budget/models/BoardUser';
-import { toQDateFormat } from 'src/utils/DateUtil';
 import spinner from 'src/utils/Spinner';
 import MonthlyAnalysis from 'src/budget/models/analysis/MonthlyAnalysis';
 import BoardMonthlyAnalysisComponent from 'src/budget/components/analysis/BoardMonthlyAnalysisComponent.vue';
@@ -126,22 +126,6 @@ watch(
 
 const addNewBoardEntry = (): void => {
   router.push(`/board/${props.boardId}/add`);
-};
-
-const exportBoardEntries = async (): Promise<void> => {
-  await spinner.sync(async () => {
-    const entries = await boardService.getBoardEntries(props.boardId);
-    const members = await boardService.getBoardUsers(props.boardId);
-    const text = entries
-      .map(
-        (e) =>
-          `${toQDateFormat(e.date)};${
-            members.filter((m) => m.user.id === e.ownerId)[0].user.username
-          };${e.category};${e.description};${e.amount}`
-      )
-      .join('\n');
-    await navigator.clipboard.writeText(text);
-  });
 };
 
 const editBoardEntry = (boardEntryId: string): void => {

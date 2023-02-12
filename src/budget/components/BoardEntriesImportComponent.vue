@@ -25,10 +25,8 @@
 
 <script setup lang="ts">
 import BoardUser from 'src/budget/models/BoardUser';
-import BoardSplit from 'src/budget/models/BoardSplit';
 import { computed, ref } from 'vue';
 import boardService from 'src/budget/integrations/BoardService';
-import { useRouter } from 'vue-router';
 import BoardEntry from 'src/budget/models/BoardEntry';
 import { asDecimal, asInt } from 'src/utils/JsonUtil';
 import spinner from 'src/utils/Spinner';
