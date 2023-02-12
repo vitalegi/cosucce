@@ -167,7 +167,7 @@ public class BoardResource {
     }
 
     @Operation(summary = "Changes the name of the board")
-    @PostMapping(path = "/{boardId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+    @PutMapping(path = "/{boardId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
             MediaType.APPLICATION_JSON_VALUE)
     public Board updateBoardName(@PathVariable("boardId") UUID boardId, @RequestBody AddBoard board) {
         return boardService.updateBoard(boardId, board.getName());

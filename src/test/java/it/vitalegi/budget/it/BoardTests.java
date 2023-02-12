@@ -1049,7 +1049,7 @@ public class BoardTests {
         AddBoard request = new AddBoard();
         request.setName(name);
 
-        return mockMvc.perform(post("/board/" + boardId).with(csrf()).with(auth)
+        return mockMvc.perform(put("/board/" + boardId).with(csrf()).with(auth)
                                                         .contentType(MediaType.APPLICATION_JSON)
                                                         .content(cs.toJson(request))).andDo(monitor());
     }
