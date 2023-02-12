@@ -51,14 +51,6 @@ const columns = computed(() => {
       sortable: true,
     },
     {
-      name: 'expected',
-      required: true,
-      label: 'Attesa',
-      field: (row: MonthlyUserAnalysis) => getUserExpected(row),
-      format: (val: string) => formatCurrency(val),
-      sortable: true,
-    },
-    {
       name: 'monthCredit',
       required: true,
       label: 'Credito mensile',
