@@ -5,6 +5,12 @@
         <div class="text-h6">{{ board.name }}</div>
       </div>
       <div class="q-pa-xs col-12">
+        <BoardRecapAnalysisComponent
+          :entries="monthlyUserAnalysis"
+          :user="currentUser"
+        />
+      </div>
+      <div class="q-pa-xs col-12">
         <BoardMonthlyAnalysisComponent :entries="monthlyAnalysis" />
       </div>
       <div class="q-pa-xs col-12">
@@ -75,12 +81,15 @@ import Board from 'src/budget/models/Board';
 import BoardEntry from 'src/budget/models/BoardEntry';
 import { useRouter } from 'vue-router';
 import BoardMonthlyUsersAnalysisComponent from 'src/budget/components/analysis/BoardMonthlyUsersAnalysisComponent.vue';
+import BoardRecapAnalysisComponent from 'src/budget/components/analysis/BoardRecapAnalysisComponent.vue';
 import BoardEntriesComponent from 'src/budget/components/BoardEntriesComponent.vue';
 import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis';
 import BoardUser from 'src/budget/models/BoardUser';
 import spinner from 'src/utils/Spinner';
 import MonthlyAnalysis from 'src/budget/models/analysis/MonthlyAnalysis';
 import BoardMonthlyAnalysisComponent from 'src/budget/components/analysis/BoardMonthlyAnalysisComponent.vue';
+import userService from 'src/integrations/UserService';
+import UserData from 'src/models/UserData';
 
 const props = defineProps({
   boardId: {
@@ -173,4 +182,7 @@ const deleteBoardEntry = async (): Promise<void> => {
 const showSettingsButton = computed(
   () => grants.value.filter((grant) => grant === 'BOARD_EDIT').length > 0
 );
+
+const currentUser = ref(new UserData());
+userService.getUser().then((u) => (currentUser.value = u));
 </script>

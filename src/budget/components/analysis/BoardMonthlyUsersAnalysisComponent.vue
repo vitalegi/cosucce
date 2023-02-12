@@ -15,14 +15,18 @@
     >
       <q-tab
         v-for="(user, index) in users"
-        :key="user.id"
+        :key="user.user.id"
         :name="index"
         :label="user.user.username"
       />
     </q-tabs>
     <q-separator />
     <q-tab-panels v-model="tab" animated>
-      <q-tab-panel v-for="(user, index) in users" :key="user.id" :name="index">
+      <q-tab-panel
+        v-for="(user, index) in users"
+        :key="user.user.id"
+        :name="index"
+      >
         <BoardMonthlyUserAnalysisComponent :user="user.user" :entries="entries">
         </BoardMonthlyUserAnalysisComponent>
       </q-tab-panel>

@@ -3,7 +3,8 @@ import api from './BackendService';
 
 export class UserService {
   getUser = async (): Promise<UserData> => {
-    return await api.get('/user', null);
+    const out = await api.get('/user', null);
+    return UserData.fromJson(out);
   };
 }
 

@@ -16,4 +16,10 @@ export default class BoardUserAnalysis {
     }
     return out;
   }
+
+  static sort(a: BoardUserAnalysis, b: BoardUserAnalysis): number {
+    const v1 = a.year * 12 + a.month;
+    const v2 = b.year * 12 + b.month;
+    return v1 - v2;
+  }
 }
