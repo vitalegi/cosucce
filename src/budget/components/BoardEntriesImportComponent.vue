@@ -9,15 +9,25 @@
           v-model="text"
           filled
           type="textarea"
-          :rules="[(val) => isValid || 'Testo non valido']"
           :hint="`Autori accettati: ${usernames}`"
-        />
-        <q-btn label="Carica" type="submit" color="primary" />
-        <div class="col">
-          <div v-if="isValid">
-            {{ toBoardEntries(text) }}
-          </div>
-        </div>
+        >
+          <template v-slot:prepend>
+            <q-icon
+              v-if="!showDone"
+              color="primary"
+              name="save"
+              class="cursor-pointer"
+              @click="onSubmit"
+              :disable="!isValid"
+            />
+            <q-icon
+              v-if="showDone"
+              name="check"
+              class="cursor-pointer"
+              style="color: green"
+            />
+          </template>
+        </q-input>
       </q-form>
     </div>
   </div>
@@ -30,6 +40,7 @@ import boardService from 'src/budget/integrations/BoardService';
 import BoardEntry from 'src/budget/models/BoardEntry';
 import { asDecimal, asInt } from 'src/utils/JsonUtil';
 import spinner from 'src/utils/Spinner';
+import { doesNotReject } from 'assert';
 
 const props = defineProps({
   boardId: {
@@ -99,10 +110,14 @@ const isValid = computed(() => {
   }
 });
 
-const onSubmit = () => {
-  spinner.sync(async () => {
+const showDone = ref(false);
+
+const onSubmit = async () => {
+  await spinner.sync(async () => {
     boardService.addBoardEntries(props.boardId, toBoardEntries(text.value));
     text.value = '';
   });
+  showDone.value = true;
+  setTimeout(() => (showDone.value = false), 1300);
 };
 </script>
