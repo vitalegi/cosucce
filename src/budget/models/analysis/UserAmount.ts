@@ -1,18 +1,14 @@
-import { asInt, asDecimal } from 'src/utils/JsonUtil';
+import Amount from 'src/budget/models/analysis/Amount';
+import { asInt } from 'src/utils/JsonUtil';
 
-export default class UserAmount {
+export default class UserAmount extends Amount {
   userId = 0;
-  actual = 0;
-  expected = 0;
-  cumulatedCredit = 0;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static fromJson(json: any): UserAmount {
     const out = new UserAmount();
     out.userId = asInt(json.userId);
-    out.actual = asDecimal(json.actual);
-    out.expected = asDecimal(json.expected);
-    out.cumulatedCredit = asDecimal(json.cumulatedCredit);
+    Amount.fromJson(json, out);
     return out;
   }
 }

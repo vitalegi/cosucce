@@ -6,6 +6,7 @@ import { asString } from 'src/utils/JsonUtil';
 import api from '../../integrations/BackendService';
 import BoardInvite from 'src/budget/models/BoardInvite';
 import BoardSplit from 'src/budget/models/BoardSplit';
+import MonthlyAnalysis from 'src/budget/models/analysis/MonthlyAnalysis';
 
 const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => {
@@ -101,6 +102,12 @@ export class BoardService {
   ): Promise<MonthlyUserAnalysis[]> => {
     const out = await api.get(`/board/${boardId}/analysis/month-user`, null);
     return out.map(MonthlyUserAnalysis.fromJson);
+  };
+  getBoardAnalysisMonth = async (
+    boardId: string
+  ): Promise<MonthlyAnalysis[]> => {
+    const out = await api.get(`/board/${boardId}/analysis/month`, null);
+    return out.map(MonthlyAnalysis.fromJson);
   };
   addBoardSplit = async (boardSplit: BoardSplit): Promise<BoardSplit> => {
     const out = await api.post(

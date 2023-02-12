@@ -1,7 +1,7 @@
 <template>
   <q-card>
     <q-card-section>
-      <div class="text-subtitle2">Analisi</div>
+      <div class="text-subtitle2">Analisi per utente</div>
     </q-card-section>
     <q-separator />
     <q-tabs

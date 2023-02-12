@@ -16,6 +16,9 @@
         </div>
       </div>
       <div class="q-pa-xs col-12">
+        <BoardMonthlyAnalysisComponent :entries="monthlyAnalysis" />
+      </div>
+      <div class="q-pa-xs col-12">
         <BoardMonthlyUsersAnalysisComponent
           :users="members"
           :entries="monthlyUserAnalysis"
@@ -76,6 +79,8 @@ import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis'
 import BoardUser from 'src/budget/models/BoardUser';
 import { toQDateFormat } from 'src/utils/DateUtil';
 import spinner from 'src/utils/Spinner';
+import MonthlyAnalysis from 'src/budget/models/analysis/MonthlyAnalysis';
+import BoardMonthlyAnalysisComponent from 'src/budget/components/analysis/BoardMonthlyAnalysisComponent.vue';
 
 const props = defineProps({
   boardId: {
@@ -89,6 +94,7 @@ const router = useRouter();
 const board = ref(new Board());
 const boardEntries = ref(new Array<BoardEntry>());
 const monthlyUserAnalysis = ref(new Array<MonthlyUserAnalysis>());
+const monthlyAnalysis = ref(new Array<MonthlyAnalysis>());
 const members = ref(new Array<BoardUser>());
 const grants = ref(new Array<string>());
 
@@ -100,6 +106,9 @@ const loadData = async (boardId: string): Promise<void> => {
     grants.value = await boardService.getGrants(boardId);
     monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
       boardId
+    );
+    monthlyAnalysis.value = await boardService.getBoardAnalysisMonth(
+      props.boardId
     );
   });
 };
@@ -167,6 +176,9 @@ const deleteBoardEntry = async (): Promise<void> => {
       (e) => e.id !== boardEntryId
     );
     monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
+      props.boardId
+    );
+    monthlyAnalysis.value = await boardService.getBoardAnalysisMonth(
       props.boardId
     );
 

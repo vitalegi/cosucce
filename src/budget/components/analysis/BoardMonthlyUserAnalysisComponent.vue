@@ -12,11 +12,10 @@
 </template>
 
 <script setup lang="ts">
-import MonthlyUserAnalysis from 'src/models/budget/analysis/MonthlyUserAnalysis';
-import UserAmount from 'src/models/budget/analysis/UserAmount';
+import MonthlyUserAnalysis from 'src/budget/models/analysis/MonthlyUserAnalysis';
+import UserAmount from 'src/budget/models/analysis/UserAmount';
 import UserData from 'src/models/UserData';
 import { formatYearMonth } from 'src/utils/DateUtil';
-import { asDecimal } from 'src/utils/JsonUtil';
 import NumberUtil from 'src/utils/NumberUtil';
 import { computed, PropType } from 'vue';
 
