@@ -59,6 +59,20 @@ liquibase "--changelog-file=dbchangelog.xml" "--url=jdbc:h2:${oldDb};DB_CLOSE_ON
 | OpenApi JSON | [/v3/api-docs](http://localhost:8080/v3/api-docs)           | [/v3/api-docs](https://purple-breeze-8455.fly.dev/v3/api-docs)           |
 | OpenApi YAML | [/v3/api-docs.yaml](http://localhost:8080/v3/api-docs.yaml) | [/v3/api-docs.yaml](https://purple-breeze-8455.fly.dev/v3/api-docs.yaml) |
 
+## Maven upgrade
+
+```
+# update parent
+mvn versions:update-parent "-DparentVersion=(2.7.0,3.0.0)" "-DgenerateBackupPoms=false"
+
+# update dependencies
+mvn versions:use-latest-versions "-Dincludes=org.springdoc:springdoc-openapi-ui,com.tngtech.archunit:archunit-junit5" "-DgenerateBackupPoms=false"
+
+# build and check that application works
+mvn clean package
+```
+
+
 ## Release
 
 ### Prerequisites
