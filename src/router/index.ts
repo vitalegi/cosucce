@@ -5,7 +5,7 @@ import {
   createWebHashHistory,
   createWebHistory,
 } from 'vue-router';
-import { isAuthenticated } from 'boot/firebase';
+import { isAuthenticated, getUser } from 'boot/firebase';
 
 import routes from './routes';
 import {
@@ -47,12 +47,18 @@ export default route(function (/* { store, ssrContext } */) {
     }
     isAuthenticated().then((authenticated) => {
       if (authenticated) {
-        const breadcrumbsStore = useBreadcrumbsStore();
-        breadcrumbsStore.refresh(getBreadcrumbs(to));
-        next();
-        return;
+        getUser().then((user) => {
+          if (user?.emailVerified) {
+            const breadcrumbsStore = useBreadcrumbsStore();
+            breadcrumbsStore.refresh(getBreadcrumbs(to));
+            next();
+          } else {
+            next({ name: 'VerifyMail' });
+          }
+        });
+      } else {
+        next({ name: 'Auth' });
       }
-      next({ name: 'Auth' });
     });
   });
 

@@ -30,6 +30,14 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        name: 'VerifyMail',
+        path: '/verify',
+        component: () => import('pages/VerifyPage.vue'),
+        meta: {
+          requiresAuth: false,
+        },
+      },
+      {
         name: 'Profile',
         path: '/profile',
         component: () => import('pages/ProfilePage.vue'),
