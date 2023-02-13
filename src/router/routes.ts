@@ -30,6 +30,14 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        name: 'Profile',
+        path: '/profile',
+        component: () => import('pages/ProfilePage.vue'),
+        meta: {
+          requiresAuth: false,
+        },
+      },
+      {
         name: 'Boards',
         path: '/',
         component: () => import('src/budget/pages/BoardsPage.vue'),

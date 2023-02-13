@@ -20,6 +20,11 @@
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
+        <q-item clickable tag="router-link" to="/profile">
+          <q-item-section>
+            <q-item-label> Il tuo profilo </q-item-label>
+          </q-item-section>
+        </q-item>
         <q-item-label header tag="router-link" to="/">
           Le tue board
         </q-item-label>
