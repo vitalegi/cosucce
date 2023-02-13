@@ -57,4 +57,13 @@ public class UserService {
         user.setUsername(authenticationService.getName());
         userRepository.save(user);
     }
+
+    @Transactional
+    public User updateUsername(String username) {
+        UserEntity user = getCurrentUserEntity();
+        user.setUsername(username);
+        return mapper.map(userRepository.save(user));
+    }
+
+
 }
