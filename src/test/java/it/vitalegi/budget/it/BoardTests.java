@@ -1,19 +1,14 @@
 package it.vitalegi.budget.it;
 
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import it.vitalegi.budget.auth.BoardGrant;
 import it.vitalegi.budget.board.constant.BoardUserRole;
-import it.vitalegi.budget.board.dto.AddBoard;
-import it.vitalegi.budget.board.dto.AddBoardEntries;
 import it.vitalegi.budget.board.dto.Board;
 import it.vitalegi.budget.board.dto.BoardEntry;
-import it.vitalegi.budget.board.dto.BoardInvite;
 import it.vitalegi.budget.board.dto.BoardSplit;
 import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.board.dto.analysis.MonthlyAnalysis;
 import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
-import it.vitalegi.budget.board.dto.analysis.UserAmount;
 import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.user.dto.User;
 import it.vitalegi.budget.user.repository.UserRepository;
@@ -24,11 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.math.BigDecimal;
@@ -37,7 +28,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.UUID;
 
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_DELETE;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_EDIT;
@@ -46,17 +36,12 @@ import static it.vitalegi.budget.auth.BoardGrant.BOARD_ENTRY_IMPORT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_MANAGE_MEMBER;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_USER_ROLE_EDIT;
 import static it.vitalegi.budget.auth.BoardGrant.BOARD_VIEW;
-import static it.vitalegi.budget.it.HttpMonitor.monitor;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -64,19 +49,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class BoardTests {
+public class BoardTests extends RestResources {
 
     final String USER1 = "user1";
     final String USER2 = "user2";
     final String USER3 = "user3";
 
-    @Autowired
-    protected MockMvc mockMvc;
-    @Autowired
-    MockAuth mockAuth;
-
-    @Autowired
-    CallService cs;
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -356,8 +334,7 @@ public class BoardTests {
     }
 
 
-    @DisplayName("GIVEN I am a member of the board WHEN I retrieve board analysis by month THEN the analysis should " +
-            "be returned")
+    @DisplayName("GIVEN I am a member of the board WHEN I retrieve board analysis by month THEN the analysis should " + "be returned")
     @Test
     public void test_getBoardAnalysisMonth_member_shouldReturnData() throws Exception {
         Board board1 = addBoardOk(auth1, "board1");
@@ -375,8 +352,7 @@ public class BoardTests {
         validateMonthlyAnalysis(2023, 2, new BigDecimal("2"), analysis.get(1));
     }
 
-    @DisplayName("GIVEN I am not member of the board  WHEN I retrieve board analysis by month THEN I should receive " +
-            "an error")
+    @DisplayName("GIVEN I am not member of the board  WHEN I retrieve board analysis by month THEN I should receive " + "an error")
     @Test
     public void test_getBoardAnalysisMonth_notMember_shouldFail() throws Exception {
         Board board1 = addBoardOk(auth1, "board1");
@@ -384,8 +360,8 @@ public class BoardTests {
         deleteBoard(auth3, board1.getId()).andExpect(error403());
     }
 
-    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve board analysis by month THEN the analysis should " +
-            "be returned")
+    @DisplayName("GIVEN I am the owner of the board WHEN I retrieve board analysis by month THEN the analysis should "
+            + "be returned")
     @Test
     public void test_getBoardAnalysisMonth_owner_shouldReturnData() throws Exception {
         Board board1 = addBoardOk(auth1, "board1");
@@ -776,392 +752,4 @@ public class BoardTests {
         assertEquals(BoardUserRole.MEMBER, u2.getRole());
     }
 
-    private ResultActions access(RequestPostProcessor auth) throws Exception {
-        return mockMvc.perform(get("/user").with(auth)).andDo(monitor());
-    }
-
-    private User accessOk(RequestPostProcessor auth, String uid) throws Exception {
-        User out = cs.jsonPayload(access(auth).andExpect(ok()), User.class);
-        validateUser(null, uid, out);
-        return out;
-    }
-
-    private ResultActions addBoard(RequestPostProcessor auth, String name) throws Exception {
-        Board request = new Board();
-        request.setName(name);
-
-        return mockMvc.perform(post("/board") //
-                                              .with(csrf()) //
-                                              .with(auth) //
-                                              .contentType(MediaType.APPLICATION_JSON) //
-                                              .content(cs.toJson(request))) //
-                      .andDo(monitor());
-    }
-
-    private ResultActions addBoardEntries(RequestPostProcessor auth, UUID boardId, List<BoardEntry> entries) throws Exception {
-        AddBoardEntries request = new AddBoardEntries();
-        request.setEntries(entries);
-        return mockMvc.perform(post("/board/" + boardId + "/entries").with(csrf()).with(auth)
-                                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                                     .content(cs.toJson(request))).andDo(monitor());
-    }
-
-    private List<BoardEntry> addBoardEntriesOk(RequestPostProcessor auth, UUID boardId, List<BoardEntry> entries) throws Exception {
-        return cs.jsonPayloadList(addBoardEntries(auth, boardId, entries).andExpect(ok()), new TypeReference<>() {
-        });
-    }
-
-    private ResultActions addBoardEntry(RequestPostProcessor auth, UUID boardId, Long ownerId, LocalDate date,
-                                        BigDecimal amount, String category, String description) throws Exception {
-        BoardEntry request = new BoardEntry();
-        request.setBoardId(boardId);
-        request.setOwnerId(ownerId);
-        request.setAmount(amount);
-        request.setDescription(description);
-        request.setCategory(category);
-        request.setDate(date);
-
-        return mockMvc.perform(post("/board/" + boardId + "/entry").with(csrf()).with(auth)
-                                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                                   .content(cs.toJson(request))).andDo(monitor());
-    }
-
-    private BoardEntry addBoardEntryOk(RequestPostProcessor auth, UUID boardId, Long ownerId, LocalDate date,
-                                       BigDecimal amount, String category, String description) throws Exception {
-        return cs.jsonPayload(addBoardEntry(auth, boardId, ownerId, date, amount, category, description).andExpect(ok()), BoardEntry.class);
-    }
-
-    private ResultActions addBoardInvite(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(post("/board/" + boardId + "/invite").with(csrf()).with(auth)
-                                                                    .contentType(MediaType.APPLICATION_JSON))
-                      .andDo(monitor());
-    }
-
-    private BoardInvite addBoardInviteOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayload(addBoardInvite(auth, boardId).andExpect(ok()), BoardInvite.class);
-    }
-
-    private Board addBoardOk(RequestPostProcessor auth, String boardName) throws Exception {
-        Board board = cs.jsonPayload(addBoard(auth, boardName).andExpect(ok()), Board.class);
-        validateBoard(boardName, null, board);
-        return board;
-    }
-
-    private ResultActions addBoardSplit(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear,
-                                        Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
-        BoardSplit request = new BoardSplit();
-        request.setBoardId(boardId);
-        request.setUserId(userId);
-        request.setFromYear(fromYear);
-        request.setFromMonth(fromMonth);
-        request.setToYear(toYear);
-        request.setToMonth(toMonth);
-        request.setValue1(value1);
-
-        return mockMvc.perform(post("/board/" + boardId + "/split").with(csrf()).with(auth)
-                                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                                   .content(cs.toJson(request))).andDo(monitor());
-    }
-
-    private BoardSplit addBoardSplitOk(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear,
-                                       Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
-        return cs.jsonPayload(addBoardSplit(auth, boardId, userId, fromYear, fromMonth, toYear, toMonth, value1).andExpect(ok()), BoardSplit.class);
-    }
-
-    private BoardEntry boardEntry(UUID boardId, Long ownerId, LocalDate date, BigDecimal amount, String category,
-                                  String description) {
-
-        BoardEntry entry = new BoardEntry();
-        entry.setBoardId(boardId);
-        entry.setOwnerId(ownerId);
-        entry.setAmount(amount);
-        entry.setDescription(description);
-        entry.setCategory(category);
-        entry.setDate(date);
-        return entry;
-    }
-
-    private void deleteAllBoardSplits(RequestPostProcessor auth, Board board) throws Exception {
-        List<BoardSplit> splits = getBoardSplitsOk(auth, board.getId());
-        for (BoardSplit split : splits) {
-            deleteBoardSplitOk(auth, board.getId(), split.getId());
-        }
-    }
-
-    private ResultActions deleteBoard(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(delete("/board/" + boardId).with(csrf()).with(auth)).andDo(monitor());
-    }
-
-    private ResultActions deleteBoardEntry(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
-        return mockMvc.perform(delete("/board/" + boardId + "/entry/" + boardEntryId).with(csrf()).with(auth))
-                      .andDo(monitor());
-    }
-
-    private void deleteBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
-        deleteBoardEntry(auth, boardId, boardEntryId).andExpect(ok());
-    }
-
-    private void deleteBoardOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        deleteBoard(auth, boardId).andExpect(ok());
-    }
-
-    private ResultActions deleteBoardSplit(RequestPostProcessor auth, UUID boardId, UUID splitId) throws Exception {
-        return mockMvc.perform(delete("/board/" + boardId + "/split/" + splitId).with(csrf()).with(auth)
-                                                                                .contentType(MediaType.APPLICATION_JSON))
-                      .andDo(monitor());
-    }
-
-    private void deleteBoardSplitOk(RequestPostProcessor auth, UUID boardId, UUID splitId) throws Exception {
-        deleteBoardSplit(auth, boardId, splitId).andExpect(ok());
-    }
-
-    private ResultMatcher error403() {
-        return status().isForbidden();
-    }
-
-    private ResultMatcher error500() {
-        return status().isInternalServerError();
-    }
-
-    private ResultActions getBoard(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId).with(auth))//
-                      .andDo(monitor());
-    }
-
-    private ResultActions getBoardAnalysisMonth(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/analysis/month").with(auth)).andDo(monitor());
-    }
-
-    private List<MonthlyAnalysis> getBoardAnalysisMonthOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardAnalysisMonth(auth, boardId).andExpect(ok()), new TypeReference<>() {
-        });
-    }
-
-    private ResultActions getBoardAnalysisMonthUser(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/analysis/month-user").with(auth)).andDo(monitor());
-    }
-
-    private List<MonthlyUserAnalysis> getBoardAnalysisMonthUserOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardAnalysisMonthUser(auth, boardId).andExpect(ok()), new TypeReference<>() {
-        });
-    }
-
-    private ResultActions getBoardEntries(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/entries").with(auth)).andDo(monitor());
-    }
-
-    private List<BoardEntry> getBoardEntriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardEntries(auth, boardId).andExpect(ok()), new TypeReference<>() {
-        });
-    }
-
-    private ResultActions getBoardEntry(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/entry/" + boardEntryId).with(auth)).andDo(monitor());
-    }
-
-    private BoardEntry getBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId) throws Exception {
-        return cs.jsonPayload(getBoardEntry(auth, boardId, boardEntryId).andExpect(ok()), BoardEntry.class);
-    }
-
-    private Board getBoardOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayload(getBoard(auth, boardId).andExpect(ok()), Board.class);
-    }
-
-    private ResultActions getBoardSplits(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/splits").with(auth)).andDo(monitor());
-    }
-
-    private List<BoardSplit> getBoardSplitsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardSplits(auth, boardId).andExpect(ok()), new TypeReference<>() {
-        });
-    }
-
-    private ResultActions getBoardUsers(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/users").with(auth)).andDo(monitor());
-    }
-
-    private List<BoardUser> getBoardUsersOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getBoardUsers(auth, boardId).andExpect(ok()), new TypeReference<>() {
-        });
-    }
-
-    private ResultActions getBoards(RequestPostProcessor auth) throws Exception {
-        return mockMvc.perform(get("/board").with(auth))//
-                      .andDo(monitor());
-    }
-
-    private List<Board> getBoardsOk(RequestPostProcessor auth) throws Exception {
-        return cs.jsonPayloadList(getBoards(auth).andExpect(ok()), new TypeReference<>() {
-        });
-    }
-
-    private ResultActions getCategories(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/categories").with(auth)).andDo(monitor());
-    }
-
-    private List<String> getCategoriesOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getCategories(auth, boardId).andExpect(ok()), new TypeReference<>() {
-        });
-    }
-
-    private ResultActions getGrants(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/grants").with(auth))//
-                      .andDo(monitor());
-    }
-
-    private List<BoardGrant> getGrantsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
-        return cs.jsonPayloadList(getGrants(auth, boardId).andExpect(ok()), new TypeReference<>() {
-        });
-    }
-
-    private void joinBoard(RequestPostProcessor ownerAuth, RequestPostProcessor joinerAuth, UUID boardId) throws Exception {
-        BoardInvite invite = addBoardInviteOk(ownerAuth, boardId);
-        useBoardInviteOk(joinerAuth, boardId, invite.getId());
-    }
-
-    ResultMatcher ok() {
-        return status().isOk();
-    }
-
-    private ResultActions updateBoardEntry(RequestPostProcessor auth, UUID boardId, UUID boardEntryId, Long ownerId,
-                                           LocalDate date, BigDecimal amount, String category, String description) throws Exception {
-        BoardEntry request = new BoardEntry();
-        request.setId(boardEntryId);
-        request.setBoardId(boardId);
-        request.setOwnerId(ownerId);
-        request.setAmount(amount);
-        request.setDescription(description);
-        request.setCategory(category);
-        request.setDate(date);
-
-        return mockMvc.perform(put("/board/" + boardId + "/entry").with(csrf()).with(auth)
-                                                                  .contentType(MediaType.APPLICATION_JSON)
-                                                                  .content(cs.toJson(request))).andDo(monitor());
-    }
-
-    private BoardEntry updateBoardEntryOk(RequestPostProcessor auth, UUID boardId, UUID boardEntryId, Long ownerId,
-                                          LocalDate date, BigDecimal amount, String category, String description) throws Exception {
-        return cs.jsonPayload(updateBoardEntry(auth, boardId, boardEntryId, ownerId, date, amount, category,
-                description).andExpect(ok()), BoardEntry.class);
-    }
-
-    private ResultActions updateBoardName(RequestPostProcessor auth, UUID boardId, String name) throws Exception {
-        AddBoard request = new AddBoard();
-        request.setName(name);
-
-        return mockMvc.perform(put("/board/" + boardId).with(csrf()).with(auth)
-                                                        .contentType(MediaType.APPLICATION_JSON)
-                                                        .content(cs.toJson(request))).andDo(monitor());
-    }
-
-    private Board updateBoardNameOk(RequestPostProcessor auth, UUID boardId, String name) throws Exception {
-        return cs.jsonPayload(updateBoardName(auth, boardId, name).andExpect(ok()), Board.class);
-    }
-
-    private ResultActions updateBoardSplit(RequestPostProcessor auth, UUID boardId, UUID boardSplitId, long userId,
-                                           Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth,
-                                           BigDecimal value1) throws Exception {
-        BoardSplit request = new BoardSplit();
-        request.setId(boardSplitId);
-        request.setBoardId(boardId);
-        request.setUserId(userId);
-        request.setFromYear(fromYear);
-        request.setFromMonth(fromMonth);
-        request.setToYear(toYear);
-        request.setToMonth(toMonth);
-        request.setValue1(value1);
-
-        return mockMvc.perform(put("/board/" + boardId + "/split").with(csrf()).with(auth)
-                                                                  .contentType(MediaType.APPLICATION_JSON)
-                                                                  .content(cs.toJson(request))).andDo(monitor());
-    }
-
-    private BoardSplit updateBoardSplitOk(RequestPostProcessor auth, UUID boardId, UUID boardSplitId, long userId,
-                                          Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth,
-                                          BigDecimal value1) throws Exception {
-        return cs.jsonPayload(updateBoardSplit(auth, boardId, boardSplitId, userId, fromYear, fromMonth, toYear,
-                toMonth, value1).andExpect(ok()), BoardSplit.class);
-    }
-
-    private ResultActions useBoardInvite(RequestPostProcessor auth, UUID boardId, UUID inviteId) throws Exception {
-        return mockMvc.perform(get("/board/" + boardId + "/invite/" + inviteId).with(csrf()).with(auth))
-                      .andDo(monitor());
-    }
-
-    private void useBoardInviteOk(RequestPostProcessor auth, UUID boardId, UUID inviteId) throws Exception {
-        useBoardInvite(auth, boardId, inviteId).andExpect(ok());
-    }
-
-    private UserAmount userAmount(long userId, String actual, String expected, String cumulatedCredit) {
-        UserAmount obj = new UserAmount();
-        obj.setUserId(userId);
-        obj.setActual(new BigDecimal(actual));
-        obj.setExpected(new BigDecimal(expected));
-        obj.setCumulatedCredit(new BigDecimal(cumulatedCredit));
-        return obj;
-    }
-
-    private void validateBoard(String name, UUID boardId, Board actual) {
-        assertNotNull(actual.getId());
-        if (boardId != null) {
-            assertEquals(boardId, actual.getId());
-        }
-        if (name != null) {
-            assertEquals(name, actual.getName());
-        }
-        assertNotNull(actual.getLastUpdate());
-        assertNotNull(actual.getCreationDate());
-    }
-
-    private void validateBoardEntry(UUID boardId, Long ownerId, LocalDate date, BigDecimal amount, String category,
-                                    String description, BoardEntry actual) {
-        assertEquals(boardId, actual.getBoardId());
-        assertEquals(ownerId, actual.getOwnerId());
-        assertEquals(date, actual.getDate());
-        assertEquals(0, amount.compareTo(actual.getAmount()));
-        assertEquals(category, actual.getCategory());
-        assertEquals(description, actual.getDescription());
-    }
-
-    private void validateBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear,
-                                    Integer toMonth, BigDecimal value1, BoardSplit actual) {
-        assertEquals(boardId, actual.getBoardId());
-        assertEquals(userId, actual.getUserId());
-        assertEquals(fromYear, actual.getFromYear());
-        assertEquals(fromMonth, actual.getFromMonth());
-        assertEquals(toYear, actual.getToYear());
-        assertEquals(toMonth, actual.getToMonth());
-        assertEquals(0, value1.compareTo(actual.getValue1()));
-    }
-
-    private void validateBoardSplits(List<BoardSplit> expected, List<BoardSplit> actual) {
-        assertEquals(expected.size(), actual.size());
-        expected.forEach(e -> {
-            BoardSplit actualEntry = actual.stream().filter(a -> a.getId().equals(e.getId())).findFirst()
-                                           .orElseThrow(() -> new NoSuchElementException("Missing entry for " + e));
-            validateBoardSplit(e.getBoardId(), e.getUserId(), e.getFromYear(), e.getFromMonth(), e.getToYear(),
-                    e.getToMonth(), e.getValue1(), actualEntry);
-        });
-    }
-
-    private void validateMonthlyAnalysis(int year, int month, BigDecimal amount, MonthlyAnalysis actual) {
-        assertEquals(year, actual.getYear());
-        assertEquals(month, actual.getMonth());
-        assertTrue(amount.compareTo(actual.getAmount()) == 0);
-    }
-
-    private void validateMonthlyUserAnalysis(int year, int month, List<UserAmount> users, MonthlyUserAnalysis actual) {
-        assertEquals(year, actual.getYear());
-        assertEquals(month, actual.getMonth());
-        assertEquals(users, actual.getUsers());
-    }
-
-    private void validateUser(Long id, String uid, User actual) {
-        assertEquals(uid, actual.getUid());
-        if (id != null) {
-            assertEquals(id, actual.getId());
-        }
-        String username = mockAuth.username(uid);
-        assertEquals(username, actual.getUsername());
-    }
 }

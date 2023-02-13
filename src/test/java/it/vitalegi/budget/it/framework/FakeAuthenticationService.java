@@ -1,4 +1,4 @@
-package it.vitalegi.budget.it;
+package it.vitalegi.budget.it.framework;
 
 import it.vitalegi.budget.auth.AuthenticationService;
 import lombok.extern.log4j.Log4j2;

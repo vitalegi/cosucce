@@ -1,4 +1,4 @@
-package it.vitalegi.budget.it;
+package it.vitalegi.budget.it.framework;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,11 +12,11 @@ import java.util.List;
 @Service
 public class MockAuth {
 
-    RequestPostProcessor user(String uid) {
+    public RequestPostProcessor user(String uid) {
         return user(uid, username(uid), true);
     }
 
-    RequestPostProcessor user(String uid, String username, boolean verified) {
+    public RequestPostProcessor user(String uid, String username, boolean verified) {
         List<GrantedAuthority> grants = new ArrayList<>();
         grants.add(new SimpleGrantedAuthority("USERNAME:" + username));
         if (verified) {
@@ -27,7 +27,7 @@ public class MockAuth {
         return SecurityMockMvcRequestPostProcessors.user(user);
     }
 
-    String username(String uid) {
+    public String username(String uid) {
         return "username_" + uid;
     }
 }

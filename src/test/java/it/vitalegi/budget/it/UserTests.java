@@ -10,38 +10,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
-import static it.vitalegi.budget.it.HttpMonitor.monitor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @Log4j2
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class UserTests {
+public class UserTests extends RestResources {
 
     final String USER1 = "user1";
     final String USER2 = "user2";
     final String USER3 = "user3";
 
-    @Autowired
-    protected MockMvc mockMvc;
-    @Autowired
-    MockAuth mockAuth;
-
-    @Autowired
-    CallService cs;
     @Autowired
     UserRepository userRepository;
     RequestPostProcessor auth1;
@@ -81,44 +65,6 @@ public class UserTests {
 
         User user2 = getUserOk(auth2);
         assertEquals(otherUsername, user2.getUsername());
-    }
-
-    private ResultActions access(RequestPostProcessor auth) throws Exception {
-        return mockMvc.perform(get("/user").with(auth)).andDo(monitor());
-    }
-
-    private User accessOk(RequestPostProcessor auth, String uid) throws Exception {
-        User out = cs.jsonPayload(access(auth).andExpect(ok()), User.class);
-        validateUser(null, uid, out);
-        return out;
-    }
-
-    private User getUserOk(RequestPostProcessor auth) throws Exception {
-        return cs.jsonPayload(access(auth).andExpect(ok()), User.class);
-    }
-
-    ResultMatcher ok() {
-        return status().isOk();
-    }
-
-    private ResultActions updateUsername(RequestPostProcessor auth, String username) throws Exception {
-        User request = new User();
-        request.setUsername(username);
-        return mockMvc.perform(put("/user/").with(csrf()).with(auth).contentType(MediaType.APPLICATION_JSON)
-                                            .content(cs.toJson(request))).andDo(monitor());
-    }
-
-    private User updateUsernameOk(RequestPostProcessor auth, String username) throws Exception {
-        return cs.jsonPayload(updateUsername(auth, username).andExpect(ok()), User.class);
-    }
-
-    private void validateUser(Long id, String uid, User actual) {
-        assertEquals(uid, actual.getUid());
-        if (id != null) {
-            assertEquals(id, actual.getId());
-        }
-        String username = mockAuth.username(uid);
-        assertEquals(username, actual.getUsername());
     }
 
 }

@@ -1,4 +1,4 @@
-package it.vitalegi.budget.it;
+package it.vitalegi.budget.it.framework;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
