@@ -23,6 +23,7 @@
           </template>
         </q-input>
       </div>
+      <ConnectToTelegramComponent />
     </div>
   </q-page>
 </template>
@@ -30,6 +31,7 @@
 <script setup lang="ts">
 import userService from 'src/integrations/UserService';
 import { ref } from 'vue';
+import ConnectToTelegramComponent from 'src/components/ConnectToTelegramComponent.vue';
 
 const username = ref('');
 userService.getUser().then((u) => (username.value = u.username));
