@@ -12,9 +12,12 @@ import it.vitalegi.budget.board.dto.BoardUser;
 import it.vitalegi.budget.board.dto.analysis.MonthlyAnalysis;
 import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.dto.analysis.UserAmount;
-import it.vitalegi.budget.user.dto.User;
 import it.vitalegi.budget.it.framework.CallService;
 import it.vitalegi.budget.it.framework.MockAuth;
+import it.vitalegi.budget.user.constant.OtpStatus;
+import it.vitalegi.budget.user.dto.OtpResponse;
+import it.vitalegi.budget.user.dto.User;
+import it.vitalegi.budget.user.dto.UserOtp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,7 +34,6 @@ import java.util.UUID;
 import static it.vitalegi.budget.it.framework.HttpMonitor.monitor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -64,12 +66,8 @@ public class RestResources {
         Board request = new Board();
         request.setName(name);
 
-        return mockMvc.perform(post("/board") //
-                                              .with(csrf()) //
-                                              .with(auth) //
-                                              .contentType(MediaType.APPLICATION_JSON) //
-                                              .content(cs.toJson(request))) //
-                      .andDo(monitor());
+        return mockMvc.perform(post("/board").with(csrf()).with(auth).contentType(MediaType.APPLICATION_JSON)
+                                             .content(cs.toJson(request))).andDo(monitor());
     }
 
     protected ResultActions addBoardEntries(RequestPostProcessor auth, UUID boardId, List<BoardEntry> entries) throws Exception {
@@ -140,6 +138,18 @@ public class RestResources {
     protected BoardSplit addBoardSplitOk(RequestPostProcessor auth, UUID boardId, long userId, Integer fromYear,
                                          Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value1) throws Exception {
         return cs.jsonPayload(addBoardSplit(auth, boardId, userId, fromYear, fromMonth, toYear, toMonth, value1).andExpect(ok()), BoardSplit.class);
+    }
+
+    protected ResultActions addUserOtp(RequestPostProcessor auth) throws Exception {
+
+        return mockMvc.perform(put("/user/otp").with(csrf()).with(auth).contentType(MediaType.APPLICATION_JSON)
+                                               .content("{}")).andDo(monitor());
+    }
+
+    protected UserOtp addUserOtpOk(RequestPostProcessor auth) throws Exception {
+        UserOtp otp = cs.jsonPayload(addUserOtp(auth).andExpect(ok()), UserOtp.class);
+        validateUserOtp(null, OtpStatus.ACTIVE, otp);
+        return otp;
     }
 
     protected BoardEntry boardEntry(UUID boardId, Long ownerId, LocalDate date, BigDecimal amount, String category,
@@ -380,6 +390,16 @@ public class RestResources {
         useBoardInvite(auth, boardId, inviteId).andExpect(ok());
     }
 
+    protected ResultActions useOtp(RequestPostProcessor auth, String otp) throws Exception {
+
+        return mockMvc.perform(post("/user/otp/" + otp).with(csrf()).with(auth).contentType(MediaType.APPLICATION_JSON)
+                                                       .content("{}")).andDo(monitor());
+    }
+
+    protected boolean useOtpOk(RequestPostProcessor auth, String otp) throws Exception {
+        return cs.jsonPayload(useOtp(auth, otp).andExpect(ok()), OtpResponse.class).isStatus();
+    }
+
     protected UserAmount userAmount(long userId, String actual, String expected, String cumulatedCredit) {
         UserAmount obj = new UserAmount();
         obj.setUserId(userId);
@@ -452,6 +472,17 @@ public class RestResources {
         }
         String username = mockAuth.username(uid);
         assertEquals(username, actual.getUsername());
+    }
+
+    protected void validateUserOtp(Long userId, OtpStatus status, UserOtp actual) {
+        assertNotNull(actual.getId());
+        if (userId != null) {
+            assertEquals(userId, actual.getUserId());
+        }
+        if (status != null) {
+            assertEquals(status, actual.getStatus());
+        }
+        assertNotNull(actual.getValidTo());
     }
 
 }

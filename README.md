@@ -31,6 +31,7 @@ $env:DATASOURCE_URL = 'jdbc:postgresql://localhost:5432/budget'
 $env:DATASOURCE_USERNAME = 'postgres'
 $env:DATASOURCE_PASSWORD = 'postgres'
 $env:CORS_ALLOWED_ORIGINS = 'http://localhost:9000'
+$env:TELEGRAM_TOKEN = 'token'
 java -jar "-Dspring.profiles.active=prod" ./target/budget-0.0.1-SNAPSHOT.jar
 
 ./mvnw spring-boot:run
@@ -104,6 +105,7 @@ flyctl secrets set "DATASOURCE_URL=jdbc:postgresql://insert-here-database-addres
 flyctl secrets set "DATASOURCE_USERNAME=database-username"
 flyctl secrets set "DATASOURCE_PASSWORD=database-password"
 flyctl secrets set "CORS_ALLOWED_ORIGINS=origins"
+flyctl secrets set "TELEGRAM_TOKEN=telegram token"
 ```
 
 ### Build Image

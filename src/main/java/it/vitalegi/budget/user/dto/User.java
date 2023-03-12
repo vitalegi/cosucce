@@ -19,4 +19,6 @@ public class User {
     @NotNull
     @Schema(description = "Username. Default value is the user's email.")
     String username;
+    @Schema(description = "Telegram's userID, if available.")
+    Long telegramUserId;
 }

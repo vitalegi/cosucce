@@ -4,24 +4,34 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Getter
 @Setter
-@Entity(name = "User")
-@Table(name = "user_data")
-public class UserEntity {
+@Entity(name = "Otp")
+@Table(name = "user_otp")
+public class UserOtpEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
-    String uid;
-    String username;
-    Long telegramUserId;
+    @ManyToOne
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk__user_otp__user__id"))
+    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
+    UserEntity user;
+    LocalDateTime validTo;
+    String otp;
+    String status;
 
     @Override
     public int hashCode() {

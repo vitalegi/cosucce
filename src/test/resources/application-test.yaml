@@ -13,3 +13,9 @@ spring:
 
 metrics:
   skipIfLessThan: -1
+
+user:
+  otp:
+    duration: 5
+
+TELEGRAM_TOKEN: dummy

@@ -7,5 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends CrudRepository<UserEntity, Long> {
 
+    UserEntity findByTelegramUserId(Long telegramUserId);
+
     UserEntity findByUid(String uid);
 }

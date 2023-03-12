@@ -70,3 +70,7 @@ log:
 
 metrics:
   skipIfLessThan: 50
+
+user:
+  otp:
+    duration: 300 # 300 s = 5 minutes

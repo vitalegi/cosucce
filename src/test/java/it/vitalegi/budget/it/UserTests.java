@@ -14,6 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @Log4j2
@@ -49,7 +51,6 @@ public class UserTests extends RestResources {
 
         auth3 = mockAuth.user(USER3);
         user3 = accessOk(auth3, USER3);
-
     }
 
     @DisplayName("GIVEN I am a user WHEN I change my username THEN only my username should be changed")
@@ -67,4 +68,33 @@ public class UserTests extends RestResources {
         assertEquals(otherUsername, user2.getUsername());
     }
 
+    @DisplayName("GIVEN I am a user with an expired OTP WHEN I use the OTP THEN the OTP cannot be used")
+    @Test
+    public void test_useOtp_expiredOtp_shouldReject() throws Exception {
+        var otp1 = addUserOtpOk(auth1);
+        Thread.sleep(7000);
+        assertFalse(useOtpOk(auth1, otp1.getOtp()));
+    }
+
+    @DisplayName("GIVEN I am a user without a valid OTP WHEN I use the OTP THEN the OTP cannot be used")
+    @Test
+    public void test_useOtp_invalidOtp_shouldReject() throws Exception {
+        var otp1 = addUserOtpOk(auth1);
+        assertFalse(useOtpOk(auth2, otp1.getOtp()));
+    }
+
+    @DisplayName("GIVEN I am a user with a valid OTP WHEN I use the OTP THEN the OTP is consumed")
+    @Test
+    public void test_useOtp_validOtp_shouldConsumeIt() throws Exception {
+        var otp1 = addUserOtpOk(auth1);
+        assertTrue(useOtpOk(auth1, otp1.getOtp()));
+        assertFalse(useOtpOk(auth1, otp1.getOtp()));
+    }
+
+    @DisplayName("GIVEN I am a user with a valid OTP WHEN I use the OTP THEN the OTP can be used")
+    @Test
+    public void test_useOtp_validOtp_shouldUseIt() throws Exception {
+        var otp1 = addUserOtpOk(auth1);
+        assertTrue(useOtpOk(auth1, otp1.getOtp()));
+    }
 }
