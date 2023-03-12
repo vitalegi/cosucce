@@ -11,6 +11,7 @@ import it.vitalegi.budget.board.dto.analysis.MonthlyAnalysis;
 import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.repository.BoardRepository;
 import it.vitalegi.budget.user.dto.User;
+import it.vitalegi.budget.user.repository.UserOtpRepository;
 import it.vitalegi.budget.user.repository.UserRepository;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +59,8 @@ public class BoardTests extends RestResources {
     @Autowired
     UserRepository userRepository;
     @Autowired
+    UserOtpRepository userOtpRepository;
+    @Autowired
     BoardRepository boardRepository;
 
     RequestPostProcessor auth1;
@@ -71,6 +74,7 @@ public class BoardTests extends RestResources {
     public void init() throws Exception {
         log.info("Initialize database, erase user data. Boards={}, Users={}", boardRepository.count(),
                 userRepository.count());
+        userOtpRepository.deleteAll();
         boardRepository.deleteAll();
         userRepository.deleteAll();
         assertEquals(0, boardRepository.count());

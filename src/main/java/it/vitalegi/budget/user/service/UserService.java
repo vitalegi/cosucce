@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
+import java.util.Spliterator;
 import java.util.UUID;
 import java.util.stream.StreamSupport;
 
@@ -146,9 +147,12 @@ public class UserService {
     }
 
     protected void deleteExpiredOtps() {
-        long count = StreamSupport.stream(userOtpRepository.findAll().spliterator(), false)
-                                  .filter(otp -> !acceptOtpByDate(otp)).peek(userOtpRepository::delete).count();
-        log.info("Deleted {} expired OTPs. Remaining: {}", count, userOtpRepository.count());
+        Spliterator<UserOtpEntity> it = userOtpRepository.findAll().spliterator();
+        StreamSupport.stream(it, false).filter(otp -> !acceptOtpByDate(otp)).forEach(otp -> {
+            log.info("Delete OTP {}", otp.getId());
+            userOtpRepository.delete(otp);
+        });
+        log.info("Remaining OTPs: {}", userOtpRepository.count());
     }
 
     protected User getUserByTelegramId(long telegramUserId) {

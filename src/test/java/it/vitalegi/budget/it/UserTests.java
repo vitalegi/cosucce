@@ -2,6 +2,7 @@ package it.vitalegi.budget.it;
 
 
 import it.vitalegi.budget.user.dto.User;
+import it.vitalegi.budget.user.repository.UserOtpRepository;
 import it.vitalegi.budget.user.repository.UserRepository;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,8 @@ public class UserTests extends RestResources {
 
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    UserOtpRepository userOtpRepository;
     RequestPostProcessor auth1;
     User user1;
     RequestPostProcessor auth2;
@@ -40,6 +43,7 @@ public class UserTests extends RestResources {
     @BeforeEach
     public void init() throws Exception {
         log.info("Initialize database, erase user data. Users={}", userRepository.count());
+        userOtpRepository.deleteAll();
         userRepository.deleteAll();
         assertEquals(0, userRepository.count());
 
