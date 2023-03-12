@@ -7,10 +7,11 @@
 
     <q-card-section v-if="loaded">
       <div v-if="isCredit">
-        Gli altri membri ti devono un totale di {{ formatCurrency(credit) }}.
+        Gli altri membri ti devono un totale di
+        {{ formatCurrency(abs(credit)) }}.
       </div>
       <div v-if="isDebit">
-        Devi agli altri membri {{ formatCurrency(credit) }}.
+        Devi agli altri membri {{ formatCurrency(abs(credit)) }}.
       </div>
       <div v-if="isEven">Sei in pari.</div>
     </q-card-section>
@@ -74,5 +75,6 @@ const isCredit = computed(() => credit.value > 0.01);
 const isDebit = computed(() => credit.value < -0.01);
 const isEven = computed(() => credit.value <= 0.01 && credit.value >= -0.01);
 
+const abs = (value: number) => Math.abs(value);
 const formatCurrency = (value: number) => NumberUtil.formatCurrency(value);
 </script>
