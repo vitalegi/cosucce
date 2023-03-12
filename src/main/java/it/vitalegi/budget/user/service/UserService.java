@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.stream.StreamSupport;
 
 @Performance(Type.SERVICE)
 @Log4j2
@@ -51,6 +52,7 @@ public class UserService {
         entity.setStatus(OtpStatus.ACTIVE.name());
         var out = userOtpRepository.save(entity);
         log.info("Created new OTP for user {}", user.getId());
+        deleteExpiredOtps();
         return mapper.map(out);
     }
 
@@ -83,6 +85,7 @@ public class UserService {
         user.setUsername(authenticationService.getName());
         userRepository.save(user);
     }
+
     public User updateTelegramUserId(long userId, long telegramUserId) {
         UserEntity user = getUserEntity(userId);
         user.setTelegramUserId(telegramUserId);
@@ -140,6 +143,12 @@ public class UserService {
             return false;
         }
         return true;
+    }
+
+    protected void deleteExpiredOtps() {
+        long count = StreamSupport.stream(userOtpRepository.findAll().spliterator(), false)
+                                  .filter(otp -> !acceptOtpByDate(otp)).peek(userOtpRepository::delete).count();
+        log.info("Deleted {} expired OTPs. Remaining: {}", count, userOtpRepository.count());
     }
 
     protected User getUserByTelegramId(long telegramUserId) {
