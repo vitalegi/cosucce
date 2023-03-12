@@ -73,6 +73,9 @@ public class BoardService {
     @Autowired
     BoardInviteRepository boardInviteRepository;
 
+    @Autowired
+    BoardNotificationService boardNotificationService;
+
     @Transactional
     public Board addBoard(String name) {
         UserEntity owner = userService.getCurrentUserEntity();
@@ -132,7 +135,9 @@ public class BoardService {
         log.info("Author {} can edit board entries", author.getId());
 
         BoardEntity board = boardRepository.findById(boardId).get();
-        return doAddBoardEntry(board, boardEntry, author);
+        BoardEntry entry = doAddBoardEntry(board, boardEntry, author);
+        boardNotificationService.notifyAddBoardEntry(entry, user);
+        return entry;
     }
 
     public BoardInvite addBoardInvite(UUID boardId) {
@@ -184,6 +189,7 @@ public class BoardService {
             throw new IllegalArgumentException("entry not related to this board. Entry=" + boardEntryId + ", Board=" + boardId);
         }
         boardEntryRepository.deleteById(boardEntryId);
+        boardNotificationService.notifyDeleteBoardEntry(mapper.map(value), userService.getCurrentUserEntity());
     }
 
     public void deleteBoardInvite(UUID boardId, UUID id) {
@@ -238,8 +244,7 @@ public class BoardService {
     public List<MonthlyAnalysis> getBoardAnalysisByMonth(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
         var entries = boardEntryRepository.getAggregatedBoardEntriesByMonth(boardId);
-        return entries.stream().map(mapper::map)
-                      .collect(Collectors.toList());
+        return entries.stream().map(mapper::map).collect(Collectors.toList());
     }
 
     public List<MonthlyUserAnalysis> getBoardAnalysisByMonthUser(UUID boardId) {
@@ -335,7 +340,9 @@ public class BoardService {
         BoardEntryEntity newEntry = boardEntryRepository.save(entry);
         log.info("Updated boardEntry. board={}, ownerId={}, entryId={}", boardId, boardEntry.getOwnerId(),
                 newEntry.getId());
-        return mapper.map(newEntry);
+        BoardEntry out = mapper.map(newEntry);
+        boardNotificationService.notifyUpdateBoardEntry(out, userService.getCurrentUserEntity());
+        return out;
     }
 
     @Transactional
