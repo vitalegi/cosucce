@@ -83,8 +83,6 @@ public class UserService {
         user.setUsername(authenticationService.getName());
         userRepository.save(user);
     }
-
-    @Transactional
     public User updateTelegramUserId(long userId, long telegramUserId) {
         UserEntity user = getUserEntity(userId);
         user.setTelegramUserId(telegramUserId);

@@ -1,4 +1,4 @@
-package it.vitalegi.budget.user.service;
+package it.vitalegi.budget.resource;
 
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
@@ -7,6 +7,8 @@ import it.vitalegi.budget.metrics.Type;
 import it.vitalegi.budget.user.dto.OtpResponse;
 import it.vitalegi.budget.user.dto.User;
 import it.vitalegi.budget.user.dto.UserOtp;
+import it.vitalegi.budget.user.service.TelegramProxy;
+import it.vitalegi.budget.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,7 @@ import java.util.List;
 @Slf4j
 @Performance(Type.SERVICE)
 @Service
-public class TelegramService {
+public class TelegramClientResource {
 
     @Autowired
     TelegramProxy telegramProxy;
