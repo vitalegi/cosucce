@@ -14,6 +14,9 @@ import it.vitalegi.budget.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.budget.board.dto.analysis.UserAmount;
 import it.vitalegi.budget.it.framework.CallService;
 import it.vitalegi.budget.it.framework.MockAuth;
+import it.vitalegi.budget.spando.constant.SpandoDay;
+import it.vitalegi.budget.spando.dto.SpandoDays;
+import it.vitalegi.budget.spando.dto.SpandoEntry;
 import it.vitalegi.budget.user.constant.OtpStatus;
 import it.vitalegi.budget.user.dto.OtpResponse;
 import it.vitalegi.budget.user.dto.User;
@@ -27,6 +30,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -140,6 +144,18 @@ public class RestResources {
         return cs.jsonPayload(addBoardSplit(auth, boardId, userId, fromYear, fromMonth, toYear, toMonth, value1).andExpect(ok()), BoardSplit.class);
     }
 
+    protected ResultActions addSpandoEntry(RequestPostProcessor auth, LocalDate date, SpandoDay type) throws Exception {
+        SpandoEntry entry = new SpandoEntry();
+        entry.setDate(date);
+        entry.setType(type);
+        return mockMvc.perform(post("/spando").with(csrf()).with(auth).contentType(MediaType.APPLICATION_JSON)
+                                              .content(cs.toJson(entry))).andDo(monitor());
+    }
+
+    protected SpandoEntry addSpandoEntryOk(RequestPostProcessor auth, LocalDate date, SpandoDay type) throws Exception {
+        return cs.jsonPayload(addSpandoEntry(auth, date, type).andExpect(ok()), SpandoEntry.class);
+    }
+
     protected ResultActions addUserOtp(RequestPostProcessor auth) throws Exception {
 
         return mockMvc.perform(put("/user/otp").with(csrf()).with(auth).contentType(MediaType.APPLICATION_JSON)
@@ -197,6 +213,17 @@ public class RestResources {
 
     protected void deleteBoardSplitOk(RequestPostProcessor auth, UUID boardId, UUID splitId) throws Exception {
         deleteBoardSplit(auth, boardId, splitId).andExpect(ok());
+    }
+
+    protected ResultActions deleteSpandoEntry(RequestPostProcessor auth, LocalDate date) throws Exception {
+        String formattedDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return mockMvc.perform(delete("/spando/" + formattedDate).with(csrf()).with(auth)
+                                                                 .contentType(MediaType.APPLICATION_JSON))
+                      .andDo(monitor());
+    }
+
+    protected void deleteSpandoEntryOk(RequestPostProcessor auth, LocalDate date) throws Exception {
+        deleteSpandoEntry(auth, date).andExpect(ok());
     }
 
     protected ResultMatcher error403() {
@@ -295,6 +322,15 @@ public class RestResources {
 
     protected List<BoardGrant> getGrantsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
         return cs.jsonPayloadList(getGrants(auth, boardId).andExpect(ok()), new TypeReference<>() {
+        });
+    }
+
+    protected ResultActions getSpandos(RequestPostProcessor auth) throws Exception {
+        return mockMvc.perform(get("/spando").with(auth)).andDo(monitor());
+    }
+
+    protected List<SpandoDays> getSpandosOk(RequestPostProcessor auth) throws Exception {
+        return cs.jsonPayloadList(getSpandos(auth).andExpect(ok()), new TypeReference<>() {
         });
     }
 
