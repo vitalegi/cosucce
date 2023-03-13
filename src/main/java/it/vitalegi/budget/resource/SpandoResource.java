@@ -32,15 +32,15 @@ public class SpandoResource {
     SpandoService spandoService;
 
     @Operation(summary = "Update an entry")
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public SpandoEntry changeSpandoEntry(@RequestBody SpandoEntry entry) {
-        return spandoService.addOrUpdateSpandoEntry(entry);
+    @PostMapping(path = "/{date}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public SpandoEntry changeSpandoEntry(@PathVariable("date") String date) {
+        return spandoService.addOrUpdateSpandoEntry(parseDate(date));
     }
 
     @Operation(summary = "Delete an entry")
     @DeleteMapping(path = "/{date}")
     public void deleteSpandoEntry(@PathVariable("date") String date) {
-        spandoService.deleteSpandoEntry(LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        spandoService.deleteSpandoEntry(parseDate(date));
     }
 
     @Operation(summary = "Retrieve spando periods")
@@ -49,4 +49,7 @@ public class SpandoResource {
         return spandoService.getSpandoDays();
     }
 
+    protected LocalDate parseDate(String date){
+        return LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
 }

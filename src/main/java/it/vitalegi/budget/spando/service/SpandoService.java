@@ -36,14 +36,18 @@ public class SpandoService {
     SpandoMapper mapper;
 
     @Transactional
-    public SpandoEntry addOrUpdateSpandoEntry(SpandoEntry entry) {
+    public SpandoEntry addOrUpdateSpandoEntry(LocalDate date) {
         UserEntity owner = userService.getCurrentUserEntity();
         var entries = spandoEntryRepository.findByUserId(owner.getId());
-        var exists = entries.stream().filter(e -> e.getEntryDate().equals(entry.getDate())).findFirst().orElse(null);
-        if (exists != null) {
-            return doUpdateSpandoEntry(exists.getId(), entry, owner);
+        var exists = entries.stream().filter(e -> e.getEntryDate().equals(date)).findFirst().orElse(null);
+        if (exists == null) {
+            return doAddSpandoEntry(date, SpandoDay.SPANTO, owner);
+        }
+        if (mapper.map(exists.getType()) == SpandoDay.SPANTO) {
+            deleteSpandoEntry(date);
+            return mapper.map(exists);
         } else {
-            return doAddSpandoEntry(entry, owner);
+            return doUpdateSpandoEntry(exists.getId(), date, SpandoDay.SPANTO, owner);
         }
     }
 
@@ -70,20 +74,20 @@ public class SpandoService {
         }
     }
 
-    protected SpandoEntry doAddSpandoEntry(SpandoEntry entry, UserEntity owner) {
+    protected SpandoEntry doAddSpandoEntry(LocalDate date, SpandoDay type, UserEntity owner) {
         SpandoEntryEntity entity = new SpandoEntryEntity();
-        entity.setEntryDate(entry.getDate());
-        entity.setType(entry.getType().name());
+        entity.setEntryDate(date);
+        entity.setType(type.name());
         entity.setUser(owner);
         SpandoEntryEntity saved = spandoEntryRepository.save(entity);
         log.info("SpandoEntry created. User={}, day={}", owner.getId(), saved.getEntryDate());
         return mapper.map(entity);
     }
 
-    protected SpandoEntry doUpdateSpandoEntry(UUID id, SpandoEntry entry, UserEntity owner) {
+    protected SpandoEntry doUpdateSpandoEntry(UUID id, LocalDate date, SpandoDay type, UserEntity owner) {
         SpandoEntryEntity entity = spandoEntryRepository.findById(id).orElseThrow();
-        entity.setEntryDate(entry.getDate());
-        entity.setType(entry.getType().name());
+        entity.setEntryDate(date);
+        entity.setType(type.name());
         SpandoEntryEntity saved = spandoEntryRepository.save(entity);
         log.info("SpandoEntry updated. User={}, day={}", owner.getId(), saved.getEntryDate());
         return mapper.map(entity);

@@ -144,16 +144,15 @@ public class RestResources {
         return cs.jsonPayload(addBoardSplit(auth, boardId, userId, fromYear, fromMonth, toYear, toMonth, value1).andExpect(ok()), BoardSplit.class);
     }
 
-    protected ResultActions addSpandoEntry(RequestPostProcessor auth, LocalDate date, SpandoDay type) throws Exception {
-        SpandoEntry entry = new SpandoEntry();
-        entry.setDate(date);
-        entry.setType(type);
-        return mockMvc.perform(post("/spando").with(csrf()).with(auth).contentType(MediaType.APPLICATION_JSON)
-                                              .content(cs.toJson(entry))).andDo(monitor());
+    protected ResultActions addSpandoEntry(RequestPostProcessor auth, LocalDate date) throws Exception {
+        String formattedDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return mockMvc.perform(post("/spando/" + formattedDate).with(csrf()).with(auth)
+                                                               .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                      .andDo(monitor());
     }
 
-    protected SpandoEntry addSpandoEntryOk(RequestPostProcessor auth, LocalDate date, SpandoDay type) throws Exception {
-        return cs.jsonPayload(addSpandoEntry(auth, date, type).andExpect(ok()), SpandoEntry.class);
+    protected SpandoEntry addSpandoEntryOk(RequestPostProcessor auth, LocalDate date) throws Exception {
+        return cs.jsonPayload(addSpandoEntry(auth, date).andExpect(ok()), SpandoEntry.class);
     }
 
     protected ResultActions addUserOtp(RequestPostProcessor auth) throws Exception {

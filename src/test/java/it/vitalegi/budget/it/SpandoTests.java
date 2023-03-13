@@ -70,8 +70,8 @@ public class SpandoTests extends RestResources {
     @DisplayName("GIVEN I am a user WHEN I update spando entry THEN entry is updated")
     @Test
     public void test_addSpandoEntry_changeEntry_shouldCreate() throws Exception {
-        addSpandoEntryOk(auth1, date("2023-01-01"), SpandoDay.SPANTO);
-        addSpandoEntryOk(auth1, date("2023-01-01"), SpandoDay.NON_SPANTO);
+        addSpandoEntryOk(auth1, date("2023-01-01"));
+        addSpandoEntryOk(auth1, date("2023-01-01"));
         List<SpandoDays> entries = getSpandosOk(auth1);
         assertEquals(0, entries.size());
     }
@@ -79,8 +79,8 @@ public class SpandoTests extends RestResources {
     @DisplayName("GIVEN I am a user WHEN I add new spando entry THEN entry is created")
     @Test
     public void test_addSpandoEntry_newEntry_shouldCreate() throws Exception {
-        addSpandoEntryOk(auth1, date("2023-01-01"), SpandoDay.SPANTO);
-        addSpandoEntryOk(auth1, date("2023-01-02"), SpandoDay.SPANTO);
+        addSpandoEntryOk(auth1, date("2023-01-01"));
+        addSpandoEntryOk(auth1, date("2023-01-02"));
         List<SpandoDays> entries = getSpandosOk(auth1);
         assertEquals(1, entries.size());
         assertEquals(date("2023-01-01"), entries.get(0).getFrom());
@@ -90,8 +90,8 @@ public class SpandoTests extends RestResources {
     @DisplayName("GIVEN I am a user WHEN I delete spando entry THEN entry is deleted")
     @Test
     public void test_deleteSpandoEntry_shouldDelete() throws Exception {
-        addSpandoEntryOk(auth1, date("2023-01-01"), SpandoDay.SPANTO);
-        addSpandoEntryOk(auth1, date("2023-01-02"), SpandoDay.SPANTO);
+        addSpandoEntryOk(auth1, date("2023-01-01"));
+        addSpandoEntryOk(auth1, date("2023-01-02"));
         deleteSpandoEntryOk(auth1, date("2023-01-01"));
         List<SpandoDays> entries = getSpandosOk(auth1);
         assertEquals(1, entries.size());
