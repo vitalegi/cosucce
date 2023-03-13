@@ -123,6 +123,15 @@ const routes: RouteRecordRaw[] = [
         },
         props: true,
       },
+      {
+        name: 'SpandoEntries',
+        path: '/spando',
+        component: () => import('src/spando/pages/SpandoPage.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+        props: true,
+      },
     ],
   },
 
