@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,7 +31,8 @@ public class SpandoResource {
     SpandoService spandoService;
 
     @Operation(summary = "Update an entry")
-    @PostMapping(path = "/{date}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{date}", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+            MediaType.APPLICATION_JSON_VALUE)
     public SpandoEntry changeSpandoEntry(@PathVariable("date") String date) {
         return spandoService.addOrUpdateSpandoEntry(parseDate(date));
     }
@@ -43,13 +43,19 @@ public class SpandoResource {
         spandoService.deleteSpandoEntry(parseDate(date));
     }
 
+    @Operation(summary = "Get spando estimates")
+    @GetMapping(path = "/estimate", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<SpandoDays> getSpandoEstimates() {
+        return spandoService.getSpandoEstimates();
+    }
+
     @Operation(summary = "Retrieve spando periods")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<SpandoDays> getSpandos() {
         return spandoService.getSpandoDays();
     }
 
-    protected LocalDate parseDate(String date){
+    protected LocalDate parseDate(String date) {
         return LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 }

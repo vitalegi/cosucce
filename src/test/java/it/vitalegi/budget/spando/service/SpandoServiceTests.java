@@ -25,6 +25,13 @@ public class SpandoServiceTests {
         assertEquals(LocalDate.parse(expectedTo), actual.getTo());
     }
 
+    SpandoDays days(String from, String to) {
+        SpandoDays entry = new SpandoDays();
+        entry.setFrom(LocalDate.parse(from));
+        entry.setTo(LocalDate.parse(to));
+        return entry;
+    }
+
     SpandoEntryEntity entry(String date) {
         SpandoEntryEntity entity = new SpandoEntryEntity();
         entity.setType(SpandoDay.SPANTO.name());
@@ -37,6 +44,86 @@ public class SpandoServiceTests {
     void init() {
         spandoService = new SpandoService();
         spandoService.mapper = new SpandoMapper();
+    }
+
+    @Test
+    void test_getActivePeriod() {
+        assertEquals(1, spandoService.getActivePeriod(days("2023-01-01", "2023-01-01")));
+        assertEquals(2, spandoService.getActivePeriod(days("2023-01-01", "2023-01-02")));
+        assertEquals(3, spandoService.getActivePeriod(days("2023-01-01", "2023-01-03")));
+        assertEquals(4, spandoService.getActivePeriod(days("2023-01-01", "2023-01-04")));
+    }
+
+    @Test
+    void test_getActivePeriod_2periods() {
+        long period = spandoService.getActivePeriod(Arrays.asList(days("2023-03-01", "2023-03-02"), days("2023-03-04"
+                , "2023-03-09")));
+        assertEquals(4, period);
+    }
+
+    @Test
+    void test_getActivePeriod_3periods() {
+        long period = spandoService.getActivePeriod(Arrays.asList( //
+                days("2023-03-01", "2023-03-02"), //
+                days("2023-03-04", "2023-03-05"), //
+                days("2023-03-09", "2023-03-10") //
+        ));
+        assertEquals(2, period);
+    }
+
+    @Test
+    void test_getActivePeriod_multipleValues_shouldIgnoreOlderPeriods() {
+        long period = spandoService.getActivePeriod(Arrays.asList( //
+                days("2023-02-01", "2023-02-25"), //
+                days("2023-03-01", "2023-03-02"), //
+                days("2023-03-04", "2023-03-05"), //
+                days("2023-03-07", "2023-03-08"), //
+                days("2023-03-10", "2023-03-11"), //
+                days("2023-03-13", "2023-03-14") //
+        ));
+        assertEquals(2, period);
+    }
+
+    @Test
+    void test_getPeriod() {
+        long period = spandoService.getPeriod(days("2023-03-01", "2023-03-05"), days("2023-03-07", "2023-03-10"));
+        assertEquals(6, period);
+    }
+
+    @Test
+    void test_getPeriods_2periods() {
+        long period = spandoService.getPeriod(Arrays.asList(days("2023-03-01", "2023-03-02"), days("2023-03-04",
+                "2023-03-05")));
+        assertEquals(3, period);
+    }
+
+    @Test
+    void test_getPeriods_3periods() {
+        long period = spandoService.getPeriod(Arrays.asList(days("2023-03-01", "2023-03-02"), days("2023-03-04",
+                "2023-03-05"), days("2023-03-09", "2023-03-10")));
+        assertEquals(4, period);
+    }
+
+    @Test
+    void test_getPeriods_multipleValues_shouldIgnoreOlderPeriods() {
+        long period = spandoService.getPeriod(Arrays.asList( //
+                days("2023-02-01", "2023-02-25"), //
+                days("2023-03-01", "2023-03-02"), //
+                days("2023-03-04", "2023-03-05"), //
+                days("2023-03-07", "2023-03-08"), //
+                days("2023-03-10", "2023-03-11"), //
+                days("2023-03-13", "2023-03-14") //
+        ));
+        assertEquals(3, period);
+    }
+
+    @Test
+    void test_getPeriods_notEnoughValues() {
+        long period = spandoService.getPeriod(Collections.emptyList());
+        assertEquals(SpandoService.DEFAULT_PERIOD, period);
+
+        period = spandoService.getPeriod(Collections.singletonList(days("2023-03-01", "2023-03-02")));
+        assertEquals(SpandoService.DEFAULT_PERIOD, period);
     }
 
     @DisplayName("GIVEN 2 spando days WHEN I ask for spando days THEN I receive the correct list")

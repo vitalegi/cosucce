@@ -18,14 +18,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Performance(Type.SERVICE)
 @Log4j2
 @Service
 public class SpandoService {
+    static final int MAX_PERIODS = 5;
+    static final int DEFAULT_PERIOD = 28;
+    static final int DEFAULT_ACTIVE_PERIOD = 5;
 
     @Autowired
     SpandoEntryRepository spandoEntryRepository;
@@ -66,12 +72,42 @@ public class SpandoService {
         return groupSpandoDays(entries);
     }
 
+    public List<SpandoDays> getSpandoEstimates() {
+        long userId = userService.getCurrentUserEntity().getId();
+        List<SpandoEntryEntity> entries = spandoEntryRepository.findByUserId(userId);
+        List<SpandoDays> spandoDays = groupSpandoDays(entries);
+        if (spandoDays.isEmpty()) {
+            return Collections.emptyList();
+        }
+        long period = getPeriod(spandoDays);
+        long activePeriod = getActivePeriod(spandoDays);
+        LocalDate lastPeriodStart = spandoDays.get(spandoDays.size() - 1).getFrom();
+        return createEstimate(period, activePeriod, lastPeriodStart);
+    }
+
     protected void checkPermission(SpandoEntryEntity entry) {
         long ownerId = entry.getUser().getId();
         long userId = userService.getCurrentUserEntity().getId();
         if (ownerId != userId) {
             throw new PermissionException("spando", entry.getId().toString(), "EDIT");
         }
+    }
+
+    protected List<SpandoDays> createEstimate(long period, long activePeriod, LocalDate lastKnownPeriodStart) {
+        List<SpandoDays> estimates = new ArrayList<>();
+        LocalDate periodStart = lastKnownPeriodStart;
+        for (int i = 0; i < 12 * 5; i++) {
+            periodStart = periodStart.plusDays(period);
+            SpandoDays days = new SpandoDays();
+            days.setFrom(periodStart);
+            days.setTo(periodStart.plusDays(activePeriod));
+            estimates.add(days);
+        }
+        return estimates;
+    }
+
+    protected long days(LocalDate from, LocalDate to) {
+        return DAYS.between(from, to);
     }
 
     protected SpandoEntry doAddSpandoEntry(LocalDate date, SpandoDay type, UserEntity owner) {
@@ -91,6 +127,44 @@ public class SpandoService {
         SpandoEntryEntity saved = spandoEntryRepository.save(entity);
         log.info("SpandoEntry updated. User={}, day={}", owner.getId(), saved.getEntryDate());
         return mapper.map(entity);
+    }
+
+    protected long getActivePeriod(SpandoDays spando1) {
+        return days(spando1.getFrom(), spando1.getTo()) + 1;
+    }
+
+    protected long getActivePeriod(List<SpandoDays> spandoDays) {
+        if (spandoDays.size() <= 1) {
+            return DEFAULT_ACTIVE_PERIOD;
+        }
+        if (spandoDays.size() > MAX_PERIODS) {
+            spandoDays = spandoDays.subList(spandoDays.size() - MAX_PERIODS, spandoDays.size());
+        }
+        long period = 0;
+        for (int i = 0; i < spandoDays.size(); i++) {
+            period += getActivePeriod(spandoDays.get(i));
+        }
+        return period / spandoDays.size();
+    }
+
+    protected long getPeriod(SpandoDays spando1, SpandoDays spando2) {
+        LocalDate start = spando1.getFrom();
+        LocalDate end = spando2.getFrom();
+        return days(start, end);
+    }
+
+    protected long getPeriod(List<SpandoDays> spandoDays) {
+        if (spandoDays.size() <= 1) {
+            return DEFAULT_PERIOD;
+        }
+        if (spandoDays.size() > MAX_PERIODS) {
+            spandoDays = spandoDays.subList(spandoDays.size() - MAX_PERIODS, spandoDays.size());
+        }
+        long period = 0;
+        for (int i = 1; i < spandoDays.size(); i++) {
+            period += getPeriod(spandoDays.get(i - 1), spandoDays.get(i));
+        }
+        return period / (spandoDays.size() - 1);
     }
 
     protected List<SpandoDays> groupSpandoDays(List<SpandoEntryEntity> entries) {
