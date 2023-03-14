@@ -6,15 +6,10 @@
         mask="YYYY-MM-DD"
         v-model="spandos"
         @update:model-value="update"
-        :events="estimates"
+        :events="estimateEvents"
         event-color="red"
+        :first-day-of-week="1"
       />
-      <div class="col-12">
-        {{ spandos }}
-      </div>
-      <div class="col-12">
-        {{ estimates }}
-      </div>
     </div>
   </q-page>
 </template>
@@ -25,13 +20,36 @@ import spandoService from 'src/integrations/SpandoService';
 import SpandoDays from 'src/spando/models/SpandoDays';
 
 const spandos = ref(new Array<{ from: string; to: string } | string>());
-const estimates = ref(new Array<{ from: string; to: string } | string>());
+const estimates = ref(new Array<SpandoDays>());
+
+const estimateEvents = (date: string): boolean => {
+  const split = date.split('/');
+  const formatted = formatDate({
+    year: parseInt(split[0], 10),
+    month: parseInt(split[1], 10),
+    day: parseInt(split[2], 10),
+  });
+  const matching = estimates.value
+    .filter((e) => e.from.localeCompare(formatted) <= 0)
+    .filter((e) => e.to.localeCompare(formatted) >= 0);
+
+  if (estimates.value.length > 0) {
+    console.log(
+      date,
+      formatted,
+      matching.length,
+      estimates.value[0],
+      estimates.value[0].from.localeCompare(formatted)
+    );
+  }
+  return matching.length > 0;
+};
 
 const loadData = async (): Promise<void> => {
   const entries = await spandoService.getSpandos();
   const estimatedEntries = await spandoService.getEstimates();
   spandos.value = entries.map((e) => e.getCalendarEntry());
-  estimates.value = estimatedEntries.map((e) => e.getCalendarEntry());
+  estimates.value = estimatedEntries;
 };
 
 loadData();
@@ -44,7 +62,11 @@ type Details = {
   to?: { year: number; month: number; day: number };
 };
 
-const formatDate = (details: Details): string => {
+const formatDate = (details: {
+  year: number;
+  month: number;
+  day: number;
+}): string => {
   const mm = (details.month < 10 ? '0' : '') + details.month;
   const dd = (details.day < 10 ? '0' : '') + details.day;
   return `${details.year}-${mm}-${dd}`;

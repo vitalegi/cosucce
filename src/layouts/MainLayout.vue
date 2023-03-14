@@ -25,6 +25,11 @@
             <q-item-label> Il tuo profilo </q-item-label>
           </q-item-section>
         </q-item>
+        <q-item clickable tag="router-link" to="/spando">
+          <q-item-section>
+            <q-item-label> Spando </q-item-label>
+          </q-item-section>
+        </q-item>
         <q-item-label header tag="router-link" to="/">
           Le tue board
         </q-item-label>

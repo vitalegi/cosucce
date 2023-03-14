@@ -14,7 +14,7 @@
                 transition-show="scale"
                 transition-hide="scale"
               >
-                <q-date v-model="date">
+                <q-date v-model="date" :first-day-of-week="1">
                   <div class="row items-center justify-end">
                     <q-btn v-close-popup label="Close" color="primary" flat />
                   </div>
