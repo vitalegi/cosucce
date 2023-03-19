@@ -33,15 +33,6 @@ const estimateEvents = (date: string): boolean => {
     .filter((e) => e.from.localeCompare(formatted) <= 0)
     .filter((e) => e.to.localeCompare(formatted) >= 0);
 
-  if (estimates.value.length > 0) {
-    console.log(
-      date,
-      formatted,
-      matching.length,
-      estimates.value[0],
-      estimates.value[0].from.localeCompare(formatted)
-    );
-  }
   return matching.length > 0;
 };
 

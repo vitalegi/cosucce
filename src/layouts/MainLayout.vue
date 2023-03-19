@@ -12,7 +12,7 @@
         />
 
         <q-toolbar-title class="title">
-          <router-link to="/">Budget</router-link>
+          <router-link to="/">Cosucce</router-link>
         </q-toolbar-title>
         <q-btn round flat icon="logout" @click="logout()" />
       </q-toolbar>
@@ -30,7 +30,7 @@
             <q-item-label> Spando </q-item-label>
           </q-item-section>
         </q-item>
-        <q-item-label header tag="router-link" to="/">
+        <q-item-label header tag="router-link" to="/boards">
           Le tue board
         </q-item-label>
 

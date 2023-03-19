@@ -7,8 +7,8 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         name: 'Home',
-        path: '/tmp',
-        component: () => import('pages/IndexPage.vue'),
+        path: '/',
+        component: () => import('pages/HomePage.vue'),
         meta: {
           requiresAuth: true,
         },
@@ -47,10 +47,11 @@ const routes: RouteRecordRaw[] = [
       },
       {
         name: 'Boards',
-        path: '/',
+        path: '/boards',
         component: () => import('src/budget/pages/BoardsPage.vue'),
         meta: {
           requiresAuth: true,
+          breadcrumb: 'BOARDS',
         },
       },
       {
@@ -129,6 +130,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('src/spando/pages/SpandoPage.vue'),
         meta: {
           requiresAuth: true,
+          breadcrumb: 'SPANDO',
         },
         props: true,
       },

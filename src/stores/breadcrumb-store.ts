@@ -22,6 +22,10 @@ export class Breadcrumb {
 
 const home = (): Breadcrumb => new Breadcrumb('Home', '', '/');
 
+const boards = (): Breadcrumb => new Breadcrumb('Boards', '', '/boards');
+
+const spando = (): Breadcrumb => new Breadcrumb('Spando', '', '/spando');
+
 const getBoardId = (route: RouteLocationNormalized): string => {
   if (typeof route.params.boardId === 'string') {
     return route.params.boardId;
@@ -42,18 +46,22 @@ export const getBreadcrumbs = (
     return [home()];
   }
   const type = route.meta.breadcrumb;
+  if (type === 'BOARDS') {
+    return [home(), boards()];
+  }
   if (type === 'BOARD') {
-    return [home(), board(route)];
+    return [home(), boards(), board(route)];
   }
   if (type === 'BOARD_JOIN') {
-    return [home(), new Breadcrumb('Join', '', '/board/join')];
+    return [home(), boards(), new Breadcrumb('Join', '', '/board/join')];
   }
   if (type === 'BOARD_SETTINGS') {
-    return [home(), board(route), boardSettings(route)];
+    return [home(), boards(), board(route), boardSettings(route)];
   }
   if (type === 'BOARD_ENTRY_ADD') {
     return [
       home(),
+      boards(),
       board(route),
       new Breadcrumb('Nuova spesa', '', `/board/${getBoardId(route)}/add`),
     ];
@@ -61,6 +69,7 @@ export const getBreadcrumbs = (
   if (type === 'BOARD_ENTRY_EDIT') {
     return [
       home(),
+      boards(),
       board(route),
       new Breadcrumb('Modifica spesa', '', `/board/${getBoardId(route)}/edit`),
     ];
@@ -68,6 +77,7 @@ export const getBreadcrumbs = (
   if (type === 'BOARD_SPLIT_ADD') {
     return [
       home(),
+      boards(),
       board(route),
       boardSettings(route),
       new Breadcrumb(
@@ -80,6 +90,7 @@ export const getBreadcrumbs = (
   if (type === 'BOARD_SPLIT_EDIT') {
     return [
       home(),
+      boards(),
       board(route),
       boardSettings(route),
       new Breadcrumb(
@@ -88,6 +99,9 @@ export const getBreadcrumbs = (
         `/board/${getBoardId(route)}/settings/split/edit`
       ),
     ];
+  }
+  if (type === 'SPANDO') {
+    return [home(), spando()];
   }
   return [home()];
 };
