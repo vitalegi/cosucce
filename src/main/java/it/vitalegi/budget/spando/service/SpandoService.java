@@ -100,7 +100,7 @@ public class SpandoService {
             periodStart = periodStart.plusDays(period);
             SpandoDays days = new SpandoDays();
             days.setFrom(periodStart);
-            days.setTo(periodStart.plusDays(activePeriod));
+            days.setTo(periodStart.plusDays(activePeriod - 1));
             estimates.add(days);
         }
         return estimates;
