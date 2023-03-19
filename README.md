@@ -130,7 +130,7 @@ flyctl deploy --image vitalegi/cosucce-be:0.3
 ### Complete deploy script
 
 ```
-$VERSION='0.17'
+$VERSION='0.18'
 $env:M2_HOME = 'C:\a\software\apache-maven-3.8.7-java11'
 $env:JAVA_HOME = 'C:\Program Files\Java\jdk-11.0.16.1'
 $env:PATH = $env:M2_HOME + '\bin;' + $env:JAVA_HOME + '\bin;' + $env:PATH
@@ -139,11 +139,10 @@ mvn versions:set "-DgenerateBackupPoms=false" "-DnewVersion=${VERSION}"
 ./mvnw clean package
 docker build -t vitalegi/cosucce-be:${VERSION} .
 docker push vitalegi/cosucce-be:${VERSION}
-flyctl deploy --image vitalegi/cosucce-be:${VERSION}
-
 git add pom.xml
 git add README.md
 git commit -m "release v${VERSION}"
+flyctl deploy --image vitalegi/cosucce-be:${VERSION}
 ```
 
 ### Autoscaling
