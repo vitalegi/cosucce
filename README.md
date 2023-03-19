@@ -1,6 +1,4 @@
-# Budget (budget-fe2)
-
-Budget project
+# Cosucce FE
 
 ## Install the dependencies
 

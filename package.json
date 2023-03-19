@@ -1,8 +1,8 @@
 {
-  "name": "budget-fe2",
+  "name": "cosucce-fe",
   "version": "0.0.1",
-  "description": "Budget project",
-  "productName": "Budget",
+  "description": "Cosucce project",
+  "productName": "Cosucce",
   "author": "Giorgio Vitale <giorgio.vitale.90@gmail.com>",
   "private": true,
   "scripts": {
