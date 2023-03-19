@@ -9,6 +9,7 @@ import it.vitalegi.cosucce.user.dto.UserOtp;
 import it.vitalegi.cosucce.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,14 @@ public class UserResource {
     @PutMapping(path = "/otp", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public UserOtp addOtp() {
         return userService.addOtp();
+    }
+
+    @Operation(summary = "Deletes connection to Telegram")
+    @DeleteMapping(path = "/telegram", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    public void deleteTelegramConnection() {
+        User user = userService.getCurrentUser();
+        userService.updateTelegramUserId(user.getId(), null);
     }
 
     @Operation(summary = "Retrieve user data")

@@ -87,7 +87,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public User updateTelegramUserId(long userId, long telegramUserId) {
+    public User updateTelegramUserId(long userId, Long telegramUserId) {
         UserEntity user = getUserEntity(userId);
         user.setTelegramUserId(telegramUserId);
         user = userRepository.save(user);
