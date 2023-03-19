@@ -1,11 +1,13 @@
 <template>
   <div class="col-12">
     <div class="q-pa-xs col-12 row">
-      <div class="text-h2 section">Notifiche Telegram</div>
+      <div class="text-h2 section">Collega Telegram</div>
       <div class="col-12" v-if="isConnected">
         L'account risulta già connesso a Telegram.
+        <u><a class="cursor-pointer" @click="removeTelegram">Clicca qui</a></u>
+        per interrompere la connessione.
       </div>
-      <div class="col-12">
+      <div class="col-12" v-if="isNotConnected">
         Collega il profilo a Telegram per essere notificato in tempo reale:
         <ol>
           <li>Copia il codice d'accesso (OTP)</li>
@@ -20,7 +22,7 @@
         </ol>
       </div>
     </div>
-    <div class="col-12 q-gutter-y-md column">
+    <div class="col-12 q-gutter-y-md column" v-if="isNotConnected">
       <q-input outlined v-model="otp" readonly filled label="OTP">
         <template v-slot:prepend>
           <q-icon
@@ -72,6 +74,14 @@ const copyToClipboard = async (text: string): Promise<void> => {
     done.value = false;
   }, 1300);
 };
+
+const removeTelegram = async (): Promise<void> => {
+  await userService.removeTelegram();
+};
+
+const isNotConnected = computed(() =>
+  ObjectUtil.isNullOrUndefined(props.user?.telegramUserId)
+);
 
 const isConnected = computed(() =>
   ObjectUtil.isNotNullOrUndefined(props.user?.telegramUserId)

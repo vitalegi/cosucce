@@ -15,6 +15,9 @@ export class UserService {
     const out = await api.put('/user/otp', null, {});
     return UserOtp.fromJson(out);
   };
+  removeTelegram = async (): Promise<void> => {
+    await api.delete('/user/telegram', null, {});
+  };
 }
 
 export default new UserService();
