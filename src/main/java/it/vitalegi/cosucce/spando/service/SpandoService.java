@@ -11,6 +11,7 @@ import it.vitalegi.cosucce.spando.mapper.SpandoMapper;
 import it.vitalegi.cosucce.spando.repository.SpandoEntryRepository;
 import it.vitalegi.cosucce.user.entity.UserEntity;
 import it.vitalegi.cosucce.user.service.UserService;
+import it.vitalegi.cosucce.util.DateUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,12 @@ public class SpandoService {
         var entries = spandoEntryRepository.findByUserId(owner.getId());
         var exists = entries.stream().filter(e -> e.getEntryDate().equals(date)).findFirst().orElse(null);
         if (exists == null) {
-            return doAddSpandoEntry(date, SpandoDay.SPANTO, owner);
+            var newPeriod = isNewPeriod(date);
+            var newEntry = doAddSpandoEntry(date, SpandoDay.SPANTO, owner);
+            if (newPeriod) {
+                initializeNewPeriod(date, owner);
+            }
+            return newEntry;
         }
         if (mapper.map(exists.getType()) == SpandoDay.SPANTO) {
             deleteSpandoEntry(date);
@@ -176,6 +182,18 @@ public class SpandoService {
                .forEach(entry -> merge(spandoDays, entry.getDate()));
 
         return spandoDays;
+    }
+
+    protected void initializeNewPeriod(LocalDate startDate, UserEntity owner) {
+        for (int i = 1; i <= 4; i++) {
+            doAddSpandoEntry(startDate.plusDays(i), SpandoDay.SPANTO, owner);
+        }
+    }
+
+    protected boolean isNewPeriod(LocalDate date) {
+        long userId = userService.getCurrentUserEntity().getId();
+        List<SpandoEntryEntity> entries = spandoEntryRepository.findByUserId(userId);
+        return entries.stream().noneMatch(e -> DateUtil.daysBetween(e.getEntryDate(), date) < 5);
     }
 
     protected void merge(List<SpandoDays> spandoDays, LocalDate nextDate) {

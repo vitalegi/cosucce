@@ -72,7 +72,9 @@ public class SpandoTests extends RestResources {
         addSpandoEntryOk(auth1, date("2023-01-01"));
         addSpandoEntryOk(auth1, date("2023-01-01"));
         List<SpandoDays> entries = getSpandosOk(auth1);
-        assertEquals(0, entries.size());
+        assertEquals(1, entries.size());
+        assertEquals(date("2023-01-02"), entries.get(0).getFrom());
+        assertEquals(date("2023-01-05"), entries.get(0).getTo());
     }
 
     @DisplayName("GIVEN I am a user WHEN I add new spando entry THEN entry is created")
@@ -81,21 +83,23 @@ public class SpandoTests extends RestResources {
         addSpandoEntryOk(auth1, date("2023-01-01"));
         addSpandoEntryOk(auth1, date("2023-01-02"));
         List<SpandoDays> entries = getSpandosOk(auth1);
-        assertEquals(1, entries.size());
+        assertEquals(2, entries.size());
         assertEquals(date("2023-01-01"), entries.get(0).getFrom());
-        assertEquals(date("2023-01-02"), entries.get(0).getTo());
+        assertEquals(date("2023-01-01"), entries.get(0).getTo());
+
+        assertEquals(date("2023-01-03"), entries.get(1).getFrom());
+        assertEquals(date("2023-01-05"), entries.get(1).getTo());
     }
 
     @DisplayName("GIVEN I am a user WHEN I delete spando entry THEN entry is deleted")
     @Test
     public void test_deleteSpandoEntry_shouldDelete() throws Exception {
         addSpandoEntryOk(auth1, date("2023-01-01"));
-        addSpandoEntryOk(auth1, date("2023-01-02"));
         deleteSpandoEntryOk(auth1, date("2023-01-01"));
         List<SpandoDays> entries = getSpandosOk(auth1);
         assertEquals(1, entries.size());
         assertEquals(date("2023-01-02"), entries.get(0).getFrom());
-        assertEquals(date("2023-01-02"), entries.get(0).getTo());
+        assertEquals(date("2023-01-05"), entries.get(0).getTo());
     }
 
     protected LocalDate date(String date) {
