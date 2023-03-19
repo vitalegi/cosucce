@@ -20,12 +20,12 @@ mvn clean package
 ## Run
 
 ```bash
-$env:DATASOURCE_URL = 'jdbc:postgresql://localhost:5432/budget'
+$env:DATASOURCE_URL = 'jdbc:postgresql://localhost:5432/cosucce'
 $env:DATASOURCE_USERNAME = 'postgres'
 $env:DATASOURCE_PASSWORD = 'postgres'
 $env:CORS_ALLOWED_ORIGINS = 'http://localhost:9000'
 $env:TELEGRAM_TOKEN = 'token'
-java -jar "-Dspring.profiles.active=prod" ./target/budget-0.0.1-SNAPSHOT.jar
+java -jar "-Dspring.profiles.active=prod" ./target/cosucce-0.0.1-SNAPSHOT.jar
 
 ./mvnw spring-boot:run
 ```
@@ -91,7 +91,7 @@ If you deploy it on <https://fly.io>, the command line tool:
 
 ```
 # creates the fly app + db
-flyctl launch --image vitalegi/budget-be:0.1
+flyctl launch --image vitalegi/cosucce-be:0.1
 
 # replace placeholders with proper values generated at the previous step
 flyctl secrets set "DATASOURCE_URL=jdbc:postgresql://insert-here-database-address.internal:5432/database-name"
@@ -112,19 +112,19 @@ $env:PATH = $env:M2_HOME + '\bin;' + $env:JAVA_HOME + '\bin;' + $env:PATH
 ./mvnw clean package
 
 # build image
-docker build -t vitalegi/budget-be:0.3 .
+docker build -t vitalegi/cosucce-be:0.3 .
 ```
 
 ### Publish image
 
 ```
-docker push vitalegi/budget-be:0.3
+docker push vitalegi/cosucce-be:0.3
 ```
 
 ### Install image
 
 ```
-flyctl deploy --image vitalegi/budget-be:0.3
+flyctl deploy --image vitalegi/cosucce-be:0.3
 ```
 
 ### Complete deploy script
@@ -137,9 +137,9 @@ $env:PATH = $env:M2_HOME + '\bin;' + $env:JAVA_HOME + '\bin;' + $env:PATH
 
 mvn versions:set "-DgenerateBackupPoms=false" "-DnewVersion=${VERSION}"
 ./mvnw clean package
-docker build -t vitalegi/budget-be:${VERSION} .
-docker push vitalegi/budget-be:${VERSION}
-flyctl deploy --image vitalegi/budget-be:${VERSION}
+docker build -t vitalegi/cosucce-be:${VERSION} .
+docker push vitalegi/cosucce-be:${VERSION}
+flyctl deploy --image vitalegi/cosucce-be:${VERSION}
 ```
 
 ### Autoscaling
