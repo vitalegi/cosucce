@@ -34,15 +34,13 @@ public class ResponseExceptionHandler {
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<ErrorResponse> handle(Throwable e) {
         log(e);
-        return new ResponseEntity<>(new ErrorResponse(e.getClass()
-                                                       .getName(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new ErrorResponse(e.getClass().getName()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(PermissionException.class)
     public ResponseEntity<ErrorResponse> handle(PermissionException e) {
         log(e);
-        return new ResponseEntity<>(new ErrorResponse(e.getClass()
-                                                       .getName(), e.getMessage()), HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(new ErrorResponse(e.getClass().getName()), HttpStatus.FORBIDDEN);
     }
 
     protected void log(Throwable e) {
@@ -55,10 +53,8 @@ public class ResponseExceptionHandler {
             lineSeparator = "\n";
         }
 
-        String error = Stream.of(sw.toString()
-                                   .split("\n"))
-                             .filter(s -> !skipClasses.stream()
-                                                      .anyMatch(skip -> s.contains(skip)))
+        String error = Stream.of(sw.toString().split("\n"))
+                             .filter(s -> !skipClasses.stream().anyMatch(skip -> s.contains(skip)))
                              .collect(Collectors.joining(lineSeparator));
         log.error(error);
     }
