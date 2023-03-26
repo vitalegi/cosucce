@@ -1,8 +1,8 @@
 package it.vitalegi.cosucce.user.service;
 
-import it.vitalegi.cosucce.auth.AuthenticationService;
-import it.vitalegi.cosucce.metrics.Performance;
-import it.vitalegi.cosucce.metrics.Type;
+import it.vitalegi.auth.AuthenticationService;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.user.constant.OtpStatus;
 import it.vitalegi.cosucce.user.dto.OtpResponse;
 import it.vitalegi.cosucce.user.dto.User;

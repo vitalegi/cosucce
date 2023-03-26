@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.util;
+package it.vitalegi.util;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;

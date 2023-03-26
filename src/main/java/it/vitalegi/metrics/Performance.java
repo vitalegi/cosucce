@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.metrics;
+package it.vitalegi.metrics;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

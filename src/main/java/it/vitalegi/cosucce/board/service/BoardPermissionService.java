@@ -1,14 +1,13 @@
 package it.vitalegi.cosucce.board.service;
 
-import it.vitalegi.cosucce.auth.BoardGrant;
 import it.vitalegi.cosucce.board.constant.BoardUserRole;
 import it.vitalegi.cosucce.board.entity.BoardEntity;
 import it.vitalegi.cosucce.board.entity.BoardUserEntity;
 import it.vitalegi.cosucce.board.repository.BoardRepository;
 import it.vitalegi.cosucce.board.repository.BoardUserRepository;
-import it.vitalegi.cosucce.exception.PermissionException;
-import it.vitalegi.cosucce.metrics.Performance;
-import it.vitalegi.cosucce.metrics.Type;
+import it.vitalegi.exception.PermissionException;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.user.entity.UserEntity;
 import it.vitalegi.cosucce.user.service.UserService;
 import lombok.extern.log4j.Log4j2;
@@ -23,13 +22,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_DELETE;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_EDIT;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_ENTRY_EDIT;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_ENTRY_IMPORT;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_MANAGE_MEMBER;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_USER_ROLE_EDIT;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_VIEW;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_DELETE;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_EDIT;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_ENTRY_IMPORT;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_MANAGE_MEMBER;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_USER_ROLE_EDIT;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_VIEW;
 import static it.vitalegi.cosucce.board.constant.BoardUserRole.MEMBER;
 import static it.vitalegi.cosucce.board.constant.BoardUserRole.OWNER;
 
@@ -38,7 +37,7 @@ import static it.vitalegi.cosucce.board.constant.BoardUserRole.OWNER;
 @Service
 public class BoardPermissionService {
 
-    protected static final Map<BoardUserRole, List<BoardGrant>> RBAC;
+    protected static final Map<BoardUserRole, List<BoardUserRole.BoardGrant>> RBAC;
 
     static {
         RBAC = new HashMap<>();
@@ -55,24 +54,24 @@ public class BoardPermissionService {
     BoardUserRepository boardUserRepository;
 
 
-    public void checkGrant(UUID boardId, BoardGrant grant) {
+    public void checkGrant(UUID boardId, BoardUserRole.BoardGrant grant) {
         if (!hasGrant(userService.getCurrentUser().getId(), boardId, grant)) {
             throw new PermissionException("board", boardId.toString(), grant.name());
         }
     }
 
-    public void checkGrant(UserEntity user, UUID boardId, BoardGrant grant) {
+    public void checkGrant(UserEntity user, UUID boardId, BoardUserRole.BoardGrant grant) {
         if (!hasGrant(user.getId(), boardId, grant)) {
             throw new PermissionException("board", boardId.toString(), grant.name());
         }
     }
 
-    public List<BoardGrant> getGrants(UUID boardId) {
+    public List<BoardUserRole.BoardGrant> getGrants(UUID boardId) {
         long userId = userService.getCurrentUser().getId();
         return getGrants(userId, boardId);
     }
 
-    public List<BoardGrant> getGrants(long userId, UUID boardId) {
+    public List<BoardUserRole.BoardGrant> getGrants(long userId, UUID boardId) {
         BoardUserEntity role = boardUserRepository.findUserBoard(boardId, userId);
         if (role != null) {
             BoardUserRole userRole = BoardUserRole.valueOf(role.getRole());
@@ -81,7 +80,7 @@ public class BoardPermissionService {
         return Collections.emptyList();
     }
 
-    protected boolean hasGrant(long userId, UUID boardId, BoardGrant grant) {
+    protected boolean hasGrant(long userId, UUID boardId, BoardUserRole.BoardGrant grant) {
         Optional<BoardEntity> board = boardRepository.findById(boardId);
         if (board.isEmpty()) {
             return false;

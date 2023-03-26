@@ -5,7 +5,7 @@ import it.vitalegi.cosucce.user.dto.User;
 import it.vitalegi.cosucce.user.dto.UserOtp;
 import it.vitalegi.cosucce.user.entity.UserEntity;
 import it.vitalegi.cosucce.user.entity.UserOtpEntity;
-import it.vitalegi.cosucce.util.ObjectUtil;
+import it.vitalegi.util.ObjectUtil;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,7 +1,7 @@
-package it.vitalegi.cosucce.exception.handler;
+package it.vitalegi.exception.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.vitalegi.cosucce.exception.PermissionException;
+import it.vitalegi.exception.PermissionException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

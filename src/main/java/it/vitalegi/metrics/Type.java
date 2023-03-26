@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.metrics;
+package it.vitalegi.metrics;
 
 public enum Type {
     ENDPOINT,

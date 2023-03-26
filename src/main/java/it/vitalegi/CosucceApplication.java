@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce;
+package it.vitalegi;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

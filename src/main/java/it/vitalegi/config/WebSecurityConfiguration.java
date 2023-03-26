@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.config;
+package it.vitalegi.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;

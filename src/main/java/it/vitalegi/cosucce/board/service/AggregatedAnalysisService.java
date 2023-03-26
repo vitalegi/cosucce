@@ -4,8 +4,8 @@ import it.vitalegi.cosucce.board.dto.BoardSplit;
 import it.vitalegi.cosucce.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.cosucce.board.dto.analysis.UserAmount;
 import it.vitalegi.cosucce.board.entity.BoardEntryGroupByMonthUserCategory;
-import it.vitalegi.cosucce.metrics.Performance;
-import it.vitalegi.cosucce.metrics.Type;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 

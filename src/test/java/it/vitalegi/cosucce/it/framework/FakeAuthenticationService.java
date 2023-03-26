@@ -1,6 +1,6 @@
 package it.vitalegi.cosucce.it.framework;
 
-import it.vitalegi.cosucce.auth.AuthenticationService;
+import it.vitalegi.auth.AuthenticationService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.Authentication;

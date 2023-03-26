@@ -1,7 +1,7 @@
 package it.vitalegi.cosucce.resource;
 
 import io.swagger.v3.oas.annotations.Operation;
-import it.vitalegi.cosucce.auth.BoardGrant;
+import it.vitalegi.cosucce.board.constant.BoardUserRole;
 import it.vitalegi.cosucce.board.dto.AddBoard;
 import it.vitalegi.cosucce.board.dto.AddBoardEntries;
 import it.vitalegi.cosucce.board.dto.Board;
@@ -13,8 +13,8 @@ import it.vitalegi.cosucce.board.dto.analysis.MonthlyAnalysis;
 import it.vitalegi.cosucce.board.dto.analysis.MonthlyUserAnalysis;
 import it.vitalegi.cosucce.board.service.BoardPermissionService;
 import it.vitalegi.cosucce.board.service.BoardService;
-import it.vitalegi.cosucce.metrics.Performance;
-import it.vitalegi.cosucce.metrics.Type;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -155,7 +155,7 @@ public class BoardResource {
 
     @Operation(summary = "Get permissions of the current user")
     @GetMapping(path = "/{boardId}/grants", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<BoardGrant> getGrants(@PathVariable("boardId") UUID boardId) {
+    public List<BoardUserRole.BoardGrant> getGrants(@PathVariable("boardId") UUID boardId) {
         return boardPermissionService.getGrants(boardId);
     }
 

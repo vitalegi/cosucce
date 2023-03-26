@@ -14,7 +14,7 @@ import it.vitalegi.cosucce.board.entity.BoardInviteEntity;
 import it.vitalegi.cosucce.board.entity.BoardSplitEntity;
 import it.vitalegi.cosucce.board.entity.BoardUserEntity;
 import it.vitalegi.cosucce.user.mapper.UserMapper;
-import it.vitalegi.cosucce.util.ObjectUtil;
+import it.vitalegi.util.ObjectUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

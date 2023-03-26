@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce;
+package it.vitalegi;
 
 import it.vitalegi.cosucce.it.TelegramProxyMock;
 import it.vitalegi.cosucce.user.service.TelegramProxy;

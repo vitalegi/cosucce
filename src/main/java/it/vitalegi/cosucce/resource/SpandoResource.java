@@ -1,8 +1,8 @@
 package it.vitalegi.cosucce.resource;
 
 import io.swagger.v3.oas.annotations.Operation;
-import it.vitalegi.cosucce.metrics.Performance;
-import it.vitalegi.cosucce.metrics.Type;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.spando.dto.SpandoDays;
 import it.vitalegi.cosucce.spando.dto.SpandoEntry;
 import it.vitalegi.cosucce.spando.service.SpandoService;

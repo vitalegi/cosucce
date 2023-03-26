@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.exception;
+package it.vitalegi.exception;
 
 import lombok.Data;
 

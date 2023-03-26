@@ -1,8 +1,8 @@
 package it.vitalegi.cosucce.spando.service;
 
-import it.vitalegi.cosucce.exception.PermissionException;
-import it.vitalegi.cosucce.metrics.Performance;
-import it.vitalegi.cosucce.metrics.Type;
+import it.vitalegi.exception.PermissionException;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.spando.constant.SpandoDay;
 import it.vitalegi.cosucce.spando.dto.SpandoDays;
 import it.vitalegi.cosucce.spando.dto.SpandoEntry;
@@ -11,7 +11,7 @@ import it.vitalegi.cosucce.spando.mapper.SpandoMapper;
 import it.vitalegi.cosucce.spando.repository.SpandoEntryRepository;
 import it.vitalegi.cosucce.user.entity.UserEntity;
 import it.vitalegi.cosucce.user.service.UserService;
-import it.vitalegi.cosucce.util.DateUtil;
+import it.vitalegi.util.DateUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

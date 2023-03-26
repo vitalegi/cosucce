@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.config;
+package it.vitalegi.config;
 
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
@@ -6,7 +6,7 @@ import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
-import it.vitalegi.cosucce.exception.handler.ErrorResponse;
+import it.vitalegi.exception.handler.ErrorResponse;
 import lombok.extern.log4j.Log4j2;
 import org.springdoc.core.customizers.OpenApiCustomiser;
 import org.springframework.context.annotation.Bean;

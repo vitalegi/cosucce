@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce;
+package it.vitalegi;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package it.vitalegi.cosucce.board.service;
 
-import it.vitalegi.cosucce.auth.BoardGrant;
+import it.vitalegi.cosucce.board.constant.BoardUserRole;
 import it.vitalegi.cosucce.board.entity.BoardEntity;
 import it.vitalegi.cosucce.board.entity.BoardUserEntity;
 import it.vitalegi.cosucce.board.repository.BoardRepository;
@@ -57,10 +57,10 @@ public class BoardPermissionServiceTests {
         BoardUserEntity boardUserEntity = new BoardUserEntity();
         boardUserEntity.setRole(MEMBER.name());
         when(boardUserRepository.findUserBoard(boardId, 0)).thenReturn(boardUserEntity);
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_VIEW));
-        assertFalse(service.hasGrant(0, boardId, BoardGrant.BOARD_EDIT));
-        assertFalse(service.hasGrant(0, boardId, BoardGrant.BOARD_USER_ROLE_EDIT));
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_ENTRY_EDIT));
+        assertTrue(service.hasGrant(0, boardId, BoardUserRole.BoardGrant.BOARD_VIEW));
+        assertFalse(service.hasGrant(0, boardId, BoardUserRole.BoardGrant.BOARD_EDIT));
+        assertFalse(service.hasGrant(0, boardId, BoardUserRole.BoardGrant.BOARD_USER_ROLE_EDIT));
+        assertTrue(service.hasGrant(0, boardId, BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT));
     }
 
     @DisplayName("hasGrants should have always permissions if OWNER")
@@ -71,9 +71,9 @@ public class BoardPermissionServiceTests {
         BoardUserEntity boardUserEntity = new BoardUserEntity();
         boardUserEntity.setRole(OWNER.name());
         when(boardUserRepository.findUserBoard(boardId, 0)).thenReturn(boardUserEntity);
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_VIEW));
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_EDIT));
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_USER_ROLE_EDIT));
-        assertTrue(service.hasGrant(0, boardId, BoardGrant.BOARD_ENTRY_EDIT));
+        assertTrue(service.hasGrant(0, boardId, BoardUserRole.BoardGrant.BOARD_VIEW));
+        assertTrue(service.hasGrant(0, boardId, BoardUserRole.BoardGrant.BOARD_EDIT));
+        assertTrue(service.hasGrant(0, boardId, BoardUserRole.BoardGrant.BOARD_USER_ROLE_EDIT));
+        assertTrue(service.hasGrant(0, boardId, BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT));
     }
 }

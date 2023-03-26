@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.exception.handler;
+package it.vitalegi.exception.handler;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

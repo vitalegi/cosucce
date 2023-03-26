@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.util;
+package it.vitalegi.util;
 
 import org.springframework.beans.BeanUtils;
 

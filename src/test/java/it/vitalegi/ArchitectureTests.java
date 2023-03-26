@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce;
+package it.vitalegi;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;

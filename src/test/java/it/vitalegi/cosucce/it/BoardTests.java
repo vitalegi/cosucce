@@ -1,7 +1,6 @@
 package it.vitalegi.cosucce.it;
 
 
-import it.vitalegi.cosucce.auth.BoardGrant;
 import it.vitalegi.cosucce.board.constant.BoardUserRole;
 import it.vitalegi.cosucce.board.dto.Board;
 import it.vitalegi.cosucce.board.dto.BoardEntry;
@@ -30,13 +29,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_DELETE;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_EDIT;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_ENTRY_EDIT;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_ENTRY_IMPORT;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_MANAGE_MEMBER;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_USER_ROLE_EDIT;
-import static it.vitalegi.cosucce.auth.BoardGrant.BOARD_VIEW;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_DELETE;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_EDIT;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_ENTRY_IMPORT;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_MANAGE_MEMBER;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_USER_ROLE_EDIT;
+import static it.vitalegi.cosucce.board.constant.BoardUserRole.BoardGrant.BOARD_VIEW;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -573,7 +572,7 @@ public class BoardTests extends RestResources {
     public void test_getGrants_member_shouldRetrieveOnlyMemberGrants() throws Exception {
         Board board1 = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board1.getId());
-        List<BoardGrant> grants = getGrantsOk(auth2, board1.getId());
+        List<BoardUserRole.BoardGrant> grants = getGrantsOk(auth2, board1.getId());
         assertArrayEquals(grants.toArray(), Arrays.asList(BOARD_VIEW, BOARD_ENTRY_EDIT).toArray());
     }
 
@@ -582,7 +581,7 @@ public class BoardTests extends RestResources {
     public void test_getGrants_notMember_shouldNotRetrieveAnyGrant() throws Exception {
         Board board1 = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board1.getId());
-        List<BoardGrant> grants = getGrantsOk(auth3, board1.getId());
+        List<BoardUserRole.BoardGrant> grants = getGrantsOk(auth3, board1.getId());
         assertEquals(0, grants.size());
     }
 
@@ -591,7 +590,7 @@ public class BoardTests extends RestResources {
     public void test_getGrants_owner_shouldRetrieveOwnerGrants() throws Exception {
         Board board1 = addBoardOk(auth1, "board1");
         joinBoard(auth1, auth2, board1.getId());
-        List<BoardGrant> grants = getGrantsOk(auth1, board1.getId());
+        List<BoardUserRole.BoardGrant> grants = getGrantsOk(auth1, board1.getId());
         assertArrayEquals(grants.toArray(), Arrays.asList(BOARD_VIEW, BOARD_EDIT, BOARD_ENTRY_EDIT,
                                                           BOARD_USER_ROLE_EDIT, BOARD_MANAGE_MEMBER,
                                                           BOARD_ENTRY_IMPORT, BOARD_DELETE)

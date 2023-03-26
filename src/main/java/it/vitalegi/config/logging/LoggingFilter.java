@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.config.logging;
+package it.vitalegi.config.logging;
 
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;

@@ -1,6 +1,5 @@
 package it.vitalegi.cosucce.board.service;
 
-import it.vitalegi.cosucce.auth.BoardGrant;
 import it.vitalegi.cosucce.board.constant.BoardUserRole;
 import it.vitalegi.cosucce.board.dto.Board;
 import it.vitalegi.cosucce.board.dto.BoardEntry;
@@ -21,8 +20,8 @@ import it.vitalegi.cosucce.board.repository.BoardInviteRepository;
 import it.vitalegi.cosucce.board.repository.BoardRepository;
 import it.vitalegi.cosucce.board.repository.BoardSplitRepository;
 import it.vitalegi.cosucce.board.repository.BoardUserRepository;
-import it.vitalegi.cosucce.metrics.Performance;
-import it.vitalegi.cosucce.metrics.Type;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.user.entity.UserEntity;
 import it.vitalegi.cosucce.user.service.UserService;
 import lombok.extern.log4j.Log4j2;
@@ -102,7 +101,7 @@ public class BoardService {
     @Transactional
     public List<BoardEntry> addBoardEntries(UUID boardId, List<BoardEntry> entries) {
         UserEntity user = userService.getCurrentUserEntity();
-        boardPermissionService.checkGrant(user, boardId, BoardGrant.BOARD_ENTRY_IMPORT);
+        boardPermissionService.checkGrant(user, boardId, BoardUserRole.BoardGrant.BOARD_ENTRY_IMPORT);
         log.info("Current user can edit board entries");
 
         BoardEntity board = boardRepository.findById(boardId).get();
@@ -127,11 +126,11 @@ public class BoardService {
 
     public BoardEntry addBoardEntry(UUID boardId, BoardEntry boardEntry) {
         UserEntity user = userService.getCurrentUserEntity();
-        boardPermissionService.checkGrant(user, boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        boardPermissionService.checkGrant(user, boardId, BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT);
         log.info("Current user can edit board entries");
 
         UserEntity author = userService.getUserEntity(boardEntry.getOwnerId());
-        boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        boardPermissionService.checkGrant(author, boardId, BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT);
         log.info("Author {} can edit board entries", author.getId());
 
         BoardEntity board = boardRepository.findById(boardId).get();
@@ -141,7 +140,7 @@ public class BoardService {
     }
 
     public BoardInvite addBoardInvite(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_MANAGE_MEMBER);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_MANAGE_MEMBER);
 
         UserEntity currentUser = userService.getCurrentUserEntity();
         BoardEntity board = getBoardEntity(boardId);
@@ -160,7 +159,7 @@ public class BoardService {
     @Transactional
     public BoardSplit addBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear,
                                     Integer toMonth, BigDecimal value) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_EDIT);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_EDIT);
         BoardEntity boardEntity = getBoardEntity(boardId);
         log.info("User can work on this board");
         BoardUserEntity user = boardUserRepository.findUserBoard(boardId, userId);
@@ -173,13 +172,13 @@ public class BoardService {
     }
 
     public void deleteBoard(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_DELETE);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_DELETE);
         boardRepository.deleteById(boardId);
         log.info("Deleted board {}", boardId);
     }
 
     public void deleteBoardEntry(UUID boardId, UUID boardEntryId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT);
         Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);
         if (entry.isEmpty()) {
             throw new IllegalArgumentException("entry doesn't exist");
@@ -193,7 +192,7 @@ public class BoardService {
     }
 
     public void deleteBoardInvite(UUID boardId, UUID id) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_MANAGE_MEMBER);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_MANAGE_MEMBER);
 
         BoardInviteEntity entry = boardInviteRepository.findById(id)
                                                        .orElseThrow(() -> new IllegalArgumentException("Entry " + id + " doesn't exist."));
@@ -207,7 +206,7 @@ public class BoardService {
     }
 
     public void deleteBoardSplit(UUID boardId, UUID boardSplitId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_EDIT);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_EDIT);
         Optional<BoardSplitEntity> entry = boardSplitRepository.findById(boardSplitId);
         if (entry.isEmpty()) {
             throw new IllegalArgumentException("entry doesn't exist");
@@ -242,13 +241,13 @@ public class BoardService {
     }
 
     public List<MonthlyAnalysis> getBoardAnalysisByMonth(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_VIEW);
         var entries = boardEntryRepository.getAggregatedBoardEntriesByMonth(boardId);
         return entries.stream().map(mapper::map).collect(Collectors.toList());
     }
 
     public List<MonthlyUserAnalysis> getBoardAnalysisByMonthUser(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_VIEW);
         List<BoardEntryGroupByMonthUserCategory> entries =
                 boardEntryRepository.getAggregatedBoardEntriesByMonthUserCategory(boardId);
         List<BoardSplit> splits = doGetBoardSplits(boardId);
@@ -256,18 +255,18 @@ public class BoardService {
     }
 
     public BoardEntity getBoardEntity(UUID id) {
-        boardPermissionService.checkGrant(id, BoardGrant.BOARD_VIEW);
+        boardPermissionService.checkGrant(id, BoardUserRole.BoardGrant.BOARD_VIEW);
         return boardRepository.findById(id).get();
     }
 
     public List<BoardEntry> getBoardEntries(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_VIEW);
         List<BoardEntryEntity> entries = boardEntryRepository.findByBoardId(boardId);
         return StreamSupport.stream(entries.spliterator(), false).map(mapper::map).collect(Collectors.toList());
     }
 
     public BoardEntry getBoardEntry(UUID boardId, UUID boardEntryId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT);
         Optional<BoardEntryEntity> entry = boardEntryRepository.findById(boardEntryId);
         if (entry.isEmpty()) {
             throw new IllegalArgumentException("entry doesn't exist");
@@ -280,24 +279,24 @@ public class BoardService {
     }
 
     public List<BoardInvite> getBoardInvites(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_MANAGE_MEMBER);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_MANAGE_MEMBER);
         List<BoardInviteEntity> invites = boardInviteRepository.findByBoardId(boardId);
         return invites.stream().map(mapper::map).collect(Collectors.toList());
     }
 
     public List<BoardSplit> getBoardSplits(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_VIEW);
         return doGetBoardSplits(boardId);
     }
 
     public List<BoardUser> getBoardUsers(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_VIEW);
         List<BoardUserEntity> boardUsers = boardUserRepository.findByBoard_Id(boardId);
         return mapper.map(boardUsers);
     }
 
     public List<String> getCategories(UUID boardId) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_VIEW);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_VIEW);
         List<String> categories = boardEntryRepository.findCategories(boardId);
         categories.sort((a, b) -> a.compareTo(b));
         return categories;
@@ -312,7 +311,7 @@ public class BoardService {
 
     @Transactional
     public Board updateBoard(UUID boardId, String name) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_EDIT);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_EDIT);
         BoardEntity board = boardRepository.findById(boardId).get();
         board.setName(name);
         board.setLastUpdate(LocalDateTime.now());
@@ -323,11 +322,11 @@ public class BoardService {
 
     @Transactional
     public BoardEntry updateBoardEntry(UUID boardId, BoardEntry boardEntry) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT);
         log.info("Current user can edit board entries");
 
         UserEntity author = userService.getUserEntity(boardEntry.getOwnerId());
-        boardPermissionService.checkGrant(author, boardId, BoardGrant.BOARD_ENTRY_EDIT);
+        boardPermissionService.checkGrant(author, boardId, BoardUserRole.BoardGrant.BOARD_ENTRY_EDIT);
         log.info("Author {} can edit board entries", author.getId());
 
         BoardEntryEntity entry = boardEntryRepository.findById(boardEntry.getId()).get();
@@ -347,7 +346,7 @@ public class BoardService {
 
     @Transactional
     public BoardSplit updateBoardSplit(UUID boardId, BoardSplit boardSplit) {
-        boardPermissionService.checkGrant(boardId, BoardGrant.BOARD_EDIT);
+        boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_EDIT);
         log.info("Current user can edit board splits");
 
         BoardSplitEntity entry = boardSplitRepository.findById(boardSplit.getId()).get();

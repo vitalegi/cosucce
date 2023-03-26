@@ -31,6 +31,8 @@ public class BoardEntity {
 
     @OneToMany(mappedBy = "board", fetch = FetchType.LAZY)
     Set<BoardUserEntity> boardUsers;
+    @OneToMany(mappedBy = "board", fetch = FetchType.LAZY)
+    Set<BoardInviteEntity> boardInvites;
 
     @NotNull String name;
     LocalDateTime creationDate;

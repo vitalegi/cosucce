@@ -1,6 +1,6 @@
-package it.vitalegi.cosucce.auth;
+package it.vitalegi.auth;
 
-import it.vitalegi.cosucce.util.BooleanUtil;
+import it.vitalegi.util.BooleanUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

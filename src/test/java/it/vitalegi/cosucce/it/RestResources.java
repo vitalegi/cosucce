@@ -1,7 +1,7 @@
 package it.vitalegi.cosucce.it;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import it.vitalegi.cosucce.auth.BoardGrant;
+import it.vitalegi.cosucce.board.constant.BoardUserRole;
 import it.vitalegi.cosucce.board.dto.AddBoard;
 import it.vitalegi.cosucce.board.dto.AddBoardEntries;
 import it.vitalegi.cosucce.board.dto.Board;
@@ -318,7 +318,7 @@ public class RestResources {
                       .andDo(monitor());
     }
 
-    protected List<BoardGrant> getGrantsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
+    protected List<BoardUserRole.BoardGrant> getGrantsOk(RequestPostProcessor auth, UUID boardId) throws Exception {
         return cs.jsonPayloadList(getGrants(auth, boardId).andExpect(ok()), new TypeReference<>() {
         });
     }

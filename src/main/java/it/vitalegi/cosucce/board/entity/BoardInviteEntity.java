@@ -30,14 +30,12 @@ public class BoardInviteEntity {
     @Type(type = "org.hibernate.type.UUIDCharType")
     UUID id;
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_invite__board__board_id"))
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
     BoardEntity board;
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_invite__user__owner_id"))
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
     UserEntity owner;
 
     LocalDateTime creationDate;

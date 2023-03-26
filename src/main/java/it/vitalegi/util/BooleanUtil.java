@@ -1,4 +1,4 @@
-package it.vitalegi.cosucce.util;
+package it.vitalegi.util;
 
 public class BooleanUtil {
     public static boolean isTrue(Boolean bool) {

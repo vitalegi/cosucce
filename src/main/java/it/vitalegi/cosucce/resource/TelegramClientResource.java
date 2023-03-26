@@ -2,8 +2,8 @@ package it.vitalegi.cosucce.resource;
 
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
-import it.vitalegi.cosucce.metrics.Performance;
-import it.vitalegi.cosucce.metrics.Type;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.user.dto.OtpResponse;
 import it.vitalegi.cosucce.user.dto.User;
 import it.vitalegi.cosucce.user.dto.UserOtp;
