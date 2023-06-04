@@ -2,12 +2,14 @@
 
 ## Prerequisites
 
-- JDK 11
+- JDK 17
 - Maven
 
+Note: tested with OpenJDK 20 
+
 ```
-$env:M2_HOME = 'C:\a\software\apache-maven-3.8.7-java11'
-$env:JAVA_HOME = 'C:\Program Files\Java\jdk-11.0.16.1'
+$env:M2_HOME = 'C:\a\software\apache-maven-3.9.2'
+$env:JAVA_HOME = 'C:\a\software\jdk-20.0.1'
 $env:PATH = $env:M2_HOME + '\bin;' + $env:JAVA_HOME + '\bin;' + $env:PATH
 ```
 
@@ -73,7 +75,7 @@ mvn clean package
 
 To create the jar:
 
-- JDK 11
+- JDK 20
 - Maven
 
 To create the image:
@@ -104,8 +106,8 @@ flyctl secrets set "TELEGRAM_TOKEN=telegram token"
 ### Build Image
 
 ```
-$env:M2_HOME = 'C:\a\software\apache-maven-3.8.7-java11'
-$env:JAVA_HOME = 'C:\Program Files\Java\jdk-11.0.16.1'
+$env:M2_HOME = 'C:\a\software\apache-maven-3.9.2'
+$env:JAVA_HOME = 'C:\a\software\jdk-20.0.1'
 $env:PATH = $env:M2_HOME + '\bin;' + $env:JAVA_HOME + '\bin;' + $env:PATH
 
 # create jar
@@ -131,8 +133,8 @@ flyctl deploy --image vitalegi/cosucce-be:0.3
 
 ```
 $VERSION='0.19'
-$env:M2_HOME = 'C:\a\software\apache-maven-3.8.7-java11'
-$env:JAVA_HOME = 'C:\Program Files\Java\jdk-11.0.16.1'
+$env:M2_HOME = 'C:\a\software\apache-maven-3.9.2'
+$env:JAVA_HOME = 'C:\a\software\jdk-20.0.1'
 $env:PATH = $env:M2_HOME + '\bin;' + $env:JAVA_HOME + '\bin;' + $env:PATH
 
 mvn versions:set "-DgenerateBackupPoms=false" "-DnewVersion=${VERSION}"
