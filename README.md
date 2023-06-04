@@ -75,8 +75,10 @@ mvn clean package
 
 To create the jar:
 
-- JDK 20
+- JDK 17
 - Maven
+
+Note: tested with OpenJDK 20
 
 To create the image:
 
