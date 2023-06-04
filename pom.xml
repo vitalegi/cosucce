@@ -10,7 +10,7 @@
     </parent>
     <groupId>it.vitalegi</groupId>
     <artifactId>cosucce</artifactId>
-    <version>0.18</version>
+    <version>0.19</version>
     <name>cosucce</name>
     <description>Cosucce Backend</description>
     <properties>

@@ -130,7 +130,7 @@ flyctl deploy --image vitalegi/cosucce-be:0.3
 ### Complete deploy script
 
 ```
-$VERSION='0.18'
+$VERSION='0.19'
 $env:M2_HOME = 'C:\a\software\apache-maven-3.8.7-java11'
 $env:JAVA_HOME = 'C:\Program Files\Java\jdk-11.0.16.1'
 $env:PATH = $env:M2_HOME + '\bin;' + $env:JAVA_HOME + '\bin;' + $env:PATH
