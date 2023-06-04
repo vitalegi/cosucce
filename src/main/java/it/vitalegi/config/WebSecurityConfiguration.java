@@ -8,6 +8,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -40,18 +41,11 @@ public class WebSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors()
-            .and()//
-            .authorizeHttpRequests()
-            .antMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml",
-                    "/swagger-ui/*")
-            .permitAll()
-            .and() //
-            .authorizeHttpRequests()
-            .anyRequest()
-            .authenticated();
-        http.oauth2ResourceServer()
-            .jwt();
+        http.authorizeHttpRequests(requests -> //
+                requests.requestMatchers(HttpMethod.OPTIONS).permitAll() //
+                        .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api" + "-docs.yaml", "/swagger-ui/*")
+                        .permitAll() //
+                        .anyRequest().authenticated());
         return http.build();
     }
 

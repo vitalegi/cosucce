@@ -1,8 +1,6 @@
 package it.vitalegi.cosucce.user.service;
 
 import it.vitalegi.auth.AuthenticationService;
-import it.vitalegi.metrics.Performance;
-import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.user.constant.OtpStatus;
 import it.vitalegi.cosucce.user.dto.OtpResponse;
 import it.vitalegi.cosucce.user.dto.User;
@@ -12,6 +10,8 @@ import it.vitalegi.cosucce.user.entity.UserOtpEntity;
 import it.vitalegi.cosucce.user.mapper.UserMapper;
 import it.vitalegi.cosucce.user.repository.UserOtpRepository;
 import it.vitalegi.cosucce.user.repository.UserRepository;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

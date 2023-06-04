@@ -2,18 +2,18 @@ package it.vitalegi.cosucce.resource;
 
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
-import it.vitalegi.metrics.Performance;
-import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.user.dto.OtpResponse;
 import it.vitalegi.cosucce.user.dto.User;
 import it.vitalegi.cosucce.user.dto.UserOtp;
 import it.vitalegi.cosucce.user.service.TelegramProxy;
 import it.vitalegi.cosucce.user.service.UserService;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 
 @Slf4j

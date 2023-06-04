@@ -15,9 +15,7 @@ import java.util.UUID;
 public interface BoardEntryRepository extends CrudRepository<BoardEntryEntity, UUID> {
 
     List<BoardEntryEntity> findByBoardId(UUID boardId);
-
-    List<BoardEntryEntity> findByOwnerId(String ownerId);
-
+    
     @Query("SELECT DISTINCT be.category FROM BoardEntry be WHERE be.board.id = :boardId")
     List<String> findCategories(@Param("boardId") UUID boardId);
 

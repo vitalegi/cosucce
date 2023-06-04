@@ -1,16 +1,17 @@
 package it.vitalegi.cosucce.board.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -23,7 +24,7 @@ import java.util.UUID;
 public class BoardEntity {
     @Id
     @GeneratedValue
-    @Type(type = "org.hibernate.type.UUIDCharType")
+    @JdbcTypeCode(java.sql.Types.VARCHAR)
     UUID id;
 
     @OneToMany(mappedBy = "board", fetch = FetchType.LAZY)
@@ -57,7 +58,6 @@ public class BoardEntity {
 
     @Override
     public String toString() {
-        return this.getClass()
-                   .getName() + "(" + getId() + ")";
+        return this.getClass().getName() + "(" + getId() + ")";
     }
 }

@@ -1,11 +1,11 @@
 package it.vitalegi.cosucce.resource;
 
 import io.swagger.v3.oas.annotations.Operation;
-import it.vitalegi.metrics.Performance;
-import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.spando.dto.SpandoDays;
 import it.vitalegi.cosucce.spando.dto.SpandoEntry;
 import it.vitalegi.cosucce.spando.service.SpandoService;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

@@ -159,7 +159,7 @@ public class SpandoServiceTests {
     @DisplayName("GIVEN 1 spando days WHEN I ask for spando days THEN I receive the correct list")
     @Test
     void test_groupSpandoDays_oneEntry_shouldReturnEntry() {
-        List<SpandoDays> out = spandoService.groupSpandoDays(Arrays.asList(entry("2023-01-01")));
+        List<SpandoDays> out = spandoService.groupSpandoDays(Collections.singletonList(entry("2023-01-01")));
         assertEquals(1, out.size());
         checkDays("2023-01-01", "2023-01-01", out.get(0));
     }

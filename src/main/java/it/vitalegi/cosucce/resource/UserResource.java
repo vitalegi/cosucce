@@ -1,12 +1,12 @@
 package it.vitalegi.cosucce.resource;
 
 import io.swagger.v3.oas.annotations.Operation;
-import it.vitalegi.metrics.Performance;
-import it.vitalegi.metrics.Type;
 import it.vitalegi.cosucce.user.dto.OtpResponse;
 import it.vitalegi.cosucce.user.dto.User;
 import it.vitalegi.cosucce.user.dto.UserOtp;
 import it.vitalegi.cosucce.user.service.UserService;
+import it.vitalegi.metrics.Performance;
+import it.vitalegi.metrics.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
