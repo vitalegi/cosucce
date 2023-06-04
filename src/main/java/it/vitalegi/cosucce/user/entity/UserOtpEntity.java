@@ -25,9 +25,9 @@ public class UserOtpEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__user_otp__user__id"))
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
     UserEntity user;
     LocalDateTime validTo;
     String otp;
