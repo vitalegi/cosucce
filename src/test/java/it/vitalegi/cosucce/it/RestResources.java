@@ -407,7 +407,7 @@ public class RestResources {
     protected ResultActions updateUsername(RequestPostProcessor auth, String username) throws Exception {
         User request = new User();
         request.setUsername(username);
-        return mockMvc.perform(put("/user/").with(csrf()).with(auth).contentType(MediaType.APPLICATION_JSON)
+        return mockMvc.perform(put("/user").with(csrf()).with(auth).contentType(MediaType.APPLICATION_JSON)
                                             .content(cs.toJson(request))).andDo(monitor());
     }
 

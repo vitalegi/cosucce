@@ -96,6 +96,7 @@ public class UserService {
 
     @Transactional
     public User updateUsername(String username) {
+        log.info("Update username to {}", username);
         UserEntity user = getCurrentUserEntity();
         user.setUsername(username);
         return mapper.map(userRepository.save(user));
