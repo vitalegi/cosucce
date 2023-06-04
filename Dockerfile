@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:ubi
+FROM eclipse-temurin:17
 RUN mkdir /opt/app
 COPY ./target/*.jar /opt/app/app.jar
 WORKDIR /opt/app
