@@ -26,7 +26,7 @@ export class BoardService {
   };
 
   addBoard = async (name: string): Promise<Board> => {
-    const out = await api.post('/board/', null, {
+    const out = await api.post('/board', null, {
       name: name,
     });
     return Board.fromJson(out);
