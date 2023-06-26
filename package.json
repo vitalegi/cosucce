@@ -13,7 +13,7 @@
   "dependencies": {
     "@quasar/extras": "^1.16.4",
     "axios": "^1.4.0",
-    "firebase": "^9.22.2",
+    "firebase": "^9.23.0",
     "pinia": "^2.1.4",
     "quasar": "^2.12.0",
     "vue": "^3.3.4",
