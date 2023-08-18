@@ -44,7 +44,7 @@ export class BoardService {
 
   addBoardEntry = async (
     boardId: string,
-    entry: BoardEntry
+    entry: BoardEntry,
   ): Promise<BoardEntry> => {
     const out = await api.post(`/board/${boardId}/entry`, null, entry);
     return BoardEntry.fromJson(out);
@@ -52,7 +52,7 @@ export class BoardService {
 
   addBoardEntries = async (
     boardId: string,
-    entries: Array<BoardEntry>
+    entries: Array<BoardEntry>,
   ): Promise<Array<BoardEntry>> => {
     const out = await api.post(`/board/${boardId}/entries`, null, {
       entries: entries,
@@ -62,7 +62,7 @@ export class BoardService {
 
   updateBoardEntry = async (
     boardId: string,
-    entry: BoardEntry
+    entry: BoardEntry,
   ): Promise<BoardEntry> => {
     const out = await api.put(`/board/${boardId}/entry`, null, entry);
     return BoardEntry.fromJson(out);
@@ -70,7 +70,7 @@ export class BoardService {
 
   deleteBoardEntry = async (
     boardId: string,
-    entryId: string
+    entryId: string,
   ): Promise<void> => {
     await api.delete(`/board/${boardId}/entry/${entryId}`, null, null);
   };
@@ -82,7 +82,7 @@ export class BoardService {
 
   getBoardEntry = async (
     boardId: string,
-    boardEntryId: string
+    boardEntryId: string,
   ): Promise<BoardEntry> => {
     const out = await api.get(`/board/${boardId}/entry/${boardEntryId}`, null);
     return BoardEntry.fromJson(out);
@@ -104,13 +104,13 @@ export class BoardService {
     return out.map(asString);
   };
   getBoardAnalysisMonthUser = async (
-    boardId: string
+    boardId: string,
   ): Promise<MonthlyUserAnalysis[]> => {
     const out = await api.get(`/board/${boardId}/analysis/month-user`, null);
     return out.map(MonthlyUserAnalysis.fromJson);
   };
   getBoardAnalysisMonth = async (
-    boardId: string
+    boardId: string,
   ): Promise<MonthlyAnalysis[]> => {
     const out = await api.get(`/board/${boardId}/analysis/month`, null);
     return out.map(MonthlyAnalysis.fromJson);
@@ -119,7 +119,7 @@ export class BoardService {
     const out = await api.post(
       `/board/${boardSplit.boardId}/split`,
       null,
-      boardSplit
+      boardSplit,
     );
     return BoardSplit.fromJson(out);
   };
@@ -134,7 +134,7 @@ export class BoardService {
     const out = await api.put(
       `/board/${boardSplit.boardId}/split`,
       null,
-      boardSplit
+      boardSplit,
     );
     return BoardSplit.fromJson(out);
   };

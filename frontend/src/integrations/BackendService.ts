@@ -13,7 +13,7 @@ class BackendService {
     url: string,
     method: Method,
     queryParams: any,
-    data: any
+    data: any,
   ): Promise<any> => {
     const user = await getUser();
     const idToken = await user?.getIdToken();

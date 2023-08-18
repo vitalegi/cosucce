@@ -22,7 +22,7 @@ export const asIntNullable = (value: any): number | null => {
  */
 export const asInt = (
   value: any,
-  defaultValue: number | false = false
+  defaultValue: number | false = false,
 ): number => {
   const v = asIntNullable(value);
   if (v === null) {
@@ -42,7 +42,7 @@ export const asInt = (
  */
 export const asDecimal = (
   value: any,
-  defaultValue: number | false = false
+  defaultValue: number | false = false,
 ): number => {
   if (ObjectUtil.isNullOrUndefined(value)) {
     if (defaultValue === false) {
@@ -67,7 +67,7 @@ export const asDecimal = (
  */
 export const asString = (
   value: any,
-  defaultValue: string | false = false
+  defaultValue: string | false = false,
 ): string => {
   if (ObjectUtil.isNullOrUndefined(value)) {
     if (defaultValue === false) {
@@ -93,7 +93,7 @@ export const asBoolean = (value: any, defaultValue: boolean): boolean => {
 
 export const asDateOptional = (
   value: any,
-  defaultValue?: Date
+  defaultValue?: Date,
 ): Date | undefined => {
   if (ObjectUtil.isNullOrUndefined(value)) {
     if (defaultValue) {

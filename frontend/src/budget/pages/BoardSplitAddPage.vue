@@ -110,7 +110,7 @@ const loadData = async (boardId: string): Promise<void> => {
   await spinner.sync(async () => {
     const users = await boardService.getBoardUsers(boardId);
     members.value = users.map(
-      (u) => new SelectValue(u.user.username, `${u.user.id}`)
+      (u) => new SelectValue(u.user.username, `${u.user.id}`),
     );
 
     if (props.boardSplitId) {
@@ -120,7 +120,7 @@ const loadData = async (boardId: string): Promise<void> => {
       const entryUser = users.filter((u) => u.user.id === entry.userId)[0];
       user.value = new SelectValue(
         entryUser.user.username,
-        `${entryUser.user.id}`
+        `${entryUser.user.id}`,
       );
       fromYear.value = entry.fromYear;
       toYear.value = entry.toYear;
@@ -140,7 +140,7 @@ watch(
   (newBoardId) => {
     members.value = new Array<SelectValue>();
     loadData(newBoardId);
-  }
+  },
 );
 
 const xnor = (v1: string, v2: string): boolean => {

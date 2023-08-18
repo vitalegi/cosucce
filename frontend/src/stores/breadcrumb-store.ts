@@ -40,7 +40,7 @@ const boardSettings = (route: RouteLocationNormalized): Breadcrumb =>
   new Breadcrumb('Settings', '', `/board/${getBoardId(route)}/settings`);
 
 export const getBreadcrumbs = (
-  route: RouteLocationNormalized
+  route: RouteLocationNormalized,
 ): Breadcrumb[] => {
   if (!route.meta.breadcrumb) {
     return [home()];
@@ -83,7 +83,7 @@ export const getBreadcrumbs = (
       new Breadcrumb(
         'Nuovo split',
         '',
-        `/board/${getBoardId(route)}/settings/split/edit`
+        `/board/${getBoardId(route)}/settings/split/edit`,
       ),
     ];
   }
@@ -96,7 +96,7 @@ export const getBreadcrumbs = (
       new Breadcrumb(
         'Modifica split',
         '',
-        `/board/${getBoardId(route)}/settings/split/edit`
+        `/board/${getBoardId(route)}/settings/split/edit`,
       ),
     ];
   }

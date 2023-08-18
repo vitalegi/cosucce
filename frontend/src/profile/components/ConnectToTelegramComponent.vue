@@ -80,10 +80,10 @@ const removeTelegram = async (): Promise<void> => {
 };
 
 const isNotConnected = computed(() =>
-  ObjectUtil.isNullOrUndefined(props.user?.telegramUserId)
+  ObjectUtil.isNullOrUndefined(props.user?.telegramUserId),
 );
 
 const isConnected = computed(() =>
-  ObjectUtil.isNotNullOrUndefined(props.user?.telegramUserId)
+  ObjectUtil.isNotNullOrUndefined(props.user?.telegramUserId),
 );
 </script>
