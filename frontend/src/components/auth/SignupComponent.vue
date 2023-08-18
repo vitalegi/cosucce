@@ -62,7 +62,7 @@ async function onSubmit() {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email.value,
-      password.value
+      password.value,
     );
     const user = userCredential.user;
     await userService.getUser();

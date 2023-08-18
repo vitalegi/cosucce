@@ -74,7 +74,7 @@ const update = async (
     | 'locale'
     | 'year'
     | 'month',
-  details: Details
+  details: Details,
 ): Promise<void> => {
   if (reason === 'add-day' || reason === 'remove-day') {
     await spandoService.changeSpandoEntry(formatDate(details));

@@ -25,7 +25,7 @@ export default class NumberUtil {
 
   public static min(
     numbers: number[],
-    defaultValue = Number.MAX_SAFE_INTEGER
+    defaultValue = Number.MAX_SAFE_INTEGER,
   ): number {
     if (numbers.length === 0) {
       return defaultValue;

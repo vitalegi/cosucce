@@ -106,7 +106,7 @@ const user = ref(new UserData());
 const categories = ref(new Array<string>());
 const users = ref(new Array<BoardUser>());
 const authorEntries = computed(() =>
-  users.value.map((u) => new SelectValue(u.user.username, `${u.user.id}`))
+  users.value.map((u) => new SelectValue(u.user.username, `${u.user.id}`)),
 );
 
 const loadData = async (boardId: string): Promise<void> => {
@@ -119,7 +119,7 @@ const loadData = async (boardId: string): Promise<void> => {
     if (props.boardEntryId) {
       const entry = await boardService.getBoardEntry(
         props.boardId,
-        props.boardEntryId
+        props.boardEntryId,
       );
       date.value = toQDateFormat(entry.date);
       const user = users.value.filter((u) => u.user.id === entry.ownerId)[0];
@@ -139,7 +139,7 @@ watch(
     users.value = new Array<BoardUser>();
     categories.value = new Array<string>();
     loadData(newBoardId);
-  }
+  },
 );
 
 const canSubmit = computed((): boolean => {
@@ -153,7 +153,7 @@ const onSubmit = async (): Promise<void> => {
   entry.date = fromQDateFormat(date.value);
   entry.category = category.value.trim();
   const existingEqualsCategories = categories.value.filter(
-    (c) => c.toLowerCase() === category.value.trim()
+    (c) => c.toLowerCase() === category.value.trim(),
   );
   if (existingEqualsCategories.length !== 0) {
     entry.category = existingEqualsCategories[0];

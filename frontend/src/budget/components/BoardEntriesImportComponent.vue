@@ -71,7 +71,7 @@ const getUserId = (username: string): number => {
 };
 
 const usernames = computed(() =>
-  members.value.map((u) => u.user.username).join(', ')
+  members.value.map((u) => u.user.username).join(', '),
 );
 
 const parseAmount = (value: string): number => {

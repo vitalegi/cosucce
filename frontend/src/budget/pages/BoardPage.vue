@@ -114,10 +114,10 @@ const loadData = async (boardId: string): Promise<void> => {
     boardEntries.value = await boardService.getBoardEntries(boardId);
     grants.value = await boardService.getGrants(boardId);
     monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
-      boardId
+      boardId,
     );
     monthlyAnalysis.value = await boardService.getBoardAnalysisMonth(
-      props.boardId
+      props.boardId,
     );
   });
 };
@@ -130,7 +130,7 @@ watch(
     board.value = new Board();
     boardEntries.value = new Array<BoardEntry>();
     loadData(newBoardId);
-  }
+  },
 );
 
 const addNewBoardEntry = (): void => {
@@ -166,13 +166,13 @@ const deleteBoardEntry = async (): Promise<void> => {
     await boardService.deleteBoardEntry(props.boardId, boardEntryId);
     // cleanup data
     boardEntries.value = boardEntries.value.filter(
-      (e) => e.id !== boardEntryId
+      (e) => e.id !== boardEntryId,
     );
     monthlyUserAnalysis.value = await boardService.getBoardAnalysisMonthUser(
-      props.boardId
+      props.boardId,
     );
     monthlyAnalysis.value = await boardService.getBoardAnalysisMonth(
-      props.boardId
+      props.boardId,
     );
 
     resetDialogDeleteBoardEntry();
@@ -180,7 +180,7 @@ const deleteBoardEntry = async (): Promise<void> => {
 };
 
 const showSettingsButton = computed(
-  () => grants.value.filter((grant) => grant === 'BOARD_EDIT').length > 0
+  () => grants.value.filter((grant) => grant === 'BOARD_EDIT').length > 0,
 );
 
 const currentUser = ref(new UserData());
