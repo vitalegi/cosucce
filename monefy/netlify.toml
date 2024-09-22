@@ -1,0 +1,45 @@
+## pushstate redirect
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# don't index this website
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+# 86400 = 1d
+# 604800 = 7d
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    cache-control = '''
+    max-age=86400,
+    must-revalidate
+    '''
+
+[[headers]]
+  for = "/icons/*"
+  [headers.values]
+    cache-control = '''
+    max-age=86400,
+    must-revalidate
+    '''
+
+[[headers]]
+  for = "/favicon.ico"
+  [headers.values]
+    cache-control = '''
+    max-age=86400,
+    must-revalidate
+    '''
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    cache-control = '''
+    no-cache
+    '''
