@@ -24,6 +24,9 @@ $negative: #f38684;
 $info: #31ccec;
 $warning: #f2c037;
 
+$debit: #e78a87;
+$credit: #89d09d;
+
 .body--light {
   --q-bodyBackground: #f2fff6;
 }
@@ -34,4 +37,8 @@ body {
 
 .q-field__control::before {
   border: 1px solid $secondary !important;
+}
+
+.big-button:before {
+  border-width: 5px !important;
 }
