@@ -16,7 +16,7 @@
     </div>
     <div class="row col-12 justify-center">
       <div style="max-width: 600px; width: 100%">
-        <ExpensesByCategory></ExpensesByCategory>
+        <ExpensesByCategories></ExpensesByCategories>
       </div>
     </div>
     <div
@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { Notify } from 'quasar';
-import ExpensesByCategory from 'components/ExpensesByCategory.vue';
+import ExpensesByCategories from 'components/ExpensesByCategories.vue';
 import { useIntervalStore } from 'src/stores/interval-store';
 
 defineOptions({

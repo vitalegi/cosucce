@@ -1,75 +1,58 @@
 <template>
-  <q-list bordered class="rounded-borders">
-    <q-expansion-item
-      switch-toggle-side
-      expand-separator
-      v-for="category in categories"
-      :key="category.id"
-      icon="perm_identity"
-      :label="category.name"
+  <q-expansion-item dense switch-toggle-side expand-separator>
+    <template v-slot:header>
+      <q-item-section avatar>
+        <q-avatar icon="perm_identity" color="primary" text-color="white" />
+      </q-item-section>
+
+      <q-item-section>
+        {{ category.name }}
+      </q-item-section>
+
+      <q-item-section side>
+        <q-item-label>
+          <ExpenseValue
+            :amount="amount"
+            currency=""
+            :type="category.type"
+          ></ExpenseValue>
+        </q-item-label>
+      </q-item-section>
+    </template>
+
+    <ExpenseItem
+      v-for="expense in expensesWithCategory"
+      :key="expense.id"
+      :expense="expense"
+      dense
     >
-      <q-item
-        v-for="expense in expensesWithCategory(category.id)"
-        :key="expense.id"
-      >
-        <q-item-section avatar top> </q-item-section>
-
-        <q-item-section top>
-          <q-item-label>
-            <span class="text-weight-medium">
-              {{ formatAmountIntPart(expense.amount) }}</span
-            >
-            <span class="text-grey-8"
-              >,{{ formatAmountDecimalPart(expense.amount) }}
-              {{ expense.account.currency }}</span
-            >
-            &nbsp; &nbsp; &nbsp;
-            <span class="text-grey-8"> {{ expense.description }}</span>
-          </q-item-label>
-        </q-item-section>
-
-        <q-item-section top side>
-          <q-item-label class="q-mt-sm">{{
-            formatDayMonth(expense.date)
-          }}</q-item-label>
-        </q-item-section>
-      </q-item>
-    </q-expansion-item>
-  </q-list>
+    </ExpenseItem>
+  </q-expansion-item>
 </template>
 
 <script setup lang="ts">
-//import bigDecimal from 'js-big-decimal';
-import bigDecimal from 'js-big-decimal';
-import Expense from 'src/model/expense';
-import { useExpenseStore } from 'src/stores/expenses-store';
-import { useIntervalStore } from 'src/stores/interval-store';
-import BigDecimalUtil from 'src/utils/big-decimal-util';
-import { formatDayMonth } from 'src/utils/DateUtil';
+import Category from 'src/model/category';
 import { computed } from 'vue';
+import ExpenseItem from './ExpenseItem.vue';
+import ExpenseValue from './ExpenseValue.vue';
+import Expense from 'src/model/expense';
+import ExpenseUtil from 'src/utils/expense-util';
 
-const intervalStore = useIntervalStore();
-const expenseStore = useExpenseStore();
+interface Props {
+  category: Category;
+  expenses: Expense[];
+}
 
-const expenses = computed(() =>
-  expenseStore.expensesInInterval(intervalStore.from, intervalStore.to),
+const props = defineProps<Props>();
+
+const expensesWithCategory = computed(() => {
+  return ExpenseUtil.sortExpensesByDate(
+    ExpenseUtil.filterByCategory(props.expenses, props.category.id),
+    false,
+  );
+});
+
+const amount = computed(() =>
+  ExpenseUtil.sum(expensesWithCategory.value).getValue(),
 );
-
-const categories = computed(() => expenseStore.categories(expenses.value));
-
-function expensesWithCategory(categoryId: string): Expense[] {
-  return expenses.value.filter((e) => e.category.id === categoryId);
-}
-
-function formatAmountIntPart(amount: string): string {
-  const val = new bigDecimal(amount);
-  const parts = BigDecimalUtil.format(val);
-  return parts.integerPart;
-}
-
-function formatAmountDecimalPart(amount: string): string {
-  const val = new bigDecimal(amount);
-  const parts = BigDecimalUtil.format(val);
-  return parts.decimalPart;
-}
 </script>

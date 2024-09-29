@@ -1,12 +1,10 @@
 import { asDate, asString } from 'src/utils/JsonUtil';
 import Account from './account';
 import Category from './category';
-import { convertToExpenseType, ExpenseType } from './expense-type';
 
 export default class Expense {
   id = '';
   date = new Date();
-  expenseType: ExpenseType = 'debit';
   account = new Account();
   category = new Category();
   amount = '';
@@ -18,7 +16,6 @@ export default class Expense {
 export class ExpenseDto {
   id = '';
   date = new Date();
-  expenseType: ExpenseType = 'debit';
   accountId = '';
   categoryId = '';
   amount = '';
@@ -31,7 +28,6 @@ export class ExpenseDto {
     const out = new ExpenseDto();
     out.id = asString(obj.id);
     out.date = asDate(obj.date);
-    out.expenseType = convertToExpenseType(obj.expense);
     out.accountId = asString(obj.accountId);
     out.categoryId = asString(obj.categoryId);
     out.amount = asString(obj.amount);

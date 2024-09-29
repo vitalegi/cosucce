@@ -1,7 +1,7 @@
 import bigDecimal from 'js-big-decimal';
 
 export default class BigDecimalUtil {
-  private static ZERO = new bigDecimal('0');
+  public static readonly ZERO = new bigDecimal('0');
 
   public static format(n: bigDecimal): {
     integerPart: string;

@@ -15,3 +15,5 @@
 - Visualizzare grafico spese
 - Visualizzare andamento spese
 - Salvataggio backend
+- Selezionare colore categoria
+- Selezionare icona categoria
