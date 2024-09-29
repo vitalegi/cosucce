@@ -6,6 +6,16 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/MonefyHomePage.vue') },
+      {
+        path: '/add/:type',
+        component: () => import('pages/ExpenseEntryAddPage.vue'),
+        props: true,
+      },
+      {
+        path: '/edit/:id',
+        component: () => import('pages/ExpenseEntryEditPage.vue'),
+        props: true,
+      },
     ],
   },
 

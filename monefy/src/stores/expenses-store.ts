@@ -3,7 +3,7 @@ import Account from 'src/model/account';
 import Category from 'src/model/category';
 import Expense, { ExpenseDto } from 'src/model/expense';
 import { ExpenseType } from 'src/model/expense-type';
-import { compareDates } from 'src/utils/DateUtil';
+import DateUtil from 'src/utils/date-util';
 import { v4 as uuidv4 } from 'uuid';
 
 class AccountUtil {
@@ -103,16 +103,30 @@ export const useExpenseStore = defineStore('expense', {
     accountsMap: new Map<string, Account>(),
   }),
   getters: {
+    expense(state) {
+      return (id: string): Expense => {
+        const match = state.structuredEntries.filter((e) => e.id === id);
+        if (match.length === 0) {
+          throw Error(`Expense ${id} not found`);
+        }
+        return match[0];
+      };
+    },
+    accounts(state): Account[] {
+      return Array.from(state.accountsMap.values()).sort((a1, a2) =>
+        a1.name.toUpperCase() < a2.name.toUpperCase() ? -1 : 1,
+      );
+    },
     expensesInInterval(state) {
       return (from: Date, to: Date) => {
         return state.structuredEntries
           .filter((e) => ExpenseUtil.inInterval(e.date, from, to))
           .sort((e1: Expense, e2: Expense) => {
-            const c1 = compareDates(e1.date, e2.date);
+            const c1 = DateUtil.compareDates(e1.date, e2.date);
             if (c1 === 0) {
               return c1;
             }
-            return compareDates(e1.lastUpdate, e2.lastUpdate);
+            return DateUtil.compareDates(e1.lastUpdate, e2.lastUpdate);
           });
       };
     },

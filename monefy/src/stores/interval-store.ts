@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import TimeInterval from 'src/model/interval';
-import { formatFullDate } from 'src/utils/DateUtil';
+import DateUtil from 'src/utils/date-util';
 
 interface State {
   interval: TimeInterval;
@@ -17,7 +17,7 @@ function lastDayOfMonth(date: Date): Date {
 }
 
 function getLabel(interval: TimeInterval, from: Date, to: Date): string {
-  return formatFullDate(from) + ' - ' + formatFullDate(to);
+  return DateUtil.formatFullDate(from) + ' - ' + DateUtil.formatFullDate(to);
 }
 
 export const useIntervalStore = defineStore('interval', {

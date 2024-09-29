@@ -23,8 +23,22 @@
       class="col-12 row items-center justify-evenly"
       style="max-width: 600px"
     >
-      <q-btn size="40px" round outline icon="remove" class="big-button debit" />
-      <q-btn size="40px" round outline icon="add" class="big-button credit" />
+      <q-btn
+        size="40px"
+        round
+        outline
+        icon="remove"
+        class="big-button debit"
+        @click="addDebit()"
+      />
+      <q-btn
+        size="40px"
+        round
+        outline
+        icon="add"
+        class="big-button credit"
+        @click="addCredit()"
+      />
     </div>
   </q-page>
 </template>
@@ -33,12 +47,14 @@
 import { Notify } from 'quasar';
 import ExpensesByCategories from 'components/ExpensesByCategories.vue';
 import { useIntervalStore } from 'src/stores/interval-store';
+import { useRouter } from 'vue-router';
 
 defineOptions({
   name: 'MonefyHomePage',
 });
 
 const intervalStore = useIntervalStore();
+const router = useRouter();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function handleSwipe(e: any) {
@@ -49,6 +65,14 @@ function handleSwipe(e: any) {
   if (direction === 'right') {
     Notify.create('Right!');
   }
+}
+
+function addCredit() {
+  router.push('/add/credit');
+}
+
+function addDebit() {
+  router.push('/add/debit');
 }
 </script>
 
