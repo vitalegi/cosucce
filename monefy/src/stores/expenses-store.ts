@@ -113,7 +113,7 @@ export const useExpenseStore = defineStore('expense', {
           });
       };
     },
-    categoriesSorted() {
+    categories() {
       return (expenses: Expense[]) => {
         const map = new Map<string, Category>();
         expenses
@@ -123,9 +123,7 @@ export const useExpenseStore = defineStore('expense', {
               map.set(c.id, c);
             }
           });
-        return Array.from(map.values()).sort((c1, c2) =>
-          c1.name.toUpperCase() > c2.name.toUpperCase() ? 1 : -1,
-        );
+        return Array.from(map.values());
       };
     },
     firstDate(state): Date | undefined {
@@ -209,7 +207,7 @@ async function init() {
     'debit',
     account1.id,
     category1.id,
-    '10.3',
+    '10.0000000000000000000001',
     'operazione 1',
   );
   expenseStore.addExpense(
@@ -217,8 +215,35 @@ async function init() {
     'debit',
     account2.id,
     category2.id,
-    '20.33333',
+    '255550.33333',
     'operazione 2',
+  );
+
+  expenseStore.addExpense(
+    new Date(),
+    'debit',
+    account2.id,
+    category2.id,
+    '21.66666',
+    'operazione 3',
+  );
+
+  expenseStore.addExpense(
+    new Date(),
+    'debit',
+    account2.id,
+    category2.id,
+    '21.999999',
+    'operazione 4',
+  );
+
+  expenseStore.addExpense(
+    new Date(),
+    'debit',
+    account2.id,
+    category2.id,
+    '30',
+    'operazione 5',
   );
 }
 

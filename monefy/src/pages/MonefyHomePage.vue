@@ -15,9 +15,10 @@
       >
     </div>
     <div class="row col-12 justify-center">
-      <q-btn>saldo</q-btn>
+      <div style="max-width: 600px; width: 100%">
+        <ExpensesByCategory></ExpensesByCategory>
+      </div>
     </div>
-    <div class="row col-12 justify-center">categorie</div>
     <div
       class="col-12 row items-center justify-evenly"
       style="max-width: 600px"
@@ -30,6 +31,7 @@
 
 <script setup lang="ts">
 import { Notify } from 'quasar';
+import ExpensesByCategory from 'components/ExpensesByCategory.vue';
 import { useIntervalStore } from 'src/stores/interval-store';
 
 defineOptions({
