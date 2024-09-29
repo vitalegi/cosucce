@@ -52,7 +52,7 @@ function handleSwipe(e: any) {
 }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 .balance {
   color: white;
 }

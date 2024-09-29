@@ -38,7 +38,7 @@ function formatAmountDecimalPart(amount: string): string {
 }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 .decimal-part {
   font-size: smaller;
 }
