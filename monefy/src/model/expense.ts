@@ -1,4 +1,4 @@
-import { asDate, asDecimal, asString } from 'src/utils/JsonUtil';
+import { asDate, asString } from 'src/utils/JsonUtil';
 import Account from './account';
 import Category from './category';
 import { convertToExpenseType, ExpenseType } from './expense-type';
@@ -9,7 +9,8 @@ export default class Expense {
   expenseType: ExpenseType = 'debit';
   account = new Account();
   category = new Category();
-  amount = 0;
+  amount = '';
+  description = '';
   creationDate = new Date();
   lastUpdate = new Date();
 }
@@ -20,7 +21,8 @@ export class ExpenseDto {
   expenseType: ExpenseType = 'debit';
   accountId = '';
   categoryId = '';
-  amount = 0;
+  amount = '';
+  description = '';
   creationDate = new Date();
   lastUpdate = new Date();
 
@@ -32,7 +34,11 @@ export class ExpenseDto {
     out.expenseType = convertToExpenseType(obj.expense);
     out.accountId = asString(obj.accountId);
     out.categoryId = asString(obj.categoryId);
-    out.amount = asDecimal(obj.amount);
+    out.amount = asString(obj.amount);
+    out.description = asString(obj.description);
+
+    out.creationDate = asDate(obj.creationDate);
+    out.lastUpdate = asDate(obj.lastUpdate);
     return out;
   }
 }

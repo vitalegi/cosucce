@@ -56,7 +56,8 @@ class ExpenseUtil {
     expenseType: ExpenseType,
     accountId: string,
     categoryId: string,
-    amount: number,
+    amount: string,
+    description: string,
   ): ExpenseDto {
     const out = new ExpenseDto();
     out.date = date;
@@ -64,6 +65,7 @@ class ExpenseUtil {
     out.accountId = accountId;
     out.categoryId = categoryId;
     out.amount = amount;
+    out.description = description;
     out.creationDate = new Date();
     out.lastUpdate = new Date();
     return out;
@@ -81,6 +83,7 @@ class ExpenseUtil {
     out.date = dto.date;
     out.expenseType = dto.expenseType;
     out.amount = dto.amount;
+    out.description = dto.description;
     return out;
   }
 
@@ -108,6 +111,21 @@ export const useExpenseStore = defineStore('expense', {
             }
             return compareDates(e1.lastUpdate, e2.lastUpdate);
           });
+      };
+    },
+    categoriesSorted() {
+      return (expenses: Expense[]) => {
+        const map = new Map<string, Category>();
+        expenses
+          .map((e) => e.category)
+          .forEach((c) => {
+            if (!map.has(c.id)) {
+              map.set(c.id, c);
+            }
+          });
+        return Array.from(map.values()).sort((c1, c2) =>
+          c1.name.toUpperCase() > c2.name.toUpperCase() ? 1 : -1,
+        );
       };
     },
     firstDate(state): Date | undefined {
@@ -158,7 +176,8 @@ export const useExpenseStore = defineStore('expense', {
       expenseType: ExpenseType,
       accountId: string,
       categoryId: string,
-      amount: number,
+      amount: string,
+      description: string,
     ): Promise<Expense> {
       const dto = ExpenseUtil.createDto(
         date,
@@ -166,6 +185,7 @@ export const useExpenseStore = defineStore('expense', {
         accountId,
         categoryId,
         amount,
+        description,
       );
       const out = ExpenseUtil.build(dto, this.categoriesMap, this.accountsMap);
       this.expensesList.push(dto);
@@ -176,5 +196,30 @@ export const useExpenseStore = defineStore('expense', {
 });
 
 const expenseStore = useExpenseStore();
-expenseStore.addCategory('Risparmi', true);
-expenseStore.addCategory('Bollette', true);
+
+async function init() {
+  const category1 = await expenseStore.addCategory('Risparmi', true);
+  const category2 = await expenseStore.addCategory('Bollette', true);
+
+  const account1 = await expenseStore.addAccount('CC', 'EUR', true);
+  const account2 = await expenseStore.addAccount('Contanti', 'EUR', true);
+
+  expenseStore.addExpense(
+    new Date(),
+    'debit',
+    account1.id,
+    category1.id,
+    '10.3',
+    'operazione 1',
+  );
+  expenseStore.addExpense(
+    new Date(),
+    'debit',
+    account2.id,
+    category2.id,
+    '20.33333',
+    'operazione 2',
+  );
+}
+
+init();
