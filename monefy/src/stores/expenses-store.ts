@@ -117,6 +117,15 @@ export const useExpenseStore = defineStore('expense', {
         a1.name.toUpperCase() < a2.name.toUpperCase() ? -1 : 1,
       );
     },
+    categories(state) {
+      return (type: ExpenseType): Category[] => {
+        return Array.from(state.categoriesMap.values())
+          .filter((c) => c.type === type)
+          .sort((c1, c2) =>
+            c1.name.toUpperCase() < c2.name.toUpperCase() ? -1 : 1,
+          );
+      };
+    },
     expensesInInterval(state) {
       return (from: Date, to: Date) => {
         return state.structuredEntries

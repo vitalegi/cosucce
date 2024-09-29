@@ -1,8 +1,8 @@
 <template>
   <q-select
-    label="Account"
+    label="Category"
     outlined
-    :options="accounts"
+    :options="categories"
     v-model="model"
     option-value="id"
     option-label="name"
@@ -14,12 +14,21 @@
 </template>
 
 <script setup lang="ts">
+import { ExpenseType } from 'src/model/expense-type';
 import { useExpenseStore } from 'src/stores/expenses-store';
 import { computed } from 'vue';
 
 const model = defineModel<string>();
 
+interface Props {
+  type: ExpenseType;
+}
+
+const props = defineProps<Props>();
+
 const expenseStore = useExpenseStore();
 
-const accounts = computed(() => expenseStore.accounts.filter((a) => a.active));
+const categories = computed(() =>
+  expenseStore.categories(props.type).filter((c) => c.active),
+);
 </script>

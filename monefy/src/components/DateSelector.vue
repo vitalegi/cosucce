@@ -1,5 +1,12 @@
 <template>
-  <q-input outlined filled readonly v-model="model">
+  <q-input
+    outlined
+    filled
+    readonly
+    v-model="model"
+    hide-bottom-space
+    :rules="[(val) => (val && val.trim().length !== 0) || 'Value is mandatory']"
+  >
     <template v-slot:append>
       <q-icon name="event" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">

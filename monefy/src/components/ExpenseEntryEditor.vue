@@ -1,31 +1,23 @@
 <template>
-  <q-form @submit="onSubmit" class="q-gutter-y-md" style="max-width: 500px">
-    <div>{{ date }} - {{ accountId }}</div>
+  <q-form
+    @submit="onSubmit"
+    class="col-12 q-pa-md q-gutter-y-md"
+    style="max-width: 600px"
+    greedy
+  >
     <DateSelector v-model="date" :mask="DateUtil.DATE_FORMAT" />
     <AccountSelector v-model="accountId" />
-    <!--
-    <q-select
-      label="Categoria"
-      outlined
-      :options="categories"
-      v-model="category"
-      use-input
-      input-debounce="0"
-      new-value-mode="add-unique"
-      :rules="[
-        (val) => (val && val.trim().length !== 0) || 'Valore obbligatorio',
-      ]"
+    <CategorySelector v-model="categoryId" :type="type" />
+    <q-input outlined v-model="description" label="Description" />
+    <AmountSelector v-model="amount" />
+
+    <q-btn
+      label="Add"
+      type="submit"
+      color="primary"
+      size="24px"
+      style="width: 100%"
     />
-    <q-input outlined v-model="description" label="Descrizione" />
-    <q-input
-      outlined
-      v-model="amount"
-      :step="0.01"
-      label="Importo"
-      type="number"
-      :rules="[(val) => (val && validateAmount(val)) || 'Valore obbligatorio']"
-    />-->
-    <q-btn label="Submit" type="submit" color="primary" />
   </q-form>
 </template>
 
@@ -35,20 +27,39 @@ import DateSelector from './DateSelector.vue';
 import { ExpenseType } from 'src/model/expense-type';
 import DateUtil from 'src/utils/date-util';
 import AccountSelector from './AccountSelector.vue';
+import CategorySelector from './CategorySelector.vue';
+import AmountSelector from './AmountSelector.vue';
 
 interface Props {
   type: ExpenseType;
   expenseId?: string;
   oldDate?: Date;
   oldAccountId?: string;
+  oldCategoryId?: string;
+  oldDescription?: string;
+  oldAmount?: string;
 }
 
 const props = defineProps<Props>();
 
-const date = ref<string>();
-const accountId = ref<string>();
+const emit = defineEmits(['submit']);
 
-function onSubmit() {}
+const date = ref<string>('');
+const accountId = ref<string>('');
+const categoryId = ref<string>('');
+const description = ref<string>('');
+const amount = ref<string>('');
+
+function onSubmit() {
+  const mappedDate = DateUtil.fromQDateFormat(date.value, DateUtil.DATE_FORMAT);
+  emit('submit', {
+    date: mappedDate,
+    accountId: accountId.value,
+    categoryId: categoryId.value,
+    description: description.value,
+    amount: amount.value,
+  });
+}
 
 function initDate(newValue?: Date): void {
   if (newValue) {
@@ -63,13 +74,14 @@ onMounted(() => {
   if (props.oldAccountId) {
     accountId.value = props.oldAccountId;
   }
+  if (props.oldCategoryId) {
+    categoryId.value = props.oldCategoryId;
+  }
+  if (props.oldDescription) {
+    description.value = props.oldDescription;
+  }
+  if (props.oldAmount) {
+    amount.value = props.oldAmount;
+  }
 });
-
-/*watch(
-  () => props.oldDate,
-  (newValue, oldValue) => {
-    console.log('Change date', oldValue, newValue);
-    initDate(newValue);
-  },
-);*/
 </script>

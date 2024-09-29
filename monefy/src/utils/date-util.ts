@@ -15,10 +15,10 @@ export default class DateUtil {
   public static fromQDateFormat = (str: string, format: 'DD/MM/YYYY'): Date => {
     if (format === DateUtil.DATE_FORMAT) {
       const values = str.split('/');
-      const year = parseInt(values[0]);
+      const day = parseInt(values[0]);
       const month = parseInt(values[1]) - 1;
-      const day = parseInt(values[2]) + 1;
-      return new Date(year, month, day);
+      const year = parseInt(values[2]);
+      return new Date(year, month, day, 0, 0, 0, 0);
     }
     throw new Error('unsupported format ' + format);
   };
