@@ -58,6 +58,13 @@ export const formatFullDate = (date: Date): string => {
   }).format(date);
 };
 
+export const formatDayMonth = (date: Date): string => {
+  return new Intl.DateTimeFormat('it-IT', {
+    day: 'numeric',
+    month: 'short',
+  }).format(date);
+};
+
 export const compareDates = (d1: Date, d2: Date): number => {
   return d1.getTime() - d2.getTime();
 };
