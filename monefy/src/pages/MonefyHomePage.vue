@@ -1,44 +1,48 @@
 <template>
   <q-page class="row content-start justify-evenly">
-    <div
-      class="row col-12 justify-center"
-      v-touch-swipe.mouse.right.left="handleSwipe"
-    >
-      {{ intervalStore.label }}
-    </div>
-    <div
-      class="row col-12 justify-center"
-      v-touch-swipe.mouse.right.left="handleSwipe"
-    >
-      <q-btn :draggable="false" class="balance credit" padding="sm xl"
-        >saldo €</q-btn
+    <div class="main-content col-12">
+      <div
+        class="row col-12 justify-center"
+        v-touch-swipe.mouse.right.left="handleSwipe"
       >
-    </div>
-    <div class="row col-12 justify-center">
-      <div style="max-width: 600px; width: 100%">
-        <ExpensesByCategories></ExpensesByCategories>
+        {{ intervalStore.label }}
+      </div>
+      <div
+        class="row col-12 justify-center"
+        v-touch-swipe.mouse.right.left="handleSwipe"
+      >
+        <q-btn :draggable="false" class="balance credit" padding="sm xl"
+          >saldo €</q-btn
+        >
+      </div>
+      <div class="row col-12 justify-center">
+        <div style="max-width: 600px; width: 100%">
+          <ExpensesByCategories></ExpensesByCategories>
+        </div>
       </div>
     </div>
-    <div
-      class="col-12 row items-center justify-evenly"
-      style="max-width: 600px"
-    >
-      <q-btn
-        size="40px"
-        round
-        outline
-        icon="remove"
-        class="big-button debit"
-        @click="addDebit()"
-      />
-      <q-btn
-        size="40px"
-        round
-        outline
-        icon="add"
-        class="big-button credit"
-        @click="addCredit()"
-      />
+    <div class="fixed-bottom row justify-evenly">
+      <div
+        class="col-12 row items-center justify-evenly"
+        style="max-width: 600px"
+      >
+        <q-btn
+          size="40px"
+          round
+          outline
+          icon="remove"
+          class="big-button debit"
+          @click="addDebit()"
+        />
+        <q-btn
+          size="40px"
+          round
+          outline
+          icon="add"
+          class="big-button credit"
+          @click="addCredit()"
+        />
+      </div>
     </div>
   </q-page>
 </template>
@@ -77,6 +81,10 @@ function addDebit() {
 </script>
 
 <style scoped lang="scss">
+.main-content {
+  max-height: calc(100vh - 175px);
+  overflow: auto;
+}
 .balance {
   color: white;
 }
