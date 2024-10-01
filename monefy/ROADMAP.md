@@ -2,8 +2,6 @@
 
 # P0
 
-- Censire categoria
-- Censire account
 - Export dati
 - Visualizzare spese su intervallo temporale (raggruppate per categoria)
 - Visualizzare saldo dell'intervallo temporale
@@ -17,8 +15,6 @@
 
 - Selezionare tipo intervallo temporale
 - Modificare spesa
-- Modificare categoria
-- Modificare account
 - Eliminare categoria (se vuota)
 - Eliminare account (se vuoto)
 - Visualizzare grafico spese

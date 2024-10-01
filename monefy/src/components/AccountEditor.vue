@@ -1,30 +1,16 @@
 <template>
   <q-form class="col-12 q-pa-md q-gutter-y-md" style="max-width: 600px" greedy>
-    <q-btn-group spread>
-      <q-btn
-        :color="editor.type === 'debit' ? 'primary' : undefined"
-        label="Debit"
-        icon="remove"
-        @click="
-          editor.type = 'debit';
-          update();
-        "
-      />
-      <q-btn
-        :color="editor.type === 'credit' ? 'primary' : undefined"
-        label="Credit"
-        icon="add"
-        @click="
-          editor.type = 'credit';
-          update();
-        "
-      />
-    </q-btn-group>
-
     <q-input
       outlined
       v-model="editor.name"
       label="Name"
+      @update:model-value="update()"
+      debounce="400"
+    />
+    <q-input
+      outlined
+      v-model="editor.currency"
+      label="Currency"
       @update:model-value="update()"
       debounce="400"
     />
@@ -58,7 +44,6 @@
   </q-form>
 </template>
 <script setup lang="ts">
-import { ExpenseType } from 'src/model/expense-type';
 import { useExpenseStore } from 'src/stores/expenses-store';
 import { computed, onMounted, ref } from 'vue';
 
@@ -66,8 +51,8 @@ const expenseStore = useExpenseStore();
 
 interface Props {
   id: string;
-  type: ExpenseType;
   name: string;
+  currency: string;
   active: boolean;
   icon: string;
   color: string;
@@ -77,20 +62,19 @@ const props = defineProps<Props>();
 
 const editor = ref<{
   id: string;
-  type: ExpenseType;
   name: string;
+  currency: string;
   active: boolean;
   icon: string;
   color: string;
 }>({
   id: '',
-  type: 'credit',
+  currency: 'EUR',
   name: '',
   active: true,
   icon: '',
   color: '',
 });
-
 const addMode = computed(() => props.id === '');
 
 function update(): void {
@@ -102,19 +86,19 @@ function update(): void {
 
 function save(): void {
   if (props.id !== '') {
-    expenseStore.updateCategory(
+    expenseStore.updateAccount(
       editor.value.id,
       editor.value.name,
+      editor.value.currency,
       editor.value.active,
-      editor.value.type,
       editor.value.icon,
       editor.value.color,
     );
   } else {
-    expenseStore.addCategory(
+    expenseStore.addAccount(
       editor.value.name,
+      editor.value.currency,
       editor.value.active,
-      editor.value.type,
       editor.value.icon,
       editor.value.color,
     );
@@ -125,8 +109,8 @@ onMounted(() => {
   if (props.id) {
     editor.value.id = props.id;
   }
-  if (props.type) {
-    editor.value.type = props.type;
+  if (props.currency) {
+    editor.value.currency = props.currency;
   }
   if (props.name) {
     editor.value.name = props.name;

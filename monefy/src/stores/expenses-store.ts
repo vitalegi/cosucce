@@ -36,15 +36,24 @@ expenseDb
 */
 class AccountUtil {
   public static create(
+    id: string | null,
     name: string,
     currency: string,
     active: boolean,
+    icon: string,
+    color: string,
   ): Account {
     const account = new Account();
-    account.id = uuidv4().toString();
+    if (id === null) {
+      account.id = uuidv4().toString();
+    } else {
+      account.id = id;
+    }
     account.name = name;
     account.active = active;
     account.currency = currency;
+    account.icon = icon;
+    account.color = color;
     return account;
   }
 
@@ -216,9 +225,7 @@ export const useExpenseStore = defineStore('expense', {
       color: string,
     ): Promise<Category> {
       const entry = CategoryUtil.create(null, name, active, type, icon, color);
-
       this.categoriesMap.set(entry.id, entry);
-
       await db.categories.add(entry);
       return entry;
     },
@@ -234,9 +241,7 @@ export const useExpenseStore = defineStore('expense', {
         throw new Error(`Can't find category with id ${id}`);
       }
       const entry = CategoryUtil.create(id, name, active, type, icon, color);
-
       this.categoriesMap.set(entry.id, entry);
-
       await db.categories.update(entry.id, entry);
       return entry;
     },
@@ -244,10 +249,32 @@ export const useExpenseStore = defineStore('expense', {
       name: string,
       currency: string,
       active: boolean,
+      icon: string,
+      color: string,
     ): Promise<Account> {
-      const entry = AccountUtil.create(name, currency, active);
+      const entry = AccountUtil.create(
+        null,
+        name,
+        currency,
+        active,
+        icon,
+        color,
+      );
       this.accountsMap.set(entry.id, entry);
       await db.accounts.add(entry);
+      return entry;
+    },
+    async updateAccount(
+      id: string,
+      name: string,
+      currency: string,
+      active: boolean,
+      icon: string,
+      color: string,
+    ): Promise<Account> {
+      const entry = AccountUtil.create(id, name, currency, active, icon, color);
+      this.accountsMap.set(entry.id, entry);
+      await db.accounts.update(entry.id, entry);
       return entry;
     },
     async addExpense(

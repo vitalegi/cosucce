@@ -9,9 +9,9 @@
       </template>
       <q-card>
         <q-card-section>
-          <CategoryEditor
+          <AccountEditor
             id=""
-            type="credit"
+            currency="EUR"
             name=""
             :active="true"
             icon=""
@@ -34,9 +34,9 @@
       </template>
       <q-card>
         <q-card-section>
-          <CategoryEditor
+          <AccountEditor
             :id="element.id"
-            :type="element.type"
+            :currency="element.currency"
             :name="element.name"
             :active="element.active"
             :icon="element.icon"
@@ -50,9 +50,9 @@
 <script setup lang="ts">
 import { useExpenseStore } from 'src/stores/expenses-store';
 import { computed } from 'vue';
-import CategoryEditor from './CategoryEditor.vue';
+import AccountEditor from './AccountEditor.vue';
 
 const expenseStore = useExpenseStore();
 
-const elements = computed(() => expenseStore.categories());
+const elements = computed(() => expenseStore.accounts);
 </script>
