@@ -1,3 +1,4 @@
+import Dexie, { EntityTable } from 'dexie';
 import { defineStore } from 'pinia';
 import Account from 'src/model/account';
 import Category from 'src/model/category';
@@ -6,6 +7,33 @@ import { ExpenseType } from 'src/model/expense-type';
 import DateUtil from 'src/utils/date-util';
 import { v4 as uuidv4 } from 'uuid';
 
+const db = new Dexie('db') as Dexie & {
+  accounts: EntityTable<Account, 'id'>;
+  categories: EntityTable<Category, 'id'>;
+  expenses: EntityTable<ExpenseDto, 'id'>;
+};
+db.version(1).stores({
+  accounts: '++id, name, currency, active',
+  categories: '++id, type, name, active',
+  expenses:
+    '++id, date, accountId, categoryId, amount, description, creationDate, lastUpdate',
+});
+/*
+const categoryDb = new Dexie('categories') as Dexie & {
+  categories: EntityTable<Category, 'id'>;
+};
+categoryDb.version(1).stores({ categories: '++id, type, name, active' });
+
+const expenseDb = new Dexie('expenses') as Dexie & {
+  expenses: EntityTable<ExpenseDto, 'id'>;
+};
+expenseDb
+  .version(1)
+  .stores({
+    expenses:
+      '++id, date, accountId, categoryId, amount, description, creationDate, lastUpdate',
+  });
+*/
 class AccountUtil {
   public static create(
     name: string,
@@ -65,6 +93,7 @@ class ExpenseUtil {
     description: string,
   ): ExpenseDto {
     const out = new ExpenseDto();
+    out.id = uuidv4().toString();
     out.date = date;
     out.accountId = accountId;
     out.categoryId = categoryId;
@@ -175,6 +204,8 @@ export const useExpenseStore = defineStore('expense', {
     ): Promise<Category> {
       const entry = CategoryUtil.create(name, active, type);
       this.categoriesMap.set(entry.id, entry);
+
+      await db.categories.add(entry);
       return entry;
     },
     async addAccount(
@@ -184,6 +215,7 @@ export const useExpenseStore = defineStore('expense', {
     ): Promise<Account> {
       const entry = AccountUtil.create(name, currency, active);
       this.accountsMap.set(entry.id, entry);
+      await db.accounts.add(entry);
       return entry;
     },
     async addExpense(
@@ -203,8 +235,26 @@ export const useExpenseStore = defineStore('expense', {
         description,
       );
       const out = ExpenseUtil.build(dto, this.categoriesMap, this.accountsMap);
+      await db.expenses.add(dto);
       this.expensesList.push(dto);
       this.structuredEntries.push(out);
+      return out;
+    },
+
+    async loadCategory(entry: Category): Promise<Category> {
+      this.categoriesMap.set(entry.id, entry);
+      return entry;
+    },
+    async loadAccount(entry: Account): Promise<Account> {
+      this.accountsMap.set(entry.id, entry);
+      return entry;
+    },
+    async loadExpenses(entries: ExpenseDto[]): Promise<Expense[]> {
+      const out = entries.map((e) =>
+        ExpenseUtil.build(e, this.categoriesMap, this.accountsMap),
+      );
+      this.expensesList.push(...entries);
+      this.structuredEntries.push(...out);
       return out;
     },
   },
@@ -212,56 +262,45 @@ export const useExpenseStore = defineStore('expense', {
 
 const expenseStore = useExpenseStore();
 
-async function init() {
-  const category1 = await expenseStore.addCategory('Risparmi', true, 'credit');
-  const category2 = await expenseStore.addCategory('Bollette', true, 'debit');
+async function loadCategories(): Promise<void> {
+  const startTime = DateUtil.timestamp();
+  const entries = await db.categories.toArray();
 
-  const account1 = await expenseStore.addAccount('CC', '€', true);
-  const account2 = await expenseStore.addAccount('Contanti', '€', true);
-
-  expenseStore.addExpense(
-    new Date(),
-    'credit',
-    account1.id,
-    category1.id,
-    '10.00',
-    'operazione 1',
-  );
-  expenseStore.addExpense(
-    new Date(),
-    'debit',
-    account2.id,
-    category2.id,
-    '255550.33',
-    'operazione 2',
-  );
-
-  expenseStore.addExpense(
-    new Date(),
-    'debit',
-    account2.id,
-    category2.id,
-    '21.66',
-    'operazione 3',
-  );
-
-  expenseStore.addExpense(
-    new Date(),
-    'debit',
-    account2.id,
-    category2.id,
-    '21.99',
-    'operazione 4',
-  );
-
-  expenseStore.addExpense(
-    new Date(),
-    'debit',
-    account2.id,
-    category2.id,
-    '30',
-    'operazione 5',
-  );
+  for (const entry of entries) {
+    const value = Category.fromJson(entry);
+    await expenseStore.loadCategory(value);
+  }
+  const duration = DateUtil.timestamp() - startTime;
+  console.log(`loaded categories in ${duration}ms`);
 }
 
-init();
+async function loadAccounts(): Promise<void> {
+  const startTime = DateUtil.timestamp();
+  const entries = await db.accounts.toArray();
+
+  for (const entry of entries) {
+    const value = Account.fromJson(entry);
+    await expenseStore.loadAccount(value);
+  }
+  const duration = DateUtil.timestamp() - startTime;
+  console.log(`loaded accounts in ${duration}ms`);
+}
+
+async function loadExpenses(): Promise<void> {
+  const startTime = DateUtil.timestamp();
+  const entries = await db.expenses.toArray();
+  console.log(
+    `loaded expenses from idb in ${DateUtil.timestamp() - startTime}ms`,
+  );
+
+  await expenseStore.loadExpenses(entries);
+  console.log(`loaded expenses in ${DateUtil.timestamp() - startTime}ms`);
+}
+
+async function loadData() {
+  await loadCategories();
+  await loadAccounts();
+  await loadExpenses();
+}
+
+loadData();

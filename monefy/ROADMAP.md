@@ -17,3 +17,4 @@
 - Salvataggio backend
 - Selezionare colore categoria
 - Selezionare icona categoria
+- Crea preferiti

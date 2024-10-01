@@ -12,7 +12,7 @@ export default class Category {
     out.id = obj.id;
     out.name = obj.name;
     out.active = obj.active;
-    out.type = convertToExpenseType(obj.expense);
+    out.type = convertToExpenseType(obj.type);
     return out;
   }
 }

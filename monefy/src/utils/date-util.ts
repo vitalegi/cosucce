@@ -77,4 +77,8 @@ export default class DateUtil {
   public static compareDates = (d1: Date, d2: Date): number => {
     return d1.getTime() - d2.getTime();
   };
+
+  public static timestamp() {
+    return Date.now();
+  }
 }
