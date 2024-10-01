@@ -21,20 +21,7 @@
           label="Outlined"
         />
         <div class="col-12 q-gutter-sm">
-          <q-btn
-            color="secondary"
-            outline
-            label="Giorno"
-            class="time-interval"
-          />
-          <q-btn
-            color="secondary"
-            outline
-            label="Settimana"
-            class="time-interval"
-          />
-          <q-btn color="secondary" outline label="Mese" class="time-interval" />
-          <q-btn color="secondary" outline label="Anno" class="time-interval" />
+          <TimeIntervalSelector></TimeIntervalSelector>
         </div>
       </div>
     </q-drawer>
@@ -67,6 +54,7 @@
 <script setup lang="ts">
 import AccountsVerticalEditor from 'src/components/AccountsVerticalEditor.vue';
 import CategoriesVerticalEditor from 'src/components/CategoriesVerticalEditor.vue';
+import TimeIntervalSelector from 'src/components/TimeIntervalSelector.vue';
 import { ref } from 'vue';
 
 const leftDrawerOpen = ref(false);
@@ -82,10 +70,3 @@ function toggleRightDrawer() {
 
 const account = ref('*');
 </script>
-
-<style lang="scss" scoped>
-.time-interval {
-  width: 100%;
-  min-height: 56px;
-}
-</style>

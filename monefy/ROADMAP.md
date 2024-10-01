@@ -2,14 +2,12 @@
 
 # P0
 
-- Export dati
-- Visualizzare spese su intervallo temporale (raggruppate per categoria)
-- Visualizzare saldo dell'intervallo temporale
+- Selezionare intervallo temporale
 
 # P1
 
-- Selezionare intervallo temporale
 - Salvataggio backend
+- Export dati
 
 # P2
 
