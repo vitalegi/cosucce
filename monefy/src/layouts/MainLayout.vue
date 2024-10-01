@@ -40,7 +40,9 @@
     </q-drawer>
 
     <q-drawer v-model="rightDrawerOpen" side="right" overlay bordered>
-      <!-- drawer content -->
+      <div class="row items-start justify-start q-px-md">
+        <CategoriesVerticalEditor class="col-12"></CategoriesVerticalEditor>
+      </div>
     </q-drawer>
 
     <q-page-container>
@@ -50,6 +52,7 @@
 </template>
 
 <script setup lang="ts">
+import CategoriesVerticalEditor from 'src/components/CategoriesVerticalEditor.vue';
 import { ref } from 'vue';
 
 const leftDrawerOpen = ref(false);

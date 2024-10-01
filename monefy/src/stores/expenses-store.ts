@@ -13,8 +13,8 @@ const db = new Dexie('db') as Dexie & {
   expenses: EntityTable<ExpenseDto, 'id'>;
 };
 db.version(1).stores({
-  accounts: '++id, name, currency, active',
-  categories: '++id, type, name, active',
+  accounts: '++id, name, currency, active, icon, color',
+  categories: '++id, type, name, active, icon, color',
   expenses:
     '++id, date, accountId, categoryId, amount, description, creationDate, lastUpdate',
 });
@@ -59,15 +59,24 @@ class AccountUtil {
 
 class CategoryUtil {
   public static create(
+    id: string | null,
     name: string,
     active: boolean,
     type: ExpenseType,
+    icon: string,
+    color: string,
   ): Category {
     const category = new Category();
-    category.id = uuidv4().toString();
+    if (id === null) {
+      category.id = uuidv4().toString();
+    } else {
+      category.id = id;
+    }
     category.name = name;
     category.type = type;
     category.active = active;
+    category.icon = icon;
+    category.color = color;
     return category;
   }
 
@@ -147,12 +156,14 @@ export const useExpenseStore = defineStore('expense', {
       );
     },
     categories(state) {
-      return (type: ExpenseType): Category[] => {
-        return Array.from(state.categoriesMap.values())
-          .filter((c) => c.type === type)
-          .sort((c1, c2) =>
-            c1.name.toUpperCase() < c2.name.toUpperCase() ? -1 : 1,
-          );
+      return (type?: ExpenseType): Category[] => {
+        let entries = Array.from(state.categoriesMap.values());
+        if (type) {
+          entries = entries.filter((c) => c.type === type);
+        }
+        return entries.sort((c1, c2) =>
+          c1.name.toUpperCase() < c2.name.toUpperCase() ? -1 : 1,
+        );
       };
     },
     expensesInInterval(state) {
@@ -201,11 +212,32 @@ export const useExpenseStore = defineStore('expense', {
       name: string,
       active: boolean,
       type: ExpenseType,
+      icon: string,
+      color: string,
     ): Promise<Category> {
-      const entry = CategoryUtil.create(name, active, type);
+      const entry = CategoryUtil.create(null, name, active, type, icon, color);
+
       this.categoriesMap.set(entry.id, entry);
 
       await db.categories.add(entry);
+      return entry;
+    },
+    async updateCategory(
+      id: string,
+      name: string,
+      active: boolean,
+      type: ExpenseType,
+      icon: string,
+      color: string,
+    ): Promise<Category> {
+      if (!this.categoriesMap.has(id)) {
+        throw new Error(`Can't find category with id ${id}`);
+      }
+      const entry = CategoryUtil.create(id, name, active, type, icon, color);
+
+      this.categoriesMap.set(entry.id, entry);
+
+      await db.categories.update(entry.id, entry);
       return entry;
     },
     async addAccount(
@@ -241,21 +273,18 @@ export const useExpenseStore = defineStore('expense', {
       return out;
     },
 
-    async loadCategory(entry: Category): Promise<Category> {
-      this.categoriesMap.set(entry.id, entry);
-      return entry;
+    async loadCategories(entries: Category[]): Promise<void> {
+      entries.forEach((entry) => this.categoriesMap.set(entry.id, entry));
     },
-    async loadAccount(entry: Account): Promise<Account> {
-      this.accountsMap.set(entry.id, entry);
-      return entry;
+    async loadAccounts(entries: Account[]): Promise<void> {
+      entries.forEach((entry) => this.accountsMap.set(entry.id, entry));
     },
-    async loadExpenses(entries: ExpenseDto[]): Promise<Expense[]> {
+    async loadExpenses(entries: ExpenseDto[]): Promise<void> {
       const out = entries.map((e) =>
         ExpenseUtil.build(e, this.categoriesMap, this.accountsMap),
       );
       this.expensesList.push(...entries);
       this.structuredEntries.push(...out);
-      return out;
     },
   },
 });
@@ -265,35 +294,24 @@ const expenseStore = useExpenseStore();
 async function loadCategories(): Promise<void> {
   const startTime = DateUtil.timestamp();
   const entries = await db.categories.toArray();
-
-  for (const entry of entries) {
-    const value = Category.fromJson(entry);
-    await expenseStore.loadCategory(value);
-  }
-  const duration = DateUtil.timestamp() - startTime;
-  console.log(`loaded categories in ${duration}ms`);
+  const mapped = entries.map(Category.fromJson);
+  await expenseStore.loadCategories(mapped);
+  console.log(`loaded categories in ${DateUtil.timestamp() - startTime}ms`);
 }
 
 async function loadAccounts(): Promise<void> {
   const startTime = DateUtil.timestamp();
   const entries = await db.accounts.toArray();
-
-  for (const entry of entries) {
-    const value = Account.fromJson(entry);
-    await expenseStore.loadAccount(value);
-  }
-  const duration = DateUtil.timestamp() - startTime;
-  console.log(`loaded accounts in ${duration}ms`);
+  const mapped = entries.map(Account.fromJson);
+  await expenseStore.loadAccounts(mapped);
+  console.log(`loaded accounts in ${DateUtil.timestamp() - startTime}ms`);
 }
 
 async function loadExpenses(): Promise<void> {
   const startTime = DateUtil.timestamp();
   const entries = await db.expenses.toArray();
-  console.log(
-    `loaded expenses from idb in ${DateUtil.timestamp() - startTime}ms`,
-  );
-
-  await expenseStore.loadExpenses(entries);
+  const mapped = entries.map(ExpenseDto.fromJson);
+  await expenseStore.loadExpenses(mapped);
   console.log(`loaded expenses in ${DateUtil.timestamp() - startTime}ms`);
 }
 
