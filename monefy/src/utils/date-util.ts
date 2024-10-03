@@ -1,11 +1,11 @@
-import { leftPadding } from 'src/utils/StringUtil';
+import StringUtil from 'src/utils/string-util';
 
 export default class DateUtil {
   public static readonly DATE_FORMAT = 'DD/MM/YYYY';
 
   public static toQDateFormat = (date: Date, format: 'DD/MM/YYYY'): string => {
-    const month = leftPadding(`${date.getMonth() + 1}`, 2, '0');
-    const day = leftPadding(`${date.getDate()}`, 2, '0');
+    const month = StringUtil.leftPadding(`${date.getMonth() + 1}`, 2, '0');
+    const day = StringUtil.leftPadding(`${date.getDate()}`, 2, '0');
     if (format === DateUtil.DATE_FORMAT) {
       return `${day}/${month}/${date.getFullYear()}`;
     }

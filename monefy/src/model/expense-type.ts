@@ -1,9 +1,9 @@
-import { asString } from 'src/utils/JsonUtil';
+import JsonUtil from 'src/utils/json-util';
 
 export type ExpenseType = 'credit' | 'debit';
 
 export function convertToExpenseType(str: string): ExpenseType {
-  const type = asString(str);
+  const type = JsonUtil.asString(str);
   if (type === 'credit' || type === 'debit') {
     return type;
   } else {

@@ -1,4 +1,4 @@
-import { asBoolean, asString } from 'src/utils/JsonUtil';
+import JsonUtil from 'src/utils/json-util';
 
 export default class Account {
   id = '';
@@ -11,11 +11,11 @@ export default class Account {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static fromJson(obj: any): Account {
     const out = new Account();
-    out.id = asString(obj.id);
-    out.name = asString(obj.name);
-    out.active = asBoolean(obj.active, false);
-    out.icon = asString(obj.icon, '');
-    out.color = asString(obj.color, '');
+    out.id = JsonUtil.asString(obj.id);
+    out.name = JsonUtil.asString(obj.name);
+    out.active = JsonUtil.asBoolean(obj.active, false);
+    out.icon = JsonUtil.asString(obj.icon, '');
+    out.color = JsonUtil.asString(obj.color, '');
     return out;
   }
 }

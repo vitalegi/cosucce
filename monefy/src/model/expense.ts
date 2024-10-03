@@ -1,4 +1,4 @@
-import { asDate, asString } from 'src/utils/JsonUtil';
+import JsonUtil from 'src/utils/json-util';
 import Account from './account';
 import Category from './category';
 
@@ -26,15 +26,15 @@ export class ExpenseDto {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static fromJson(obj: any): ExpenseDto {
     const out = new ExpenseDto();
-    out.id = asString(obj.id);
-    out.date = asDate(obj.date);
-    out.accountId = asString(obj.accountId);
-    out.categoryId = asString(obj.categoryId);
-    out.amount = asString(obj.amount);
-    out.description = asString(obj.description);
+    out.id = JsonUtil.asString(obj.id);
+    out.date = JsonUtil.asDate(obj.date);
+    out.accountId = JsonUtil.asString(obj.accountId);
+    out.categoryId = JsonUtil.asString(obj.categoryId);
+    out.amount = JsonUtil.asString(obj.amount);
+    out.description = JsonUtil.asString(obj.description);
 
-    out.creationDate = asDate(obj.creationDate);
-    out.lastUpdate = asDate(obj.lastUpdate);
+    out.creationDate = JsonUtil.asDate(obj.creationDate);
+    out.lastUpdate = JsonUtil.asDate(obj.lastUpdate);
     return out;
   }
 }
