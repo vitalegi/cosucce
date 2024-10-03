@@ -2,9 +2,11 @@ import JsonUtil from 'src/utils/json-util';
 import Account from './account';
 import Category from './category';
 
+export const EXPENSE_DATE_FORMAT = 'yyyy-MM-dd';
+
 export default class Expense {
   id = '';
-  date = new Date();
+  date = '';
   account = new Account();
   category = new Category();
   amount = '';
@@ -15,7 +17,7 @@ export default class Expense {
 
 export class ExpenseDto {
   id = '';
-  date = new Date();
+  date = '';
   accountId = '';
   categoryId = '';
   amount = '';
@@ -27,7 +29,7 @@ export class ExpenseDto {
   public static fromJson(obj: any): ExpenseDto {
     const out = new ExpenseDto();
     out.id = JsonUtil.asString(obj.id);
-    out.date = JsonUtil.asDate(obj.date);
+    out.date = JsonUtil.asString(obj.date);
     out.accountId = JsonUtil.asString(obj.accountId);
     out.categoryId = JsonUtil.asString(obj.categoryId);
     out.amount = JsonUtil.asString(obj.amount);

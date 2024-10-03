@@ -1,34 +1,6 @@
-import StringUtil from 'src/utils/string-util';
-
 export default class DateUtil {
-  public static readonly DATE_FORMAT = 'DD/MM/YYYY';
-
-  public static toQDateFormat = (date: Date, format: 'DD/MM/YYYY'): string => {
-    const month = StringUtil.leftPadding(`${date.getMonth() + 1}`, 2, '0');
-    const day = StringUtil.leftPadding(`${date.getDate()}`, 2, '0');
-    if (format === DateUtil.DATE_FORMAT) {
-      return `${day}/${month}/${date.getFullYear()}`;
-    }
-    throw new Error('unsupported format ' + format);
-  };
-
-  public static fromQDateFormat = (str: string, format: 'DD/MM/YYYY'): Date => {
-    if (format === DateUtil.DATE_FORMAT) {
-      const values = str.split('/');
-      const day = parseInt(values[0]);
-      const month = parseInt(values[1]) - 1;
-      const year = parseInt(values[2]);
-      return new Date(year, month, day, 0, 0, 0, 0);
-    }
-    throw new Error('unsupported format ' + format);
-  };
-
-  public static formatYearMonth = (year: number, month: number): string => {
-    return new Date(year, month, 1).toLocaleString('default', {
-      year: '2-digit',
-      month: 'short',
-    });
-  };
+  public static readonly Q_DATE_FORMAT = 'dd/MM/yyyy';
+  public static readonly Q_DATE_MASK = 'DD/MM/YYYY';
 
   public static formatElapsedTime = (date: Date, now: Date): string => {
     const diff = now.getTime() - date.getTime();
@@ -52,26 +24,6 @@ export default class DateUtil {
       return `${Math.round(days)}d`;
     }
     return '>7d';
-  };
-
-  public static formatFullDateTime = (date: Date): string => {
-    return new Intl.DateTimeFormat('it-IT', {
-      dateStyle: 'medium',
-      timeStyle: 'long',
-    }).format(date);
-  };
-
-  public static formatFullDate = (date: Date): string => {
-    return new Intl.DateTimeFormat('it-IT', {
-      dateStyle: 'medium',
-    }).format(date);
-  };
-
-  public static formatDayMonth = (date: Date): string => {
-    return new Intl.DateTimeFormat('it-IT', {
-      day: 'numeric',
-      month: 'short',
-    }).format(date);
   };
 
   public static compareDates = (d1: Date, d2: Date): number => {

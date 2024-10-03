@@ -2,8 +2,8 @@
   <q-slide-item
     @left="previous"
     @right="next"
-    right-color="secondary"
-    left-color="secondary"
+    right-color="grey-2"
+    left-color="grey-2"
   >
     <template v-slot:left v-if="showSlider"> </template>
     <template v-slot:right v-if="showSlider"> </template>

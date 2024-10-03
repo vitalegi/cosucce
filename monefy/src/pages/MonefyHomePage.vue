@@ -1,7 +1,7 @@
 <template>
   <q-page class="row content-start justify-evenly">
     <div class="main-content col-12">
-      <IntervalSlideItem></IntervalSlideItem>
+      <TimeIntervalSlideItem></TimeIntervalSlideItem>
       <div class="row col-12 justify-center">
         <q-btn :draggable="false" color="grey-4" outline padding="sm xl">
           <ExpenseValue
@@ -52,7 +52,7 @@ import ExpenseUtil from 'src/utils/expense-util';
 import { useExpenseStore } from 'src/stores/expenses-store';
 import ExpenseValue from 'src/components/ExpenseValue.vue';
 import BigDecimalUtil from 'src/utils/big-decimal-util';
-import IntervalSlideItem from 'src/components/IntervalSlideItem.vue';
+import TimeIntervalSlideItem from 'src/components/TimeIntervalSlideItem.vue';
 
 defineOptions({
   name: 'MonefyHomePage',

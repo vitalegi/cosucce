@@ -1,8 +1,9 @@
+import { format } from 'date-fns';
 import Dexie, { EntityTable } from 'dexie';
 import { defineStore } from 'pinia';
 import Account from 'src/model/account';
 import Category from 'src/model/category';
-import Expense, { ExpenseDto } from 'src/model/expense';
+import Expense, { EXPENSE_DATE_FORMAT, ExpenseDto } from 'src/model/expense';
 import { ExpenseType } from 'src/model/expense-type';
 import DateUtil from 'src/utils/date-util';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,22 +19,7 @@ db.version(1).stores({
   expenses:
     '++id, date, accountId, categoryId, amount, description, creationDate, lastUpdate',
 });
-/*
-const categoryDb = new Dexie('categories') as Dexie & {
-  categories: EntityTable<Category, 'id'>;
-};
-categoryDb.version(1).stores({ categories: '++id, type, name, active' });
 
-const expenseDb = new Dexie('expenses') as Dexie & {
-  expenses: EntityTable<ExpenseDto, 'id'>;
-};
-expenseDb
-  .version(1)
-  .stores({
-    expenses:
-      '++id, date, accountId, categoryId, amount, description, creationDate, lastUpdate',
-  });
-*/
 class AccountUtil {
   public static create(
     id: string | null,
@@ -103,7 +89,7 @@ class CategoryUtil {
 
 class ExpenseUtil {
   public static createDto(
-    date: Date,
+    date: string,
     expenseType: ExpenseType,
     accountId: string,
     categoryId: string,
@@ -137,8 +123,11 @@ class ExpenseUtil {
     return out;
   }
 
-  public static inInterval(date: Date, from: Date, to: Date) {
-    return from <= date && date <= to;
+  public static inInterval(date: string, from: Date, to: Date) {
+    return (
+      format(from, EXPENSE_DATE_FORMAT) <= date &&
+      date <= format(to, EXPENSE_DATE_FORMAT)
+    );
   }
 }
 
@@ -180,40 +169,12 @@ export const useExpenseStore = defineStore('expense', {
         return state.structuredEntries
           .filter((e) => ExpenseUtil.inInterval(e.date, from, to))
           .sort((e1: Expense, e2: Expense) => {
-            const c1 = DateUtil.compareDates(e1.date, e2.date);
-            if (c1 === 0) {
-              return c1;
+            if (e1.date !== e2.date) {
+              return e1.date > e2.date ? 1 : -1;
             }
             return DateUtil.compareDates(e1.lastUpdate, e2.lastUpdate);
           });
       };
-    },
-    firstDate(state): Date | undefined {
-      const list = state.expensesList;
-      if (list.length === 0) {
-        return undefined;
-      }
-      let min = list[0].date;
-      for (const e of list) {
-        if (min < e.date) {
-          min = e.date;
-        }
-      }
-      return min;
-    },
-
-    lastDate(state): Date | undefined {
-      const list = state.expensesList;
-      if (list.length === 0) {
-        return undefined;
-      }
-      let max = list[0].date;
-      for (const e of list) {
-        if (max > e.date) {
-          max = e.date;
-        }
-      }
-      return max;
     },
   },
   actions: {
@@ -278,7 +239,7 @@ export const useExpenseStore = defineStore('expense', {
       return entry;
     },
     async addExpense(
-      date: Date,
+      date: string,
       expenseType: ExpenseType,
       accountId: string,
       categoryId: string,

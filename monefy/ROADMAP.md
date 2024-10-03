@@ -2,8 +2,6 @@
 
 # P0
 
-- Selezionare intervallo temporale
-
 # P1
 
 - Salvataggio backend

@@ -76,7 +76,7 @@ export default class ExpenseUtil {
     return expenses
       .map((e) => e)
       .sort((e1, e2) => {
-        return multiplier * (e1.date.getTime() - e2.date.getDate());
+        return multiplier * (e1.date > e2.date ? 1 : -1);
       });
   }
 }

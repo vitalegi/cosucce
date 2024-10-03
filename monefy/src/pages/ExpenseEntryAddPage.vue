@@ -21,7 +21,7 @@ const expenseStore = useExpenseStore();
 const router = useRouter();
 
 async function add(evt: {
-  date: Date;
+  date: string;
   accountId: string;
   categoryId: string;
   description: string;

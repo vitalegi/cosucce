@@ -5,7 +5,7 @@
     style="max-width: 600px"
     greedy
   >
-    <DateSelector v-model="date" :mask="DateUtil.DATE_FORMAT" />
+    <DateSelector v-model="qDate" :mask="DateUtil.Q_DATE_MASK" />
     <AccountSelector v-model="accountId" />
     <CategorySelector v-model="categoryId" :type="type" />
     <q-input outlined v-model="description" label="Description" />
@@ -29,11 +29,13 @@ import DateUtil from 'src/utils/date-util';
 import AccountSelector from './AccountSelector.vue';
 import CategorySelector from './CategorySelector.vue';
 import AmountSelector from './AmountSelector.vue';
+import { EXPENSE_DATE_FORMAT } from 'src/model/expense';
+import { format, parse } from 'date-fns';
 
 interface Props {
   type: ExpenseType;
   expenseId?: string;
-  oldDate?: Date;
+  oldDate?: string;
   oldAccountId?: string;
   oldCategoryId?: string;
   oldDescription?: string;
@@ -44,14 +46,19 @@ const props = defineProps<Props>();
 
 const emit = defineEmits(['submit']);
 
-const date = ref<string>('');
+const qDate = ref<string>('');
 const accountId = ref<string>('');
 const categoryId = ref<string>('');
 const description = ref<string>('');
 const amount = ref<string>('');
 
 function onSubmit() {
-  const mappedDate = DateUtil.fromQDateFormat(date.value, DateUtil.DATE_FORMAT);
+  const mappedDate = convertDate(
+    qDate.value,
+    DateUtil.Q_DATE_FORMAT,
+    EXPENSE_DATE_FORMAT,
+  );
+
   emit('submit', {
     date: mappedDate,
     accountId: accountId.value,
@@ -61,12 +68,17 @@ function onSubmit() {
   });
 }
 
-function initDate(newValue?: Date): void {
+function initDate(newValue?: string): void {
+  let value = format(new Date(), EXPENSE_DATE_FORMAT);
   if (newValue) {
-    date.value = DateUtil.toQDateFormat(newValue, DateUtil.DATE_FORMAT);
-  } else {
-    date.value = DateUtil.toQDateFormat(new Date(), DateUtil.DATE_FORMAT);
+    value = newValue;
   }
+  qDate.value = convertDate(value, EXPENSE_DATE_FORMAT, DateUtil.Q_DATE_FORMAT);
+}
+
+function convertDate(date: string, inFormat: string, outFormat: string) {
+  const temp = parse(date, inFormat, new Date());
+  return format(temp, outFormat);
 }
 
 onMounted(() => {

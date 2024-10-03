@@ -15,21 +15,24 @@
     </q-item-section>
 
     <q-item-section top side>
-      <q-item-label class="q-mt-sm">{{
-        DateUtil.formatDayMonth(expense.date)
-      }}</q-item-label>
+      <q-item-label class="q-mt-sm">
+        {{ dateLabel }}
+      </q-item-label>
     </q-item-section>
   </q-item>
 </template>
 
 <script setup lang="ts">
 import Expense from 'src/model/expense';
-import DateUtil from 'src/utils/date-util';
 import ExpenseValue from './ExpenseValue.vue';
+import { computed } from 'vue';
+import { format } from 'date-fns';
 
 interface Props {
   expense: Expense;
 }
 
-defineProps<Props>();
+const dateLabel = computed(() => format(props.expense.date, 'd LLL'));
+
+const props = defineProps<Props>();
 </script>
