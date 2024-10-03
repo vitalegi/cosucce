@@ -1,16 +1,8 @@
 <template>
   <q-page class="row content-start justify-evenly">
     <div class="main-content col-12">
-      <div
-        class="row col-12 justify-center"
-        v-touch-swipe.mouse.right.left="handleSwipe"
-      >
-        {{ intervalStore.label }}
-      </div>
-      <div
-        class="row col-12 justify-center"
-        v-touch-swipe.mouse.right.left="handleSwipe"
-      >
+      <IntervalSlideItem></IntervalSlideItem>
+      <div class="row col-12 justify-center">
         <q-btn :draggable="false" color="grey-4" outline padding="sm xl">
           <ExpenseValue
             :amount="amount"
@@ -52,7 +44,6 @@
 </template>
 
 <script setup lang="ts">
-import { Notify } from 'quasar';
 import ExpensesByCategories from 'components/ExpensesByCategories.vue';
 import { useIntervalStore } from 'src/stores/interval-store';
 import { useRouter } from 'vue-router';
@@ -61,6 +52,7 @@ import ExpenseUtil from 'src/utils/expense-util';
 import { useExpenseStore } from 'src/stores/expenses-store';
 import ExpenseValue from 'src/components/ExpenseValue.vue';
 import BigDecimalUtil from 'src/utils/big-decimal-util';
+import IntervalSlideItem from 'src/components/IntervalSlideItem.vue';
 
 defineOptions({
   name: 'MonefyHomePage',
@@ -91,17 +83,6 @@ const amountType = computed(() =>
 const expenses = computed(() =>
   expenseStore.expensesInInterval(intervalStore.from, intervalStore.to),
 );
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function handleSwipe(e: any) {
-  const direction = e.direction;
-  if (direction === 'left') {
-    Notify.create('Left!');
-  }
-  if (direction === 'right') {
-    Notify.create('Right!');
-  }
-}
 
 function addCredit() {
   router.push('/add/credit');

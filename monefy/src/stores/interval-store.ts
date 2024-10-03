@@ -1,6 +1,18 @@
 import { defineStore } from 'pinia';
 import TimeInterval from 'src/model/interval';
-import DateUtil from 'src/utils/date-util';
+import {
+  add,
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  endOfYear,
+  format,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+  startOfYear,
+} from 'date-fns';
+import { it } from 'date-fns/locale';
 
 interface State {
   interval: TimeInterval;
@@ -8,56 +20,53 @@ interface State {
   to: Date;
 }
 
-function firstDayOfYear(date: Date): Date {
-  return new Date(date.getFullYear(), 0, 1);
-}
-
-function lastDayOfYear(date: Date): Date {
-  return new Date(date.getFullYear() + 1, 0, 1);
-}
-
-function firstDayOfMonth(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function lastDayOfMonth(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
-}
-
-function startOfDay(date: Date): Date {
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDay(),
-    0,
-    0,
-    0,
-    0,
-  );
-}
-
-function endOfDay(date: Date): Date {
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDay() + 1,
-    0,
-    0,
-    0,
-    0,
-  );
-}
-
 function getLabel(interval: TimeInterval, from: Date, to: Date): string {
-  return DateUtil.formatFullDate(from) + ' - ' + DateUtil.formatFullDate(to);
+  const options = { locale: it };
+  switch (interval) {
+    case 'all':
+      return 'All';
+    case 'yearly':
+      return format(from, 'yyyy');
+    case 'monthly':
+      return format(from, "LLL ''yy", options);
+    case 'weekly':
+      return (
+        format(from, 'd LLL', options) +
+        ' - ' +
+        format(to, "d LLL ''yy", options)
+      );
+    case 'daily':
+      return format(from, "EEEE d LLL ''yy", options);
+  }
+}
+
+function getInterval(
+  date: Date,
+  interval: TimeInterval,
+): { from: Date; to: Date } {
+  switch (interval) {
+    case 'all':
+      return { from: new Date(0, 0, 0), to: new Date(9999, 0, 0) };
+    case 'yearly':
+      return { from: startOfYear(date), to: endOfYear(date) };
+    case 'monthly':
+      return { from: startOfMonth(date), to: endOfMonth(date) };
+    case 'weekly':
+      return {
+        from: startOfWeek(date, { weekStartsOn: 1 }),
+        to: endOfWeek(date, { weekStartsOn: 1 }),
+      };
+    case 'daily':
+      return { from: startOfDay(date), to: endOfDay(date) };
+  }
 }
 
 export const useIntervalStore = defineStore('interval', {
   state: (): State => {
     return {
       interval: 'monthly',
-      from: firstDayOfMonth(new Date()),
-      to: lastDayOfMonth(new Date()),
+      from: startOfMonth(new Date()),
+      to: endOfMonth(new Date()),
     };
   },
   getters: {
@@ -68,24 +77,26 @@ export const useIntervalStore = defineStore('interval', {
   actions: {
     change(interval: TimeInterval) {
       this.interval = interval;
-      switch (interval) {
-        case 'all':
-          break;
-        case 'yearly':
-          this.from = firstDayOfYear(new Date());
-          this.to = lastDayOfYear(new Date());
-          break;
-        case 'monthly':
-          this.from = firstDayOfMonth(new Date());
-          this.to = lastDayOfMonth(new Date());
-          break;
-        case 'weekly':
-          break;
-        case 'daily':
-          this.from = startOfDay(new Date());
-          this.to = endOfDay(new Date());
-          break;
-      }
+      const value = getInterval(new Date(), interval);
+      this.from = value.from;
+      this.to = value.to;
+    },
+    now() {
+      const value = getInterval(new Date(), this.interval);
+      this.from = value.from;
+      this.to = value.to;
+    },
+    next() {
+      const date = add(this.to, { hours: 1 });
+      const value = getInterval(date, this.interval);
+      this.from = value.from;
+      this.to = value.to;
+    },
+    previous() {
+      const date = add(this.from, { hours: -1 });
+      const value = getInterval(date, this.interval);
+      this.from = value.from;
+      this.to = value.to;
     },
   },
 });

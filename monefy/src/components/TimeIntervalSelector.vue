@@ -1,5 +1,12 @@
 <template>
   <q-btn
+    class="time-interval"
+    color="primary"
+    outline
+    label="Today"
+    @click="now()"
+  />
+  <q-btn
     v-for="option in options"
     :key="option.interval"
     class="time-interval"
@@ -26,6 +33,9 @@ const options: { label: string; interval: TimeInterval }[] = [
   { label: 'All', interval: 'all' },
 ];
 
+function now(): void {
+  intervalStore.now();
+}
 function change(newValue: TimeInterval): void {
   intervalStore.change(newValue);
 }
