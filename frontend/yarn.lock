@@ -762,10 +762,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
 
-"@quasar/app-vite@^1.10.2":
-  version "1.10.2"
-  resolved "https://registry.yarnpkg.com/@quasar/app-vite/-/app-vite-1.10.2.tgz#69c7a50c7b9d32415204d222e8ea869456f51c8a"
-  integrity sha512-I/YO5m0vHMkAw8ewX8Fz1CSPFdZo+k5vWOTf6hc8B2wBfyYdqC8MsoP3YKJ4zNlBG6OMldrKEBIv+FPT4WNQzw==
+"@quasar/app-vite@^1.11.0":
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@quasar/app-vite/-/app-vite-1.11.0.tgz#077c758b58f43c20aa5f70dd6d54ad1f3bd2ae96"
+  integrity sha512-PUeqtYs2liA/O17LJ25jzKckB0MG1ZW/iuDC7NvCMZpYT6Ab66AypiYfPf4WGWeAqricorHVNRyMfMpTscR/hA==
   dependencies:
     "@quasar/render-ssr-error" "^1.0.3"
     "@quasar/vite-plugin" "^1.7.0"
