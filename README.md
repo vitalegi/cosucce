@@ -1,11 +1,6 @@
-# README
+# Cosucce
 
 Due to low budget, this repository collects several application into one.
 
-## Budget
-
-Utility to manage espenses with multiple people.
-
-## Spando
-
-Utility to track period.
+[![cosucce-be CI](https://github.com/vitalegi/cosucce/actions/workflows/cosucce-be-ci.yml/badge.svg)](https://github.com/vitalegi/cosucce/actions/workflows/cosucce-be-ci.yml) 
+[![cosucce-fe CI](https://github.com/vitalegi/cosucce/actions/workflows/cosucce-fe-ci.yml/badge.svg)](https://github.com/vitalegi/cosucce/actions/workflows/cosucce-fe-ci.yml)
