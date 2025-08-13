@@ -1,0 +1,89 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet id="v1-01-001" author="vitalegi">
+        <createTable tableName="user_data">
+            <column name="user_id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="user_data_pk"/>
+            </column>
+            <column name="username" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creation_date" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_update" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="v1-01-010" author="vitalegi">
+        <createTable tableName="board">
+            <column name="board_id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="board_pk"/>
+            </column>
+            <column name="name" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="creation_date" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_update" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="v1-01-020" author="vitalegi">
+        <createTable tableName="board_user">
+            <column name="board_id" type="uuid">
+                <constraints nullable="false" />
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="false" />
+            </column>
+            <column name="role" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="creation_date" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_update" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="v1-01-021" author="vitalegi">
+        <addPrimaryKey tableName="board_user" columnNames="board_id,user_id" constraintName="pk_board_user"/>
+    </changeSet>
+    <changeSet id="v1-01-022" author="vitalegi">
+        <addForeignKeyConstraint baseTableName="board_user"
+                                 baseColumnNames="board_id"
+                                 referencedTableName="board"
+                                 referencedColumnNames="board_id"
+                                 constraintName="fk_board_user__board__id"
+                                 deferrable="false"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
+    <changeSet id="v1-01-023" author="vitalegi">
+        <addForeignKeyConstraint baseTableName="board_user"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="user_data"
+                                 referencedColumnNames="user_id"
+                                 constraintName="fk_board_user__user__id"
+                                 deferrable="false"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
+</databaseChangeLog>

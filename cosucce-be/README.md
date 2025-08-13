@@ -24,6 +24,7 @@ Setup the environment configuring:
 ```bash
 # mandatory values
 
+
 # OIDC
 $env:OIDC_ISSUER=*issuer uri*
 $env:OIDC_JWKS_URI=*jwks uri*
@@ -46,5 +47,5 @@ Then run the application
 ### In production
 
 ```bash
-java -jar ./target/cosucce-${project.version}.jar
+java -jar ./target/cosucce-be-${project.version}.jar
 ```
