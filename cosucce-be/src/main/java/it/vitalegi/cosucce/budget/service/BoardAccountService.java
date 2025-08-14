@@ -1,7 +1,6 @@
 package it.vitalegi.cosucce.budget.service;
 
 import it.vitalegi.cosucce.budget.entity.BoardAccountEntity;
-import it.vitalegi.cosucce.budget.exception.BoardNotFoundException;
 import it.vitalegi.cosucce.budget.exception.BudgetException;
 import it.vitalegi.cosucce.budget.mapper.BoardMapper;
 import it.vitalegi.cosucce.budget.model.BoardAccount;
@@ -39,7 +38,7 @@ public class BoardAccountService {
         try {
             entity = boardAccountRepository.save(entity);
         } catch (DataIntegrityViolationException e) {
-            throw new BoardNotFoundException(boardId, e);
+            throw new BudgetException("Board " + boardId + " not found", e);
         }
         return boardMapper.toAccount(entity);
     }

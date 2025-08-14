@@ -4,6 +4,7 @@ import it.vitalegi.cosucce.budget.constants.BoardUserRole;
 import it.vitalegi.cosucce.budget.entity.BoardEntity;
 import it.vitalegi.cosucce.budget.entity.BoardUserEntity;
 import it.vitalegi.cosucce.budget.entity.BoardUserId;
+import it.vitalegi.cosucce.budget.exception.BudgetException;
 import it.vitalegi.cosucce.budget.mapper.BoardMapper;
 import it.vitalegi.cosucce.budget.model.Board;
 import it.vitalegi.cosucce.budget.repository.BoardAccountRepository;
@@ -52,7 +53,31 @@ public class BoardService {
         return boardMapper.toBoard(entity);
     }
 
+    @Transactional
+    public Board updateBoard(UUID boardId, String name) {
+        var entity = getBoard(boardId);
+        entity.setName(name);
+        entity.setLastUpdate(Instant.now());
+        entity = boardRepository.save(entity);
+        return boardMapper.toBoard(entity);
+    }
+
+    @Transactional
+    public Board deleteBoard(UUID boardId) {
+        var entity = getBoard(boardId);
+        boardRepository.delete(entity);
+        return boardMapper.toBoard(entity);
+    }
+
     public List<Board> getVisibleBoards(UUID userId) {
         return boardRepository.findAllByUser(userId).stream().map(boardMapper::toBoard).toList();
+    }
+
+    protected BoardEntity getBoard(UUID boardId) {
+        var entity = boardRepository.findById(boardId);
+        if (entity.isEmpty()) {
+            throw new BudgetException("Board " + boardId + " not found");
+        }
+        return entity.get();
     }
 }
