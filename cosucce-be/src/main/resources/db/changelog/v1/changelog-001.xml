@@ -119,4 +119,155 @@
                                  onUpdate="CASCADE"
         />
     </changeSet>
+
+    <changeSet id="v1-01-030" author="vitalegi">
+        <createTable tableName="board_account">
+            <column name="account_id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="board_account_pk"/>
+            </column>
+            <column name="board_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="icon" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creation_date" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_update" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="v1-01-031" author="vitalegi">
+        <addForeignKeyConstraint baseTableName="board_account"
+                                 baseColumnNames="board_id"
+                                 referencedTableName="board"
+                                 referencedColumnNames="board_id"
+                                 constraintName="fk_board_account__board__id"
+                                 deferrable="false"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
+
+    <changeSet id="v1-01-040" author="vitalegi">
+        <createTable tableName="board_category">
+            <column name="category_id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="board_category_pk"/>
+            </column>
+            <column name="board_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="icon" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creation_date" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_update" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="v1-01-041" author="vitalegi">
+        <addForeignKeyConstraint baseTableName="board_category"
+                                 baseColumnNames="board_id"
+                                 referencedTableName="board"
+                                 referencedColumnNames="board_id"
+                                 constraintName="fk_board_category__board__id"
+                                 deferrable="false"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
+
+
+    <changeSet id="v1-01-050" author="vitalegi">
+        <createTable tableName="board_entry">
+            <column name="entry_id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="board_entry_pk"/>
+            </column>
+            <column name="board_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="account_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="amount" type="decimal(128, 10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated_by" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creation_date" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_update" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="v1-01-051" author="vitalegi">
+        <addForeignKeyConstraint baseTableName="board_entry"
+                                 baseColumnNames="board_id"
+                                 referencedTableName="board"
+                                 referencedColumnNames="board_id"
+                                 constraintName="fk_board_entry__board__id"
+                                 deferrable="false"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
+    <changeSet id="v1-01-052" author="vitalegi">
+        <addForeignKeyConstraint baseTableName="board_entry"
+                                 baseColumnNames="account_id"
+                                 referencedTableName="board_account"
+                                 referencedColumnNames="account_id"
+                                 constraintName="fk_board_entry__account__id"
+                                 deferrable="false"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
+    <changeSet id="v1-01-053" author="vitalegi">
+        <addForeignKeyConstraint baseTableName="board_entry"
+                                 baseColumnNames="category_id"
+                                 referencedTableName="board_category"
+                                 referencedColumnNames="category_id"
+                                 constraintName="fk_board_entry__category__id"
+                                 deferrable="false"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
+    <changeSet id="v1-01-054" author="vitalegi">
+        <addForeignKeyConstraint baseTableName="board_entry"
+                                 baseColumnNames="last_updated_by"
+                                 referencedTableName="user_data"
+                                 referencedColumnNames="user_id"
+                                 constraintName="fk_board_entry__user__id"
+                                 deferrable="false"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
 </databaseChangeLog>

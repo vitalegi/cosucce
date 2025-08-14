@@ -7,13 +7,13 @@ import it.vitalegi.cosucce.budget.repository.BoardRepository;
 import it.vitalegi.cosucce.budget.repository.BoardUserRepository;
 import it.vitalegi.cosucce.util.UserUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -56,7 +56,42 @@ public class BoardServiceTests {
         }
     }
 
-    private static UUID uuid() {
-        return UUID.randomUUID();
+    @Nested
+    class GetVisibleBoards {
+        @Disabled
+        @Test
+        void given_userHasBoards_then_returnAllVisibleBoards() {
+        }
+
+        @Disabled
+        @Test
+        void given_userHasNoVisibleBoard_then_returnEmptyArray() {
+        }
+    }
+
+    @Nested
+    class UpdateBoard {
+        @Disabled
+        @Test
+        void given_boardExists_then_updateBoard() {
+        }
+
+        @Disabled
+        @Test
+        void given_boardDoesntExist_then_fail() {
+        }
+    }
+
+    @Nested
+    class DeleteBoard {
+        @Disabled
+        @Test
+        void given_boardExists_then_deleteBoard() {
+        }
+
+        @Disabled
+        @Test
+        void given_boardDoesntExist_then_fail() {
+        }
     }
 }

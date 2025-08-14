@@ -6,9 +6,11 @@ import it.vitalegi.cosucce.budget.entity.BoardUserEntity;
 import it.vitalegi.cosucce.budget.entity.BoardUserId;
 import it.vitalegi.cosucce.budget.mapper.BoardMapper;
 import it.vitalegi.cosucce.budget.model.Board;
+import it.vitalegi.cosucce.budget.repository.BoardAccountRepository;
+import it.vitalegi.cosucce.budget.repository.BoardCategoryRepository;
+import it.vitalegi.cosucce.budget.repository.BoardEntryRepository;
 import it.vitalegi.cosucce.budget.repository.BoardRepository;
 import it.vitalegi.cosucce.budget.repository.BoardUserRepository;
-import it.vitalegi.cosucce.iam.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,9 @@ public class BoardService {
 
     BoardRepository boardRepository;
     BoardUserRepository boardUserRepository;
-    UserRepository userRepository;
+    BoardAccountRepository boardAccountRepository;
+    BoardCategoryRepository boardCategoryRepository;
+    BoardEntryRepository boardEntryRepository;
 
     BoardMapper boardMapper;
 
@@ -51,6 +55,4 @@ public class BoardService {
     public List<Board> getVisibleBoards(UUID userId) {
         return boardRepository.findAllByUser(userId).stream().map(boardMapper::toBoard).toList();
     }
-
-
 }
