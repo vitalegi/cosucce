@@ -1,6 +1,6 @@
 package it.vitalegi.cosucce.exception;
 
-import it.vitalegi.cosucce.model.Permission;
+import it.vitalegi.cosucce.iam.model.Permission;
 import lombok.Getter;
 
 import java.util.List;

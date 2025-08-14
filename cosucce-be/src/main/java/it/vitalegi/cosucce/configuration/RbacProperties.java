@@ -1,6 +1,6 @@
 package it.vitalegi.cosucce.configuration;
 
-import it.vitalegi.cosucce.model.Permission;
+import it.vitalegi.cosucce.iam.model.Permission;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

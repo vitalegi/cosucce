@@ -24,6 +24,39 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="v1-01-002" author="vitalegi">
+        <createTable tableName="iam_idp">
+            <column name="issuer" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creation_date" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_update" type="timestamp without time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="v1-01-003" author="vitalegi">
+        <addPrimaryKey tableName="iam_idp" columnNames="issuer,subject" constraintName="pk_iam_idp"/>
+    </changeSet>
+    <changeSet id="v1-01-004" author="vitalegi">
+        <addForeignKeyConstraint baseTableName="iam_idp"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="user_data"
+                                 referencedColumnNames="user_id"
+                                 constraintName="fk_iam_idp__user__id"
+                                 deferrable="false"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
 
     <changeSet id="v1-01-010" author="vitalegi">
         <createTable tableName="board">
@@ -45,10 +78,10 @@
     <changeSet id="v1-01-020" author="vitalegi">
         <createTable tableName="board_user">
             <column name="board_id" type="uuid">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="user_id" type="uuid">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="role" type="varchar(500)">
                 <constraints nullable="true"/>
