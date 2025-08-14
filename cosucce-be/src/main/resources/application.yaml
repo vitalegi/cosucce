@@ -60,9 +60,8 @@ security:
     allowCredentials: true
     allowedHeaders: Content-Type, Access-Control-Request-Method, Access-Control-Allow-Credentials, Access-Control-Allow-Origin, Access-Control-Allow-Headers, x-requested-with, Authorization, origin, accept
   rbac:
-    ADMIN: READ_MEDIA, MANAGE_SCRAPER, MANAGE_SYNC, EPISODE_MANUAL_UPLOAD
-    MEMBER: READ_MEDIA
-
+    ADMIN: ADMIN, BUDGET_ACCESS
+    MEMBER: BUDGET_ACCESS
 exception:
   logging:
     single-line: false

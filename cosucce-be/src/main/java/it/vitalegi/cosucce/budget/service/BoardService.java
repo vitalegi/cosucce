@@ -35,7 +35,7 @@ public class BoardService {
     BoardMapper boardMapper;
 
     @Transactional
-    public Board createBoard(UUID userId) {
+    public Board addBoard(UUID userId) {
         var entity = new BoardEntity();
         var ts = Instant.now();
         entity.setName(UUID.randomUUID().toString());

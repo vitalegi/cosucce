@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public class MockAuth {
 
-    private final static String ISSUER_1 = "https://custom-issuer.google.com/";
+    public final static String ISSUER_1 = "https://custom-issuer.google.com/";
 
     public static RequestPostProcessor admin() {
         return admin(UUID.randomUUID().toString());
@@ -50,5 +50,4 @@ public class MockAuth {
                 Map.of("kid", "123", "alg", "RS256"), Map.of("cognito:groups", groups, "sub", uid, "iss", issuer));
         return SecurityMockMvcRequestPostProcessors.jwt().jwt(jwt);
     }
-
 }

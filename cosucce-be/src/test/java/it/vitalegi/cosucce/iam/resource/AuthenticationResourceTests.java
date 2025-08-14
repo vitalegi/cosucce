@@ -62,7 +62,7 @@ public class AuthenticationResourceTests {
             mockMvc.perform(get("/auth/permissions").contentType(MediaType.APPLICATION_JSON).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
-                    .andExpect(content().json("{'permissions': ['READ_MEDIA', 'MANAGE_SCRAPER', 'MANAGE_SYNC', 'EPISODE_MANUAL_UPLOAD']}")) //
+                    .andExpect(content().json("{'permissions': ['ADMIN', 'BUDGET_ACCESS']}")) //
                     .andReturn();
         }
 

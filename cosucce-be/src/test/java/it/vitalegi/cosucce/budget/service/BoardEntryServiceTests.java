@@ -42,7 +42,7 @@ public class BoardEntryServiceTests {
     @BeforeEach
     void init() {
         userId = UserUtil.createUser();
-        boardId = boardService.createBoard(userId).getBoardId();
+        boardId = boardService.addBoard(userId).getBoardId();
         accountId = boardAccountService.addBoardAccount(boardId, "acc", null).getAccountId();
         categoryId = boardCategoryService.addBoardCategory(boardId, "cat", null).getCategoryId();
     }
@@ -78,7 +78,7 @@ public class BoardEntryServiceTests {
 
         @Test
         void given_entryOnDifferentBoard_then_dontReturn() {
-            var boardId2 = boardService.createBoard(userId).getBoardId();
+            var boardId2 = boardService.addBoard(userId).getBoardId();
 
             boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc1", AMOUNT1, userId);
             var actual = boardEntryService.getBoardEntries(boardId2);
@@ -125,7 +125,7 @@ public class BoardEntryServiceTests {
 
         @Test
         void given_accountConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.createBoard(userId).getBoardId();
+            var boardId2 = boardService.addBoard(userId).getBoardId();
             accountId = boardAccountService.addBoardAccount(boardId2, "", "").getAccountId();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId));
             assertEquals("Account " + accountId + " is not part of board " + boardId, e.getMessage());
@@ -140,7 +140,7 @@ public class BoardEntryServiceTests {
 
         @Test
         void given_categoryConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.createBoard(userId).getBoardId();
+            var boardId2 = boardService.addBoard(userId).getBoardId();
             categoryId = boardCategoryService.addBoardCategory(boardId2, "", "").getCategoryId();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId));
             assertEquals("Category " + categoryId + " is not part of board " + boardId, e.getMessage());
@@ -186,7 +186,7 @@ public class BoardEntryServiceTests {
 
         @Test
         void given_accountConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.createBoard(userId).getBoardId();
+            var boardId2 = boardService.addBoard(userId).getBoardId();
             var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
             accountId = boardAccountService.addBoardAccount(boardId2, "", "").getAccountId();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId));
@@ -203,7 +203,7 @@ public class BoardEntryServiceTests {
 
         @Test
         void given_categoryConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.createBoard(userId).getBoardId();
+            var boardId2 = boardService.addBoard(userId).getBoardId();
             var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
             categoryId = boardCategoryService.addBoardCategory(boardId2, "", "").getCategoryId();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId));

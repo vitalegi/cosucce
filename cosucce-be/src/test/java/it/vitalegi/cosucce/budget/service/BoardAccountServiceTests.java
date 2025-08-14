@@ -34,7 +34,7 @@ public class BoardAccountServiceTests {
     @BeforeEach
     void init() {
         userId = UserUtil.createUser();
-        boardId = boardService.createBoard(userId).getBoardId();
+        boardId = boardService.addBoard(userId).getBoardId();
     }
 
     @Nested
@@ -117,7 +117,7 @@ public class BoardAccountServiceTests {
 
         @Test
         void given_accountIsNotPartOfBoard_then_fail() {
-            var boardId2 = boardService.createBoard(userId).getBoardId();
+            var boardId2 = boardService.addBoard(userId).getBoardId();
             var element = boardAccountService.addBoardAccount(boardId, "label1", "icon1");
             var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(boardId2, element.getAccountId(), "label1", "icon1", true));
             assertEquals("Account " + element.getAccountId() + " is not part of board " + boardId2, e.getMessage());
