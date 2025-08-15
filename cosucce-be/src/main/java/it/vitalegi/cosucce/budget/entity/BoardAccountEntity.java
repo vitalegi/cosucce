@@ -1,12 +1,7 @@
 package it.vitalegi.cosucce.budget.entity;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +11,6 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -29,7 +23,6 @@ import java.util.UUID;
 public class BoardAccountEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID accountId;
     private UUID boardId;
     private int version;

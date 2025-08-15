@@ -37,7 +37,7 @@ public class BoardEntryService {
 
     @Transactional
     public BoardEntry addBoardEntry( //
-                                     UUID boardId, UUID accountId, UUID categoryId, String description, BigDecimal amount, UUID lastUpdatedBy) {
+                                     UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, UUID lastUpdatedBy) {
 
         validateBoard(boardId);
         validateAccount(boardId, accountId);
@@ -45,6 +45,7 @@ public class BoardEntryService {
 
         var entity = new BoardEntryEntity();
         var ts = Instant.now();
+        entity.setEntryId(entryId);
         entity.setBoardId(boardId);
         entity.setAccountId(accountId);
         entity.setCategoryId(categoryId);

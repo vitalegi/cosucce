@@ -28,9 +28,10 @@ public class BoardCategoryService {
         return boardCategoryRepository.findAllByBoardId(boardId).stream().map(boardMapper::toCategory).toList();
     }
 
-    public BoardCategory addBoardCategory(UUID boardId, String label, String icon) {
+    public BoardCategory addBoardCategory(UUID boardId, UUID categoryId, String label, String icon) {
         var entity = new BoardCategoryEntity();
         var ts = Instant.now();
+        entity.setCategoryId(categoryId);
         entity.setBoardId(boardId);
         entity.setLabel(label);
         entity.setIcon(icon);

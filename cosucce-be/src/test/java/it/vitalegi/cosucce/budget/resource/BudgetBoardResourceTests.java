@@ -1,6 +1,7 @@
 package it.vitalegi.cosucce.budget.resource;
 
 import it.vitalegi.cosucce.budget.constants.BoardUserPermission;
+import it.vitalegi.cosucce.budget.dto.AddBoardDto;
 import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
 import it.vitalegi.cosucce.budget.model.Board;
 import it.vitalegi.cosucce.budget.service.BoardService;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.util.Arrays;
 import java.util.UUID;
 
+import static it.vitalegi.cosucce.util.JsonUtil.json;
 import static it.vitalegi.cosucce.util.MockAuth.guest;
 import static it.vitalegi.cosucce.util.MockAuth.member;
 import static it.vitalegi.cosucce.util.MockMvcUtil.assert401;
@@ -63,9 +65,9 @@ public class BudgetBoardResourceTests {
             var boardId = UUID.randomUUID();
             var expected = Board.builder().boardId(boardId).name("bar").version(1).creationDate(now()).lastUpdate(now()).build();
 
-            when(boardService.addBoard(any())).thenReturn(expected);
+            when(boardService.addBoard(any(), any(), any())).thenReturn(expected);
 
-            mockMvc.perform(request().with(csrf()).with(auth)) //
+            mockMvc.perform(request(AddBoardDto.builder().boardId(boardId).name("bar").build()).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
@@ -75,22 +77,22 @@ public class BudgetBoardResourceTests {
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(0)).checkPermission(any(), any(), any());
-            verify(boardService, times(1)).addBoard(userId);
+            verify(boardService, times(1)).addBoard(boardId, "bar", userId);
         }
 
         @Test
         void when_notAuthenticated_then_401() throws Exception {
-            assert401(mockMvc.perform(request()).andDo(print()));
+            assert401(mockMvc.perform(request(AddBoardDto.builder().build())).andDo(print()));
         }
 
         @Test
         void when_notAuthorized_then_403() throws Exception {
-            assert403(mockMvc.perform(request().with(guest())).andDo(print()));
+            assert403(mockMvc.perform(request(AddBoardDto.builder().build()).with(guest())).andDo(print()));
         }
 
-        protected MockHttpServletRequestBuilder request() {
+        protected MockHttpServletRequestBuilder request(AddBoardDto payload) {
             var request = post("/budget/board");
-            return request.contentType(MediaType.APPLICATION_JSON);
+            return request.contentType(MediaType.APPLICATION_JSON).content(json(payload));
         }
     }
 

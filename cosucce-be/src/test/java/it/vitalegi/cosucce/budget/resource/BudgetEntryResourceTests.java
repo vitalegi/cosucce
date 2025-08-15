@@ -71,9 +71,9 @@ public class BudgetEntryResourceTests {
 
             var expected = BoardEntry.builder().boardId(boardId).entryId(entryId).accountId(accountId).categoryId(categoryId).description("desc").amount(BigDecimal.ONE).lastUpdatedBy(UUID.randomUUID()).version(1).creationDate(now()).lastUpdate(now()).build();
 
-            when(boardEntryService.addBoardEntry(any(), any(), any(), any(), any(), any())).thenReturn(expected);
+            when(boardEntryService.addBoardEntry(any(), any(), any(), any(), any(), any(), any())).thenReturn(expected);
 
-            mockMvc.perform(request(boardId, AddBoardEntryDto.builder().accountId(accountId).categoryId(categoryId).description("desc").amount(BigDecimal.ONE).build()).with(csrf()).with(auth)) //
+            mockMvc.perform(request(boardId, AddBoardEntryDto.builder().entryId(entryId).accountId(accountId).categoryId(categoryId).description("desc").amount(BigDecimal.ONE).build()).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
@@ -88,7 +88,7 @@ public class BudgetEntryResourceTests {
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(0)).checkPermission(any(), any(), any());
-            verify(boardEntryService, times(1)).addBoardEntry(boardId, accountId, categoryId, "desc", BigDecimal.ONE, userId);
+            verify(boardEntryService, times(1)).addBoardEntry(boardId, entryId, accountId, categoryId, "desc", BigDecimal.ONE, userId);
         }
 
         @Test

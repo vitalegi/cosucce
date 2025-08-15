@@ -12,6 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class AddBoardAccountDto {
+    UUID accountId;
     String label;
     String icon;
     boolean enabled;

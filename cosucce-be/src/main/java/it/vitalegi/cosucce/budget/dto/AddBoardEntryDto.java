@@ -13,6 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class AddBoardEntryDto {
+    UUID entryId;
     UUID accountId;
     UUID categoryId;
     String description;

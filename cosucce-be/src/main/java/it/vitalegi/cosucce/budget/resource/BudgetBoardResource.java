@@ -1,7 +1,8 @@
 package it.vitalegi.cosucce.budget.resource;
 
 import it.vitalegi.cosucce.budget.constants.BoardUserPermission;
-import it.vitalegi.cosucce.budget.dto.UpdateBoard;
+import it.vitalegi.cosucce.budget.dto.AddBoardDto;
+import it.vitalegi.cosucce.budget.dto.UpdateBoardDto;
 import it.vitalegi.cosucce.budget.model.Board;
 import it.vitalegi.cosucce.budget.service.BoardService;
 import it.vitalegi.cosucce.budget.service.BudgetAuthorizationService;
@@ -32,15 +33,15 @@ public class BudgetBoardResource {
     BudgetAuthorizationService budgetAuthorizationService;
 
     @PostMapping
-    public Board addBoard() {
+    public Board addBoard(@RequestBody AddBoardDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        var out = boardService.addBoard(userId());
+        var out = boardService.addBoard(request.getBoardId(), request.getName(), userId());
         log.info("action=ADD, board={}, name={}, version={}", out.getBoardId(), out.getName(), out.getVersion());
         return out;
     }
 
     @PutMapping("/{boardId}")
-    public Board updateBoard(@PathVariable("boardId") UUID boardId, @RequestBody UpdateBoard request) {
+    public Board updateBoard(@PathVariable("boardId") UUID boardId, @RequestBody UpdateBoardDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
         var out = boardService.updateBoard(boardId, request.getName(), request.getVersion());

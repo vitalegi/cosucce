@@ -40,9 +40,9 @@ public class BoardServiceTests {
         @Test
         void boardIsCreated() {
             var userId = UserUtil.createUser();
-
-            var board = boardService.addBoard(userId);
-            assertNotNull(board.getBoardId());
+            var boardId = UUID.randomUUID();
+            var board = boardService.addBoard(boardId, "name", userId);
+            assertEquals(boardId, board.getBoardId());
             assertEquals(0, board.getVersion());
             assertNotNull(board.getName());
             assertNotNull(board.getCreationDate());
@@ -54,7 +54,7 @@ public class BoardServiceTests {
         void boardUserIsCreatedWithOwnerRole() {
             var userId = UserUtil.createUser();
 
-            var board = boardService.addBoard(userId);
+            var board = boardService.addBoard(UUID.randomUUID(),"name", userId);
             var entity = boardUserRepository.findById(new BoardUserId(board.getBoardId(), userId));
             assertTrue(entity.isPresent());
             assertEquals(BoardUserRole.OWNER.name(), entity.get().getRole());
@@ -68,9 +68,9 @@ public class BoardServiceTests {
             var userId1 = UserUtil.createUser();
             var userId2 = UserUtil.createUser();
 
-            var board1 = boardService.addBoard(userId1);
-            var board2 = boardService.addBoard(userId1);
-            var board3 = boardService.addBoard(userId2);
+            var board1 = boardService.addBoard(UUID.randomUUID(),"name", userId1);
+            var board2 = boardService.addBoard(UUID.randomUUID(),"name", userId1);
+            var board3 = boardService.addBoard(UUID.randomUUID(),"name", userId2);
 
             var actuals = boardService.getVisibleBoards(userId1);
             assertEquals(2, actuals.size());
@@ -91,7 +91,7 @@ public class BoardServiceTests {
         @Test
         void given_boardExists_then_updateBoard() {
             var userId = UserUtil.createUser();
-            var board = boardService.addBoard(userId);
+            var board = boardService.addBoard(UUID.randomUUID(),"name", userId);
             var actual = boardService.updateBoard(board.getBoardId(), "New name", 0);
             assertEquals(board.getBoardId(), actual.getBoardId());
             assertEquals(1, actual.getVersion());
@@ -110,7 +110,7 @@ public class BoardServiceTests {
         @Test
         void given_entryHasOldVersion_then_fail() {
             var userId = UserUtil.createUser();
-            var board = boardService.addBoard(userId);
+            var board = boardService.addBoard(UUID.randomUUID(),"name", userId);
             var entry = boardService.updateBoard(board.getBoardId(), "New name", 0);
             var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardService.updateBoard(board.getBoardId(), "New name", 0));
             assertEquals(board.getBoardId(), e.getId());
@@ -124,7 +124,7 @@ public class BoardServiceTests {
         @Test
         void given_boardExists_then_deleteBoard() {
             var userId = UserUtil.createUser();
-            var board = boardService.addBoard(userId);
+            var board = boardService.addBoard(UUID.randomUUID(),"name", userId);
             var actual = boardService.deleteBoard(board.getBoardId());
             assertEquals(board.getBoardId(), actual.getBoardId());
             assertNotNull(actual.getName());

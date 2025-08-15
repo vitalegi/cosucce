@@ -1,8 +1,6 @@
 package it.vitalegi.cosucce.budget.entity;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -26,7 +24,6 @@ import java.util.UUID;
 public class BoardEntryEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID entryId;
     private UUID boardId;
     private int version;

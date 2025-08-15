@@ -67,9 +67,9 @@ public class BudgetAccountResourceTests {
             var accountId = UUID.randomUUID();
             var expected = BoardAccount.builder().boardId(boardId).accountId(accountId).label("lab").icon("ico").enabled(true).version(1).creationDate(now()).lastUpdate(now()).build();
 
-            when(boardAccountService.addBoardAccount(any(), any(), any())).thenReturn(expected);
+            when(boardAccountService.addBoardAccount(any(), any(), any(), any())).thenReturn(expected);
 
-            mockMvc.perform(request(boardId, AddBoardAccountDto.builder().label("lab").icon("ico").enabled(true).build()).with(csrf()).with(auth)) //
+            mockMvc.perform(request(boardId, AddBoardAccountDto.builder().accountId(accountId).label("lab").icon("ico").enabled(true).build()).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
@@ -82,7 +82,7 @@ public class BudgetAccountResourceTests {
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(0)).checkPermission(any(), any(), any());
-            verify(boardAccountService, times(1)).addBoardAccount(boardId, "lab", "ico");
+            verify(boardAccountService, times(1)).addBoardAccount(boardId, accountId, "lab", "ico");
         }
 
         @Test

@@ -36,10 +36,11 @@ public class BoardService {
     OptimisticLockService optimisticLockService;
 
     @Transactional
-    public Board addBoard(UUID userId) {
+    public Board addBoard(UUID boardId, String name, UUID userId) {
         var entity = new BoardEntity();
         var ts = Instant.now();
-        entity.setName(UUID.randomUUID().toString());
+        entity.setBoardId(boardId);
+        entity.setName(name);
         entity.setCreationDate(ts);
         entity.setLastUpdate(ts);
         entity = boardRepository.save(entity);

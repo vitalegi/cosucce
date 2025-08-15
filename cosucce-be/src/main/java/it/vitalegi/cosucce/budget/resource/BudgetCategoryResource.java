@@ -35,7 +35,7 @@ public class BudgetCategoryResource {
     @PostMapping
     public BoardCategory addBoardCategory(@PathVariable("boardId") UUID boardId, @RequestBody AddBoardCategoryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        var out = boardCategoryService.addBoardCategory(boardId, request.getLabel(), request.getIcon());
+        var out = boardCategoryService.addBoardCategory(boardId, request.getCategoryId(), request.getLabel(), request.getIcon());
         log.info("action=ADD, board={}, category={}, label={}, version={}", boardId, out.getCategoryId(), out.getLabel(), out.getVersion());
         return out;
     }

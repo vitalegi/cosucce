@@ -67,9 +67,9 @@ public class BudgetCategoryResourceTests {
             var categoryId = UUID.randomUUID();
             var expected = BoardCategory.builder().boardId(boardId).categoryId(categoryId).label("lab").icon("ico").enabled(true).version(1).creationDate(now()).lastUpdate(now()).build();
 
-            when(boardCategoryService.addBoardCategory(any(), any(), any())).thenReturn(expected);
+            when(boardCategoryService.addBoardCategory(any(), any(), any(), any())).thenReturn(expected);
 
-            mockMvc.perform(request(boardId, AddBoardCategoryDto.builder().label("lab").icon("ico").enabled(true).build()).with(csrf()).with(auth)) //
+            mockMvc.perform(request(boardId, AddBoardCategoryDto.builder().categoryId(categoryId).label("lab").icon("ico").enabled(true).build()).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
@@ -82,7 +82,7 @@ public class BudgetCategoryResourceTests {
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(0)).checkPermission(any(), any(), any());
-            verify(boardCategoryService, times(1)).addBoardCategory(boardId, "lab", "ico");
+            verify(boardCategoryService, times(1)).addBoardCategory(boardId, categoryId, "lab", "ico");
         }
 
         @Test

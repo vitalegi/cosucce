@@ -28,9 +28,10 @@ public class BoardAccountService {
         return boardAccountRepository.findAllByBoardId(boardId).stream().map(boardMapper::toAccount).toList();
     }
 
-    public BoardAccount addBoardAccount(UUID boardId, String label, String icon) {
+    public BoardAccount addBoardAccount(UUID boardId, UUID accountId, String label, String icon) {
         var entity = new BoardAccountEntity();
         var ts = Instant.now();
+        entity.setAccountId(accountId);
         entity.setBoardId(boardId);
         entity.setLabel(label);
         entity.setIcon(icon);

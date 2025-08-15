@@ -38,7 +38,7 @@ public class BoardAuthorizationServiceTests {
         @Test
         void given_userIsOwnerOfBoard() {
             var userId = UserUtil.createUser();
-            var board = boardService.addBoard(userId);
+            var board = boardService.addBoard(UUID.randomUUID(),"name",  userId);
             budgetAuthorizationService.checkPermission(board.getBoardId(), userId, BoardUserPermission.ADMIN);
             budgetAuthorizationService.checkPermission(board.getBoardId(), userId, BoardUserPermission.READ);
             budgetAuthorizationService.checkPermission(board.getBoardId(), userId, BoardUserPermission.WRITE);
@@ -48,7 +48,7 @@ public class BoardAuthorizationServiceTests {
         void given_userIsMemberOfBoard() {
             var userId1 = UserUtil.createUser();
             var userId2 = UserUtil.createUser();
-            var board = boardService.addBoard(userId1);
+            var board = boardService.addBoard(UUID.randomUUID(), "name", userId1);
             boardUser(board.getBoardId(), userId2, BoardUserRole.MEMBER);
             budgetAuthorizationService.checkPermission(board.getBoardId(), userId1, BoardUserPermission.ADMIN);
             budgetAuthorizationService.checkPermission(board.getBoardId(), userId1, BoardUserPermission.READ);
@@ -66,8 +66,8 @@ public class BoardAuthorizationServiceTests {
         void given_userIsMemberOfDifferentBoard() {
             var userId1 = UserUtil.createUser();
             var userId2 = UserUtil.createUser();
-            var board1 = boardService.addBoard(userId1);
-            var board2 = boardService.addBoard(userId2);
+            var board1 = boardService.addBoard(UUID.randomUUID(),"name",  userId1);
+            var board2 = boardService.addBoard(UUID.randomUUID(),"name",  userId2);
 
             budgetAuthorizationService.checkPermission(board1.getBoardId(), userId1, BoardUserPermission.ADMIN);
             Assertions.assertThrows(UnauthorizedBoardAccessException.class, () -> budgetAuthorizationService.checkPermission(board1.getBoardId(), userId2, BoardUserPermission.ADMIN));

@@ -43,9 +43,9 @@ public class BoardEntryServiceTests {
     @BeforeEach
     void init() {
         userId = UserUtil.createUser();
-        boardId = boardService.addBoard(userId).getBoardId();
-        accountId = boardAccountService.addBoardAccount(boardId, "acc", null).getAccountId();
-        categoryId = boardCategoryService.addBoardCategory(boardId, "cat", null).getCategoryId();
+        boardId = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
+        accountId = boardAccountService.addBoardAccount(boardId, UUID.randomUUID(), "acc", null).getAccountId();
+        categoryId = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "cat", null).getCategoryId();
     }
 
     @Nested
@@ -53,7 +53,8 @@ public class BoardEntryServiceTests {
 
         @Test
         void given_boardExists_then_return() {
-            boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            var entryId = UUID.randomUUID();
+            boardEntryService.addBoardEntry(boardId, entryId, accountId, categoryId, "desc", AMOUNT1, userId);
             var actual = boardEntryService.getBoardEntries(boardId);
             assertEquals(1, actual.size());
             var e = actual.get(0);
@@ -71,17 +72,16 @@ public class BoardEntryServiceTests {
 
         @Test
         void given_boardExists_then_returnAll() {
-            boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc1", AMOUNT1, userId);
-            boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc2", AMOUNT1, userId);
+            boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc1", AMOUNT1, userId);
+            boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc2", AMOUNT1, userId);
             var actual = boardEntryService.getBoardEntries(boardId);
             assertEquals(2, actual.size());
         }
 
         @Test
         void given_entryOnDifferentBoard_then_dontReturn() {
-            var boardId2 = boardService.addBoard(userId).getBoardId();
-
-            boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc1", AMOUNT1, userId);
+            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
+            boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc1", AMOUNT1, userId);
             var actual = boardEntryService.getBoardEntries(boardId2);
             assertEquals(0, actual.size());
         }
@@ -98,7 +98,7 @@ public class BoardEntryServiceTests {
     class AddBoardEntry {
         @Test
         void given_boardExists_then_addEntry() {
-            var actual = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            var actual = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             assertEquals(boardId, actual.getBoardId());
             assertNotNull(actual.getEntryId());
             assertEquals(0, actual.getVersion());
@@ -114,37 +114,37 @@ public class BoardEntryServiceTests {
         @Test
         void given_boardDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(fakeId, accountId, categoryId, "desc", AMOUNT1, userId));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(fakeId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId));
             assertEquals("Board " + fakeId + " not found", e.getMessage());
         }
 
         @Test
         void given_accountDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, fakeId, categoryId, "desc", AMOUNT1, userId));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), fakeId, categoryId, "desc", AMOUNT1, userId));
             assertEquals("Account " + fakeId + " not found", e.getMessage());
         }
 
         @Test
         void given_accountConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.addBoard(userId).getBoardId();
-            accountId = boardAccountService.addBoardAccount(boardId2, "", "").getAccountId();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId));
+            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
+            accountId = boardAccountService.addBoardAccount(boardId2, UUID.randomUUID(), "", "").getAccountId();
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId));
             assertEquals("Account " + accountId + " is not part of board " + boardId, e.getMessage());
         }
 
         @Test
         void given_categoryDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, accountId, fakeId, "desc", AMOUNT1, userId));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, fakeId, "desc", AMOUNT1, userId));
             assertEquals("Category " + fakeId + " not found", e.getMessage());
         }
 
         @Test
         void given_categoryConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.addBoard(userId).getBoardId();
-            categoryId = boardCategoryService.addBoardCategory(boardId2, "", "").getCategoryId();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId));
+            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
+            categoryId = boardCategoryService.addBoardCategory(boardId2, UUID.randomUUID(), "", "").getCategoryId();
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId));
             assertEquals("Category " + categoryId + " is not part of board " + boardId, e.getMessage());
         }
     }
@@ -153,10 +153,10 @@ public class BoardEntryServiceTests {
     class UpdateBoardEntry {
         @Test
         void given_entryExists_then_updateEntry() {
-            var accountId2 = boardAccountService.addBoardAccount(boardId, "acc2", "").getAccountId();
-            var categoryId2 = boardCategoryService.addBoardCategory(boardId, "cat2", "").getCategoryId();
+            var accountId2 = boardAccountService.addBoardAccount(boardId, UUID.randomUUID(), "acc2", "").getAccountId();
+            var categoryId2 = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "cat2", "").getCategoryId();
 
-            var original = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            var original = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             var actual = boardEntryService.updateBoardEntry(boardId, original.getEntryId(), accountId2, categoryId2, "desc2", AMOUNT2, userId, 0);
 
             assertEquals(boardId, actual.getBoardId());
@@ -174,7 +174,7 @@ public class BoardEntryServiceTests {
         @Test
         void given_boardDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
-            var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            var entry = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(fakeId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));
             assertEquals("Entry " + entry.getEntryId() + " is not part of board " + fakeId, e.getMessage());
         }
@@ -182,16 +182,16 @@ public class BoardEntryServiceTests {
         @Test
         void given_accountDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
-            var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            var entry = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), fakeId, categoryId, "desc", AMOUNT1, userId, 0));
             assertEquals("Account " + fakeId + " not found", e.getMessage());
         }
 
         @Test
         void given_accountConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.addBoard(userId).getBoardId();
-            var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
-            accountId = boardAccountService.addBoardAccount(boardId2, "", "").getAccountId();
+            var boardId2 = boardService.addBoard(UUID.randomUUID(),"name",  userId).getBoardId();
+            var entry = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
+            accountId = boardAccountService.addBoardAccount(boardId2, UUID.randomUUID(), "", "").getAccountId();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));
             assertEquals("Account " + accountId + " is not part of board " + boardId, e.getMessage());
         }
@@ -199,23 +199,23 @@ public class BoardEntryServiceTests {
         @Test
         void given_categoryDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
-            var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            var entry = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, fakeId, "desc", AMOUNT1, userId, 0));
             assertEquals("Category " + fakeId + " not found", e.getMessage());
         }
 
         @Test
         void given_categoryConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.addBoard(userId).getBoardId();
-            var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
-            categoryId = boardCategoryService.addBoardCategory(boardId2, "", "").getCategoryId();
+            var boardId2 = boardService.addBoard(UUID.randomUUID(),"name",  userId).getBoardId();
+            var entry = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
+            categoryId = boardCategoryService.addBoardCategory(boardId2, UUID.randomUUID(), "", "").getCategoryId();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));
             assertEquals("Category " + categoryId + " is not part of board " + boardId, e.getMessage());
         }
 
         @Test
         void given_entryHasOldVersion_then_fail() {
-            var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            var entry = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0);
             var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));
             assertEquals(entry.getEntryId(), e.getId());
@@ -229,7 +229,7 @@ public class BoardEntryServiceTests {
     class DeleteBoardEntry {
         @Test
         void given_entryExists_then_delete() {
-            var original = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            var original = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             var actual = boardEntryService.deleteBoardEntry(boardId, original.getEntryId());
             assertEquals(boardId, actual.getBoardId());
             assertEquals(original.getEntryId(), actual.getEntryId());
@@ -248,7 +248,7 @@ public class BoardEntryServiceTests {
         @Test
         void given_boardDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
-            var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            var entry = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.deleteBoardEntry(fakeId, entry.getEntryId()));
             assertEquals("Entry " + entry.getEntryId() + " is not part of board " + fakeId, e.getMessage());
         }

@@ -35,7 +35,7 @@ public class BudgetAccountResource {
     @PostMapping
     public BoardAccount addBoardAccount(@PathVariable("boardId") UUID boardId, @RequestBody AddBoardAccountDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        var out = boardAccountService.addBoardAccount(boardId, request.getLabel(), request.getIcon());
+        var out = boardAccountService.addBoardAccount(boardId, request.getAccountId(), request.getLabel(), request.getIcon());
         log.info("action=ADD, board={}, account={}, label={}, version={}", boardId, out.getAccountId(), out.getLabel(), out.getVersion());
         return out;
     }
