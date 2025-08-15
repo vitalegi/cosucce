@@ -52,7 +52,11 @@ export default defineConfig((/* ctx */) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {
+        SELF_URL: process.env.APP_SELF_URL,
+        OIDC_URL: process.env.APP_OIDC_URL,
+        OIDC_CLIENT_ID: process.env.APP_OIDC_CLIENT_ID,
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
