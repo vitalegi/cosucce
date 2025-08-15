@@ -1,4 +1,4 @@
-import JsonUtil from 'src/utils/json-util';
+import ObjectUtil from './object-util';
 
 export default class NumberUtil {
   public static formatInt(n: number): string {
@@ -35,7 +35,7 @@ export default class NumberUtil {
     if (typeof value === 'number') {
       v = value;
     } else {
-      v = JsonUtil.asDecimal(value);
+      v = ObjectUtil.asDecimal(value);
     }
     return new Intl.NumberFormat('it-IT', {
       style: 'currency',

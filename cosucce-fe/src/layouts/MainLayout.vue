@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import EssentialLink, { type EssentialLinkProps } from 'components/EssentialLink.vue';
+import authService from 'src/auth/auth-service';
 
 const linksList: EssentialLinkProps[] = [
   {
@@ -78,4 +79,5 @@ const leftDrawerOpen = ref(false);
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
+void authService.tokenRefresh();
 </script>

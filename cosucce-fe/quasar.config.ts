@@ -92,6 +92,7 @@ export default defineConfig((/* ctx */) => {
           //rewrite: (path) => path.replace(/^\/api/, ''),
         },
       },
+      port: 9000,
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
