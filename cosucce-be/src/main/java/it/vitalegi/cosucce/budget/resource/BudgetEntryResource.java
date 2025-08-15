@@ -9,6 +9,7 @@ import it.vitalegi.cosucce.budget.service.BudgetAuthorizationService;
 import it.vitalegi.cosucce.iam.model.Permission;
 import it.vitalegi.cosucce.iam.service.AuthenticationService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("budget/board/{boardId}/entry")
 @AllArgsConstructor
+@Slf4j
 public class BudgetEntryResource {
 
     BoardEntryService boardEntryService;
@@ -33,21 +35,27 @@ public class BudgetEntryResource {
     @PostMapping
     public BoardEntry addBoardEntry(@PathVariable("boardId") UUID boardId, @RequestBody AddBoardEntryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        return boardEntryService.addBoardEntry(boardId, request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), userId());
+        var out = boardEntryService.addBoardEntry(boardId, request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), userId());
+        log.info("action=ADD, board={}, account={}, category={}, amount={}, version={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount());
+        return out;
     }
 
     @PutMapping("/{entryId}")
     public BoardEntry updateBoardEntry(@PathVariable("boardId") UUID boardId, @PathVariable("entryId") UUID entryId, @RequestBody UpdateBoardEntryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        return boardEntryService.updateBoardEntry(boardId, entryId, request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), userId(), request.getVersion());
+        var out = boardEntryService.updateBoardEntry(boardId, entryId, request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), userId(), request.getVersion());
+        log.info("action=UPDATE, board={}, account={}, category={}, amount={}, version={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount());
+        return out;
     }
 
     @DeleteMapping("/{entryId}")
     public BoardEntry deleteBoardEntry(@PathVariable("boardId") UUID boardId, @PathVariable("entryId") UUID entryId) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        return boardEntryService.deleteBoardEntry(boardId, entryId);
+        var out = boardEntryService.deleteBoardEntry(boardId, entryId);
+        log.info("action=DELETE, board={}, account={}, category={}, amount={}, version={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount());
+        return out;
     }
 
     @GetMapping

@@ -8,6 +8,7 @@ import it.vitalegi.cosucce.budget.service.BudgetAuthorizationService;
 import it.vitalegi.cosucce.iam.model.Permission;
 import it.vitalegi.cosucce.iam.service.AuthenticationService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("budget/board")
 @AllArgsConstructor
+@Slf4j
 public class BudgetBoardResource {
 
     BoardService boardService;
@@ -32,21 +34,27 @@ public class BudgetBoardResource {
     @PostMapping
     public Board addBoard() {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        return boardService.addBoard(userId());
+        var out = boardService.addBoard(userId());
+        log.info("action=ADD, board={}, name={}, version={}", out.getBoardId(), out.getName(), out.getVersion());
+        return out;
     }
 
     @PutMapping("/{boardId}")
     public Board updateBoard(@PathVariable("boardId") UUID boardId, @RequestBody UpdateBoard request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        return boardService.updateBoard(boardId, request.getName(), request.getVersion());
+        var out = boardService.updateBoard(boardId, request.getName(), request.getVersion());
+        log.info("action=UPDATE, board={}, name={}, version={}", out.getBoardId(), out.getName(), out.getVersion());
+        return out;
     }
 
     @DeleteMapping("/{boardId}")
     public Board deleteBoard(@PathVariable("boardId") UUID boardId) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        return boardService.deleteBoard(boardId);
+        var out = boardService.deleteBoard(boardId);
+        log.info("action=DELETE, board={}, name={}, version={}", out.getBoardId(), out.getName(), out.getVersion());
+        return out;
     }
 
     @GetMapping

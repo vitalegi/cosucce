@@ -9,6 +9,7 @@ import it.vitalegi.cosucce.budget.service.BudgetAuthorizationService;
 import it.vitalegi.cosucce.iam.model.Permission;
 import it.vitalegi.cosucce.iam.service.AuthenticationService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("budget/board/{boardId}/category")
 @AllArgsConstructor
+@Slf4j
 public class BudgetCategoryResource {
 
     BoardCategoryService boardCategoryService;
@@ -33,21 +35,27 @@ public class BudgetCategoryResource {
     @PostMapping
     public BoardCategory addBoardCategory(@PathVariable("boardId") UUID boardId, @RequestBody AddBoardCategoryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        return boardCategoryService.addBoardCategory(boardId, request.getLabel(), request.getIcon());
+        var out = boardCategoryService.addBoardCategory(boardId, request.getLabel(), request.getIcon());
+        log.info("action=ADD, board={}, category={}, label={}, version={}", boardId, out.getCategoryId(), out.getLabel(), out.getVersion());
+        return out;
     }
 
     @PutMapping("/{categoryId}")
     public BoardCategory updateBoardCategory(@PathVariable("boardId") UUID boardId, @PathVariable("categoryId") UUID categoryId, @RequestBody UpdateBoardCategoryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        return boardCategoryService.updateBoardCategory(boardId, categoryId, request.getLabel(), request.getIcon(), request.isEnabled(), request.getVersion());
+        var out = boardCategoryService.updateBoardCategory(boardId, categoryId, request.getLabel(), request.getIcon(), request.isEnabled(), request.getVersion());
+        log.info("action=UPDATE, board={}, category={}, label={}, version={}", boardId, out.getCategoryId(), out.getLabel(), out.getVersion());
+        return out;
     }
 
     @DeleteMapping("/{categoryId}")
     public BoardCategory deleteBoardCategory(@PathVariable("boardId") UUID boardId, @PathVariable("categoryId") UUID categoryId) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        return boardCategoryService.deleteBoardCategory(boardId, categoryId);
+        var out = boardCategoryService.deleteBoardCategory(boardId, categoryId);
+        log.info("action=DELETE, board={}, category={}, label={}, version={}", boardId, out.getCategoryId(), out.getLabel(), out.getVersion());
+        return out;
     }
 
     @GetMapping

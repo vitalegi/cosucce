@@ -9,6 +9,7 @@ import it.vitalegi.cosucce.budget.service.BudgetAuthorizationService;
 import it.vitalegi.cosucce.iam.model.Permission;
 import it.vitalegi.cosucce.iam.service.AuthenticationService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("budget/board/{boardId}/account")
 @AllArgsConstructor
+@Slf4j
 public class BudgetAccountResource {
 
     BoardAccountService boardAccountService;
@@ -33,21 +35,27 @@ public class BudgetAccountResource {
     @PostMapping
     public BoardAccount addBoardAccount(@PathVariable("boardId") UUID boardId, @RequestBody AddBoardAccountDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        return boardAccountService.addBoardAccount(boardId, request.getLabel(), request.getIcon());
+        var out = boardAccountService.addBoardAccount(boardId, request.getLabel(), request.getIcon());
+        log.info("action=ADD, board={}, account={}, label={}, version={}", boardId, out.getAccountId(), out.getLabel(), out.getVersion());
+        return out;
     }
 
     @PutMapping("/{accountId}")
     public BoardAccount updateBoardAccount(@PathVariable("boardId") UUID boardId, @PathVariable("accountId") UUID accountId, @RequestBody UpdateBoardAccountDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        return boardAccountService.updateBoardAccount(boardId, accountId, request.getLabel(), request.getIcon(), request.isEnabled(), request.getVersion());
+        var out = boardAccountService.updateBoardAccount(boardId, accountId, request.getLabel(), request.getIcon(), request.isEnabled(), request.getVersion());
+        log.info("action=UPDATE, board={}, account={}, label={}, version={}", boardId, out.getAccountId(), out.getLabel(), out.getVersion());
+        return out;
     }
 
     @DeleteMapping("/{accountId}")
     public BoardAccount deleteBoardAccount(@PathVariable("boardId") UUID boardId, @PathVariable("accountId") UUID accountId) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        return boardAccountService.deleteBoardAccount(boardId, accountId);
+        var out = boardAccountService.deleteBoardAccount(boardId, accountId);
+        log.info("action=DELETE, board={}, account={}, label={}, version={}", boardId, out.getAccountId(), out.getLabel(), out.getVersion());
+        return out;
     }
 
     @GetMapping
