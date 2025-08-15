@@ -1,3 +1,12 @@
 {
-  "extends": "./.quasar/tsconfig.json"
+  "extends": "./.quasar/tsconfig.json",
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": false,
+    "strict": true,
+    "exactOptionalPropertyTypes": false,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "verbatimModuleSyntax": false,
+    "esModuleInterop": true
+  }
 }
