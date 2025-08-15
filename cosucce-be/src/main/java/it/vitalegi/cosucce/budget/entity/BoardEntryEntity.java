@@ -29,6 +29,7 @@ public class BoardEntryEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID entryId;
     private UUID boardId;
+    private int version;
     private UUID accountId;
     private UUID categoryId;
     private String description;

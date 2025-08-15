@@ -26,6 +26,12 @@ public class MockMvcUtil {
                 .andExpect(content().json("{'error': 'UnauthorizedAccessException'}"));
     }
 
+    public static void assert409(ResultActions resultActions) throws Exception {
+        resultActions //
+                .andExpect(status().is(409)) //
+                .andExpect(content().json("{'error': 'OptimisticLockException'}"));
+    }
+
 
     public static UUID getUserId(MockMvc mockMvc, RequestPostProcessor auth) {
         try {

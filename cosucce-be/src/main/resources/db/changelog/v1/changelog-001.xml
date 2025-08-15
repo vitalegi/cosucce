@@ -66,6 +66,9 @@
             <column name="name" type="varchar(500)">
                 <constraints nullable="true"/>
             </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
             <column name="creation_date" type="timestamp without time zone">
                 <constraints nullable="true"/>
             </column>
@@ -81,6 +84,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="user_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="role" type="varchar(500)">
@@ -128,6 +134,9 @@
             <column name="board_id" type="uuid">
                 <constraints nullable="false"/>
             </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
             <column name="label" type="varchar(500)">
                 <constraints nullable="false"/>
             </column>
@@ -163,6 +172,9 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="board_category_pk"/>
             </column>
             <column name="board_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="label" type="varchar(500)">
@@ -201,6 +213,9 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="board_entry_pk"/>
             </column>
             <column name="board_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="account_id" type="uuid">

@@ -4,6 +4,7 @@ import it.vitalegi.cosucce.App;
 import it.vitalegi.cosucce.budget.constants.BoardUserRole;
 import it.vitalegi.cosucce.budget.entity.BoardUserId;
 import it.vitalegi.cosucce.budget.exception.BudgetException;
+import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
 import it.vitalegi.cosucce.budget.repository.BoardRepository;
 import it.vitalegi.cosucce.budget.repository.BoardUserRepository;
 import it.vitalegi.cosucce.util.UserUtil;
@@ -42,6 +43,7 @@ public class BoardServiceTests {
 
             var board = boardService.addBoard(userId);
             assertNotNull(board.getBoardId());
+            assertEquals(0, board.getVersion());
             assertNotNull(board.getName());
             assertNotNull(board.getCreationDate());
             assertNotNull(board.getLastUpdate());
@@ -90,8 +92,9 @@ public class BoardServiceTests {
         void given_boardExists_then_updateBoard() {
             var userId = UserUtil.createUser();
             var board = boardService.addBoard(userId);
-            var actual = boardService.updateBoard(board.getBoardId(), "New name");
+            var actual = boardService.updateBoard(board.getBoardId(), "New name", 0);
             assertEquals(board.getBoardId(), actual.getBoardId());
+            assertEquals(1, actual.getVersion());
             assertEquals("New name", actual.getName());
             assertNotNull(actual.getCreationDate());
             assertNotNull(actual.getLastUpdate());
@@ -100,8 +103,19 @@ public class BoardServiceTests {
         @Test
         void given_boardDoesntExist_then_fail() {
             var id = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardService.updateBoard(id, ""));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardService.updateBoard(id, "", 0));
             assertEquals("Board " + id + " not found", e.getMessage());
+        }
+
+        @Test
+        void given_entryHasOldVersion_then_fail() {
+            var userId = UserUtil.createUser();
+            var board = boardService.addBoard(userId);
+            var entry = boardService.updateBoard(board.getBoardId(), "New name", 0);
+            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardService.updateBoard(board.getBoardId(), "New name", 0));
+            assertEquals(board.getBoardId(), e.getId());
+            assertEquals(1, e.getExpectedVersion());
+            assertEquals(0, e.getActualVersion());
         }
     }
 

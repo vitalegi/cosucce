@@ -17,4 +17,5 @@ public class Board {
     private String name;
     private Instant creationDate;
     private Instant lastUpdate;
+    private int version;
 }

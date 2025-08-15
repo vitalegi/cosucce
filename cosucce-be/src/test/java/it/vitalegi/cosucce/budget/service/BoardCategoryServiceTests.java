@@ -2,6 +2,7 @@ package it.vitalegi.cosucce.budget.service;
 
 import it.vitalegi.cosucce.App;
 import it.vitalegi.cosucce.budget.exception.BudgetException;
+import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
 import it.vitalegi.cosucce.util.UserUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -77,6 +78,7 @@ public class BoardCategoryServiceTests {
             var actual = boardCategoryService.addBoardCategory(boardId, "label1", "icon1");
             assertEquals(boardId, actual.getBoardId());
             assertNotNull(actual.getCategoryId());
+            assertEquals(0, actual.getVersion());
             assertEquals("icon1", actual.getIcon());
             assertEquals("label1", actual.getLabel());
             assertTrue(actual.isEnabled());
@@ -97,9 +99,10 @@ public class BoardCategoryServiceTests {
         @Test
         void given_boardExists_then_update() {
             var element = boardCategoryService.addBoardCategory(boardId, "label1", "icon1");
-            var actual = boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false);
+            var actual = boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false, 0);
             assertEquals(boardId, actual.getBoardId());
             assertEquals(element.getCategoryId(), actual.getCategoryId());
+            assertEquals(1, actual.getVersion());
             assertEquals("icon2", actual.getIcon());
             assertEquals("label2", actual.getLabel());
             assertFalse(actual.isEnabled());
@@ -111,23 +114,33 @@ public class BoardCategoryServiceTests {
         void given_boardDoesntExist_then_fail() {
             var id = UUID.randomUUID();
             var element = boardCategoryService.addBoardCategory(boardId, "label1", "icon1");
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(id, element.getCategoryId(), "label1", "icon1", true));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(id, element.getCategoryId(), "label1", "icon1", true, 0));
             assertEquals("Category " + element.getCategoryId() + " is not part of board " + id, e.getMessage());
         }
 
         @Test
-        void given_accountIsNotPartOfBoard_then_fail() {
+        void given_categoryIsNotPartOfBoard_then_fail() {
             var boardId2 = boardService.addBoard(userId).getBoardId();
             var element = boardCategoryService.addBoardCategory(boardId, "label1", "icon1");
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(boardId2, element.getCategoryId(), "label1", "icon1", true));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(boardId2, element.getCategoryId(), "label1", "icon1", true, 0));
             assertEquals("Category " + element.getCategoryId() + " is not part of board " + boardId2, e.getMessage());
         }
 
         @Test
-        void given_accountDoesntExist_then_fail() {
+        void given_categoryDoesntExist_then_fail() {
             var id = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(boardId, id, "label1", "icon1", true));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(boardId, id, "label1", "icon1", true, 0));
             assertEquals("Category " + id + " not found", e.getMessage());
+        }
+
+        @Test
+        void given_categoryHasOldVersion_then_fail() {
+            var element = boardCategoryService.addBoardCategory(boardId, "label1", "icon1");
+            boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false, 0);
+            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false, 0));
+            assertEquals(element.getCategoryId(), e.getId());
+            assertEquals(1, e.getExpectedVersion());
+            assertEquals(0, e.getActualVersion());
         }
     }
 }

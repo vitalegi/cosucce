@@ -20,7 +20,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class BoardCategoryService {
     BoardCategoryRepository boardCategoryRepository;
+
     BoardMapper boardMapper;
+    OptimisticLockService optimisticLockService;
 
     public List<BoardCategory> getBoardCategories(UUID boardId) {
         return boardCategoryRepository.findAllByBoardId(boardId).stream().map(boardMapper::toCategory).toList();
@@ -44,15 +46,17 @@ public class BoardCategoryService {
     }
 
     @Transactional
-    public BoardCategory updateBoardCategory(UUID boardId, UUID categoryId, String label, String icon, boolean enabled) {
+    public BoardCategory updateBoardCategory(UUID boardId, UUID categoryId, String label, String icon, boolean enabled, int version) {
         var opt = boardCategoryRepository.findById(categoryId);
         if (opt.isEmpty()) {
             throw new BudgetException("Category " + categoryId + " not found");
         }
         var entity = opt.get();
+        optimisticLockService.checkLock(categoryId, entity.getVersion(), version);
         if (!entity.getBoardId().equals(boardId)) {
             throw new BudgetException("Category " + categoryId + " is not part of board " + boardId);
         }
+        entity.setVersion(entity.getVersion() + 1);
         entity.setLabel(label);
         entity.setIcon(icon);
         entity.setEnabled(enabled);

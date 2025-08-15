@@ -2,6 +2,7 @@ package it.vitalegi.cosucce.budget.service;
 
 import it.vitalegi.cosucce.App;
 import it.vitalegi.cosucce.budget.exception.BudgetException;
+import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
 import it.vitalegi.cosucce.util.UserUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -100,6 +101,7 @@ public class BoardEntryServiceTests {
             var actual = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
             assertEquals(boardId, actual.getBoardId());
             assertNotNull(actual.getEntryId());
+            assertEquals(0, actual.getVersion());
             assertEquals(accountId, actual.getAccountId());
             assertEquals(categoryId, actual.getCategoryId());
             assertEquals("desc", actual.getDescription());
@@ -155,10 +157,11 @@ public class BoardEntryServiceTests {
             var categoryId2 = boardCategoryService.addBoardCategory(boardId, "cat2", "").getCategoryId();
 
             var original = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
-            var actual = boardEntryService.updateBoardEntry(boardId, original.getEntryId(), accountId2, categoryId2, "desc2", AMOUNT2, userId);
+            var actual = boardEntryService.updateBoardEntry(boardId, original.getEntryId(), accountId2, categoryId2, "desc2", AMOUNT2, userId, 0);
 
             assertEquals(boardId, actual.getBoardId());
             assertEquals(original.getEntryId(), actual.getEntryId());
+            assertEquals(1, actual.getVersion());
             assertEquals(accountId2, actual.getAccountId());
             assertEquals(categoryId2, actual.getCategoryId());
             assertEquals("desc2", actual.getDescription());
@@ -172,7 +175,7 @@ public class BoardEntryServiceTests {
         void given_boardDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
             var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(fakeId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(fakeId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));
             assertEquals("Entry " + entry.getEntryId() + " is not part of board " + fakeId, e.getMessage());
         }
 
@@ -180,7 +183,7 @@ public class BoardEntryServiceTests {
         void given_accountDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
             var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), fakeId, categoryId, "desc", AMOUNT1, userId));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), fakeId, categoryId, "desc", AMOUNT1, userId, 0));
             assertEquals("Account " + fakeId + " not found", e.getMessage());
         }
 
@@ -189,7 +192,7 @@ public class BoardEntryServiceTests {
             var boardId2 = boardService.addBoard(userId).getBoardId();
             var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
             accountId = boardAccountService.addBoardAccount(boardId2, "", "").getAccountId();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));
             assertEquals("Account " + accountId + " is not part of board " + boardId, e.getMessage());
         }
 
@@ -197,7 +200,7 @@ public class BoardEntryServiceTests {
         void given_categoryDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
             var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, fakeId, "desc", AMOUNT1, userId));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, fakeId, "desc", AMOUNT1, userId, 0));
             assertEquals("Category " + fakeId + " not found", e.getMessage());
         }
 
@@ -206,8 +209,18 @@ public class BoardEntryServiceTests {
             var boardId2 = boardService.addBoard(userId).getBoardId();
             var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
             categoryId = boardCategoryService.addBoardCategory(boardId2, "", "").getCategoryId();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));
             assertEquals("Category " + categoryId + " is not part of board " + boardId, e.getMessage());
+        }
+
+        @Test
+        void given_entryHasOldVersion_then_fail() {
+            var entry = boardEntryService.addBoardEntry(boardId, accountId, categoryId, "desc", AMOUNT1, userId);
+            boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0);
+            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));
+            assertEquals(entry.getEntryId(), e.getId());
+            assertEquals(1, e.getExpectedVersion());
+            assertEquals(0, e.getActualVersion());
         }
     }
 

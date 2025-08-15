@@ -2,6 +2,7 @@ package it.vitalegi.cosucce.budget.service;
 
 import it.vitalegi.cosucce.App;
 import it.vitalegi.cosucce.budget.exception.BudgetException;
+import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
 import it.vitalegi.cosucce.util.UserUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -79,6 +80,7 @@ public class BoardAccountServiceTests {
             assertNotNull(actual.getAccountId());
             assertEquals("icon1", actual.getIcon());
             assertEquals("label1", actual.getLabel());
+            assertEquals(0, actual.getVersion());
             assertTrue(actual.isEnabled());
             assertNotNull(actual.getLastUpdate());
             assertNotNull(actual.getCreationDate());
@@ -97,11 +99,12 @@ public class BoardAccountServiceTests {
         @Test
         void given_boardExists_then_update() {
             var element = boardAccountService.addBoardAccount(boardId, "label1", "icon1");
-            var actual = boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false);
+            var actual = boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false, 0);
             assertEquals(boardId, actual.getBoardId());
             assertEquals(element.getAccountId(), actual.getAccountId());
             assertEquals("icon2", actual.getIcon());
             assertEquals("label2", actual.getLabel());
+            assertEquals(1, actual.getVersion(), "Version is increased");
             assertFalse(actual.isEnabled());
             assertNotNull(actual.getLastUpdate());
             assertNotNull(actual.getCreationDate());
@@ -111,7 +114,7 @@ public class BoardAccountServiceTests {
         void given_boardDoesntExist_then_fail() {
             var id = UUID.randomUUID();
             var element = boardAccountService.addBoardAccount(boardId, "label1", "icon1");
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(id, element.getAccountId(), "label1", "icon1", true));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(id, element.getAccountId(), "label1", "icon1", true, 0));
             assertEquals("Account " + element.getAccountId() + " is not part of board " + id, e.getMessage());
         }
 
@@ -119,15 +122,25 @@ public class BoardAccountServiceTests {
         void given_accountIsNotPartOfBoard_then_fail() {
             var boardId2 = boardService.addBoard(userId).getBoardId();
             var element = boardAccountService.addBoardAccount(boardId, "label1", "icon1");
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(boardId2, element.getAccountId(), "label1", "icon1", true));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(boardId2, element.getAccountId(), "label1", "icon1", true, 0));
             assertEquals("Account " + element.getAccountId() + " is not part of board " + boardId2, e.getMessage());
         }
 
         @Test
         void given_accountDoesntExist_then_fail() {
             var id = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(boardId, id, "label1", "icon1", true));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(boardId, id, "label1", "icon1", true, 0));
             assertEquals("Account " + id + " not found", e.getMessage());
+        }
+
+        @Test
+        void given_accountHasOldVersion_then_fail() {
+            var element = boardAccountService.addBoardAccount(boardId, "label1", "icon1");
+            boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false, 0);
+            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false, 0));
+            assertEquals(element.getAccountId(), e.getId());
+            assertEquals(1, e.getExpectedVersion());
+            assertEquals(0, e.getActualVersion());
         }
     }
 }

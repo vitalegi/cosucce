@@ -33,6 +33,7 @@ public class BoardService {
     BoardEntryRepository boardEntryRepository;
 
     BoardMapper boardMapper;
+    OptimisticLockService optimisticLockService;
 
     @Transactional
     public Board addBoard(UUID userId) {
@@ -54,8 +55,10 @@ public class BoardService {
     }
 
     @Transactional
-    public Board updateBoard(UUID boardId, String name) {
+    public Board updateBoard(UUID boardId, String name, int version) {
         var entity = getBoard(boardId);
+        optimisticLockService.checkLock(boardId, entity.getVersion(), version);
+        entity.setVersion(entity.getVersion() + 1);
         entity.setName(name);
         entity.setLastUpdate(Instant.now());
         entity = boardRepository.save(entity);

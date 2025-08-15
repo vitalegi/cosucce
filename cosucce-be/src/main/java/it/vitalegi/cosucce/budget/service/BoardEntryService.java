@@ -29,6 +29,7 @@ public class BoardEntryService {
     BoardCategoryRepository boardCategoryRepository;
 
     BoardMapper boardMapper;
+    OptimisticLockService optimisticLockService;
 
     public List<BoardEntry> getBoardEntries(UUID boardId) {
         return boardEntryRepository.findAllByBoardId(boardId).stream().map(boardMapper::toEntry).toList();
@@ -61,12 +62,13 @@ public class BoardEntryService {
     }
 
     @Transactional
-    public BoardEntry updateBoardEntry(UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, UUID lastUpdatedBy) {
+    public BoardEntry updateBoardEntry(UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, UUID lastUpdatedBy, int version) {
         var opt = boardEntryRepository.findById(entryId);
         if (opt.isEmpty()) {
             throw new BudgetException("Entry " + entryId + " not found");
         }
         var entity = opt.get();
+        optimisticLockService.checkLock(entryId, entity.getVersion(), version);
         if (!entity.getBoardId().equals(boardId)) {
             throw new BudgetException("Entry " + entryId + " is not part of board " + boardId);
         }
@@ -75,12 +77,13 @@ public class BoardEntryService {
         validateCategory(boardId, categoryId);
 
         entity.setBoardId(boardId);
+        entity.setVersion(entity.getVersion() + 1);
         entity.setAccountId(accountId);
         entity.setCategoryId(categoryId);
         entity.setDescription(description);
         entity.setAmount(amount);
-        entity.setLastUpdatedBy(lastUpdatedBy);
 
+        entity.setLastUpdatedBy(lastUpdatedBy);
         entity.setLastUpdate(Instant.now());
         entity = boardEntryRepository.save(entity);
         return boardMapper.toEntry(entity);

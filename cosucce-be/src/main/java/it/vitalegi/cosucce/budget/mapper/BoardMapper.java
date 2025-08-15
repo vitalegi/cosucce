@@ -17,6 +17,7 @@ public class BoardMapper {
         var out = new Board();
         out.setBoardId(entity.getBoardId());
         out.setName(entity.getName());
+        out.setVersion(entity.getVersion());
         out.setCreationDate(entity.getCreationDate());
         out.setLastUpdate(entity.getLastUpdate());
         return out;
@@ -26,6 +27,7 @@ public class BoardMapper {
         var out = new BoardAccount();
         out.setAccountId(entity.getAccountId());
         out.setBoardId(entity.getBoardId());
+        out.setVersion(entity.getVersion());
         out.setLabel(entity.getLabel());
         out.setIcon(entity.getIcon());
         out.setEnabled(entity.isEnabled());
@@ -38,6 +40,7 @@ public class BoardMapper {
         var out = new BoardCategory();
         out.setCategoryId(entity.getCategoryId());
         out.setBoardId(entity.getBoardId());
+        out.setVersion(entity.getVersion());
         out.setLabel(entity.getLabel());
         out.setIcon(entity.getIcon());
         out.setEnabled(entity.isEnabled());
@@ -50,6 +53,7 @@ public class BoardMapper {
         var out = new BoardEntry();
         out.setEntryId(entity.getEntryId());
         out.setBoardId(entity.getBoardId());
+        out.setVersion(entity.getVersion());
         out.setAccountId(entity.getAccountId());
         out.setCategoryId(entity.getCategoryId());
         out.setDescription(entity.getDescription());

@@ -28,6 +28,7 @@ public class BoardCategoryEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID categoryId;
     private UUID boardId;
+    private int version;
     private String label;
     private String icon;
     private boolean enabled;

@@ -39,7 +39,7 @@ public class BudgetBoardResource {
     public Board updateBoard(@PathVariable("boardId") UUID boardId, @RequestBody UpdateBoard request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        return boardService.updateBoard(boardId, request.getName());
+        return boardService.updateBoard(boardId, request.getName(), request.getVersion());
     }
 
     @DeleteMapping("/{boardId}")

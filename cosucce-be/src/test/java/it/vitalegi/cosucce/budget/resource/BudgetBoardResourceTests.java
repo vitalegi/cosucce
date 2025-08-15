@@ -1,6 +1,7 @@
 package it.vitalegi.cosucce.budget.resource;
 
 import it.vitalegi.cosucce.budget.constants.BoardUserPermission;
+import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
 import it.vitalegi.cosucce.budget.model.Board;
 import it.vitalegi.cosucce.budget.service.BoardService;
 import it.vitalegi.cosucce.budget.service.BudgetAuthorizationService;
@@ -23,9 +24,11 @@ import static it.vitalegi.cosucce.util.MockAuth.guest;
 import static it.vitalegi.cosucce.util.MockAuth.member;
 import static it.vitalegi.cosucce.util.MockMvcUtil.assert401;
 import static it.vitalegi.cosucce.util.MockMvcUtil.assert403;
+import static it.vitalegi.cosucce.util.MockMvcUtil.assert409;
 import static it.vitalegi.cosucce.util.MockMvcUtil.getUserId;
 import static java.time.Instant.now;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,20 +100,21 @@ public class BudgetBoardResourceTests {
             var auth = member();
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
-            var expected = Board.builder().boardId(boardId).name("bar").creationDate(now()).lastUpdate(now()).build();
+            var expected = Board.builder().boardId(boardId).name("bar").version(1).creationDate(now()).lastUpdate(now()).build();
 
-            when(boardService.updateBoard(any(), any())).thenReturn(expected);
+            when(boardService.updateBoard(any(), any(), anyInt())).thenReturn(expected);
 
             mockMvc.perform(request(boardId, "bar").with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$.name").value("bar")) //
+                    .andExpect(jsonPath("$.version").value(1)) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
-            verify(boardService, times(1)).updateBoard(boardId, "bar");
+            verify(boardService, times(1)).updateBoard(boardId, "bar", 0);
         }
 
         @Test
@@ -123,10 +127,30 @@ public class BudgetBoardResourceTests {
             assert403(mockMvc.perform(request(UUID.randomUUID(), "foo").with(guest())).andDo(print()));
         }
 
+        @Test
+        void given_invalidVersion_when_authenticated_then_409() throws Exception {
+            var auth = member();
+            var userId = getUserId(mockMvc, auth);
+            var boardId = UUID.randomUUID();
+
+            when(boardService.updateBoard(any(), any(), anyInt())).thenThrow(new OptimisticLockException(boardId, 5, 10));
+
+            assert409(mockMvc.perform(request(boardId, "bar", 5).with(csrf()).with(auth)) //
+                    .andDo(print()) //
+                    .andExpect(jsonPath("$.error").value("OptimisticLockException")));
+
+            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
+            verify(boardService, times(1)).updateBoard(boardId, "bar", 5);
+        }
+
         protected MockHttpServletRequestBuilder request(UUID boardId, String name) {
+            return request(boardId, name, 0);
+        }
+
+        protected MockHttpServletRequestBuilder request(UUID boardId, String name, int version) {
             var request = put("/budget/board/" + boardId);
             return request.contentType(MediaType.APPLICATION_JSON) //
-                    .content("{\"name\": \"" + name + "\"}");
+                    .content("{\"name\": \"" + name + "\", \"version\": " + version + "}");
         }
     }
 

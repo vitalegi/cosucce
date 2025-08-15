@@ -1,6 +1,7 @@
 package it.vitalegi.cosucce;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
 import it.vitalegi.cosucce.exception.MissingCookieException;
 import it.vitalegi.cosucce.exception.UnauthorizedAccessException;
 import it.vitalegi.cosucce.model.ErrorResponse;
@@ -50,6 +51,12 @@ public class CustomExceptionHandler {
     public ResponseEntity<ErrorResponse> handle(MissingCookieException e) {
         log.debug(e.getMessage());
         return new ResponseEntity<>(new ErrorResponse(e.getClass().getSimpleName(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(OptimisticLockException.class)
+    public ResponseEntity<ErrorResponse> handle(OptimisticLockException e) {
+        log.info("Version conflict on resource {}, expected version: {}, actual: {}", e.getId(), e.getExpectedVersion(), e.getActualVersion());
+        return new ResponseEntity<>(new ErrorResponse(e.getClass().getSimpleName(), e.getMessage()), HttpStatus.CONFLICT);
     }
 
     protected void log(Throwable e) {

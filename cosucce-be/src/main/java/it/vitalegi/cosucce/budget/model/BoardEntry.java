@@ -10,6 +10,7 @@ import java.util.UUID;
 public class BoardEntry {
     private UUID entryId;
     private UUID boardId;
+    private int version;
     private UUID accountId;
     private UUID categoryId;
     private String description;

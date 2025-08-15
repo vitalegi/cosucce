@@ -31,6 +31,7 @@ public class BoardEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID boardId;
     private String name;
+    private int version;
     private Instant creationDate;
     private Instant lastUpdate;
 
