@@ -143,4 +143,32 @@ public class BoardCategoryServiceTests {
             assertEquals(0, e.getActualVersion());
         }
     }
+
+    @Nested
+    class DeleteBoardCategory {
+        @Test
+        void given_entryExists_then_delete() {
+            var original = boardCategoryService.addBoardCategory(boardId, "label", "icon");
+            var actual = boardCategoryService.deleteBoardCategory(boardId, original.getCategoryId());
+            assertEquals(boardId, actual.getBoardId());
+            assertEquals(original.getCategoryId(), actual.getCategoryId());
+            assertEquals("label", actual.getLabel());
+            assertEquals("icon", actual.getIcon());
+            assertTrue(actual.isEnabled());
+            assertEquals(0, actual.getVersion());
+            assertNotNull(actual.getLastUpdate());
+            assertNotNull(actual.getCreationDate());
+
+            var entries = boardCategoryService.getBoardCategories(boardId);
+            assertEquals(0, entries.size());
+        }
+
+        @Test
+        void given_boardDoesntExist_then_fail() {
+            var fakeId = UUID.randomUUID();
+            var entry = boardCategoryService.addBoardCategory(boardId, "label", "icon");
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.deleteBoardCategory(fakeId, entry.getCategoryId()));
+            assertEquals("Category " + entry.getCategoryId() + " is not part of board " + fakeId, e.getMessage());
+        }
+    }
 }

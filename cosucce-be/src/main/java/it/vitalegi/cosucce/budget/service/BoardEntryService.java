@@ -91,11 +91,7 @@ public class BoardEntryService {
 
     @Transactional
     public BoardEntry deleteBoardEntry(UUID boardId, UUID entryId) {
-        var opt = boardEntryRepository.findById(entryId);
-        if (opt.isEmpty()) {
-            throw new BudgetException("Entry " + entryId + " not found");
-        }
-        var entity = opt.get();
+        var entity = getBoardEntry(entryId);
         if (!entity.getBoardId().equals(boardId)) {
             throw new BudgetException("Entry " + entryId + " is not part of board " + boardId);
         }
@@ -128,5 +124,13 @@ public class BoardEntryService {
         if (!entity.get().getBoardId().equals(boardId)) {
             throw new BudgetException("Category " + categoryId + " is not part of board " + boardId);
         }
+    }
+
+    protected BoardEntryEntity getBoardEntry(UUID id) {
+        var entity = boardEntryRepository.findById(id);
+        if (entity.isEmpty()) {
+            throw new BudgetException("Entry " + id + " not found");
+        }
+        return entity.get();
     }
 }

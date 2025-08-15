@@ -64,4 +64,23 @@ public class BoardCategoryService {
         entity = boardCategoryRepository.save(entity);
         return boardMapper.toCategory(entity);
     }
+
+    @Transactional
+    public BoardCategory deleteBoardCategory(UUID boardId, UUID id) {
+        var entity = getBoardCategory(id);
+        if (!entity.getBoardId().equals(boardId)) {
+            throw new BudgetException("Category " + id + " is not part of board " + boardId);
+        }
+
+        boardCategoryRepository.delete(entity);
+        return boardMapper.toCategory(entity);
+    }
+
+    protected BoardCategoryEntity getBoardCategory(UUID id) {
+        var entity = boardCategoryRepository.findById(id);
+        if (entity.isEmpty()) {
+            throw new BudgetException("Category " + id + " not found");
+        }
+        return entity.get();
+    }
 }

@@ -61,7 +61,7 @@ public class BudgetBoardResourceTests {
             var auth = member();
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
-            var expected = Board.builder().boardId(boardId).name("bar").creationDate(now()).lastUpdate(now()).build();
+            var expected = Board.builder().boardId(boardId).name("bar").version(1).creationDate(now()).lastUpdate(now()).build();
 
             when(boardService.addBoard(any())).thenReturn(expected);
 
@@ -69,6 +69,7 @@ public class BudgetBoardResourceTests {
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
+                    .andExpect(jsonPath("$.version").value(1)) //
                     .andExpect(jsonPath("$.name").value("bar")) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
@@ -202,8 +203,8 @@ public class BudgetBoardResourceTests {
             var boardId1 = UUID.randomUUID();
             var boardId2 = UUID.randomUUID();
             var expected = Arrays.asList( //
-                    Board.builder().boardId(boardId1).name("foo").creationDate(now()).lastUpdate(now()).build(), //
-                    Board.builder().boardId(boardId2).name("bar").creationDate(now()).lastUpdate(now()).build());
+                    Board.builder().boardId(boardId1).name("foo").version(1).creationDate(now()).lastUpdate(now()).build(), //
+                    Board.builder().boardId(boardId2).name("bar").version(2).creationDate(now()).lastUpdate(now()).build());
 
             when(boardService.getVisibleBoards(any())).thenReturn(expected);
 
@@ -212,10 +213,12 @@ public class BudgetBoardResourceTests {
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$[0].boardId").value(boardId1.toString())) //
                     .andExpect(jsonPath("$[0].name").value("foo")) //
+                    .andExpect(jsonPath("$[0].version").value(1)) //
                     .andExpect(jsonPath("$[0].creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$[0].lastUpdate").isNotEmpty()) //
                     .andExpect(jsonPath("$[1].boardId").value(boardId2.toString())) //
                     .andExpect(jsonPath("$[1].name").value("bar")) //
+                    .andExpect(jsonPath("$[1].version").value(2)) //
                     .andExpect(jsonPath("$[1].creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$[1].lastUpdate").isNotEmpty());
 

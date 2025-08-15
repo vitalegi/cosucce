@@ -143,4 +143,32 @@ public class BoardAccountServiceTests {
             assertEquals(0, e.getActualVersion());
         }
     }
+
+    @Nested
+    class DeleteBoardAccount {
+        @Test
+        void given_entryExists_then_delete() {
+            var original = boardAccountService.addBoardAccount(boardId, "label", "icon");
+            var actual = boardAccountService.deleteBoardAccount(boardId, original.getAccountId());
+            assertEquals(boardId, actual.getBoardId());
+            assertEquals(original.getAccountId(), actual.getAccountId());
+            assertEquals("label", actual.getLabel());
+            assertEquals("icon", actual.getIcon());
+            assertTrue(actual.isEnabled());
+            assertEquals(0, actual.getVersion());
+            assertNotNull(actual.getLastUpdate());
+            assertNotNull(actual.getCreationDate());
+
+            var entries = boardAccountService.getBoardAccounts(boardId);
+            assertEquals(0, entries.size());
+        }
+
+        @Test
+        void given_boardDoesntExist_then_fail() {
+            var fakeId = UUID.randomUUID();
+            var entry = boardAccountService.addBoardAccount(boardId, "label", "icon");
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.deleteBoardAccount(fakeId, entry.getAccountId()));
+            assertEquals("Account " + entry.getAccountId() + " is not part of board " + fakeId, e.getMessage());
+        }
+    }
 }

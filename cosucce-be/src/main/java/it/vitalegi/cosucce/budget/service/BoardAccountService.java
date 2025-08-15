@@ -64,4 +64,22 @@ public class BoardAccountService {
         entity = boardAccountRepository.save(entity);
         return boardMapper.toAccount(entity);
     }
+
+    @Transactional
+    public BoardAccount deleteBoardAccount(UUID boardId, UUID id) {
+        var entity = getBoardAccount(id);
+        if (!entity.getBoardId().equals(boardId)) {
+            throw new BudgetException("Account " + id + " is not part of board " + boardId);
+        }
+        boardAccountRepository.delete(entity);
+        return boardMapper.toAccount(entity);
+    }
+
+    protected BoardAccountEntity getBoardAccount(UUID id) {
+        var entity = boardAccountRepository.findById(id);
+        if (entity.isEmpty()) {
+            throw new BudgetException("Account " + id + " not found");
+        }
+        return entity.get();
+    }
 }
