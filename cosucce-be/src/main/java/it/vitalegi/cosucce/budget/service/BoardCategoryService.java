@@ -29,6 +29,12 @@ public class BoardCategoryService {
     }
 
     public BoardCategory addBoardCategory(UUID boardId, UUID categoryId, String label, String icon) {
+        if (categoryId != null) {
+            if (boardCategoryRepository.findById(categoryId).isPresent()) {
+                throw new IllegalArgumentException("Invalid ID");
+            }
+        }
+
         var entity = new BoardCategoryEntity();
         var ts = Instant.now();
         entity.setCategoryId(categoryId);

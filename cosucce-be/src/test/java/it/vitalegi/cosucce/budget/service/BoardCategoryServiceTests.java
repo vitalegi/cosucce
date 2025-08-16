@@ -18,6 +18,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(classes = {App.class})
@@ -35,7 +36,7 @@ public class BoardCategoryServiceTests {
     @BeforeEach
     void init() {
         userId = UserUtil.createUser();
-        boardId = boardService.addBoard(UUID.randomUUID(),"name",  userId).getBoardId();
+        boardId = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
     }
 
     @Nested
@@ -93,6 +94,15 @@ public class BoardCategoryServiceTests {
             var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.addBoardCategory(id, UUID.randomUUID(), "label1", "icon1"));
             assertEquals("Board " + id + " not found", e.getMessage());
         }
+
+        @Test
+        void given_boardExists_then_fail() {
+            var categoryId = UUID.randomUUID();
+            boardCategoryService.addBoardCategory(boardId, categoryId, "label1", "icon1");
+            assertThrows(RuntimeException.class, () -> boardCategoryService.addBoardCategory(boardId, categoryId, "label2", "icon1"));
+            var actual = boardCategoryService.getBoardCategory(categoryId);
+            assertEquals("label1", actual.getLabel());
+        }
     }
 
     @Nested
@@ -121,7 +131,7 @@ public class BoardCategoryServiceTests {
 
         @Test
         void given_categoryIsNotPartOfBoard_then_fail() {
-            var boardId2 = boardService.addBoard(UUID.randomUUID(),"name",  userId).getBoardId();
+            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
             var element = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1");
             var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(boardId2, element.getCategoryId(), "label1", "icon1", true, 0));
             assertEquals("Category " + element.getCategoryId() + " is not part of board " + boardId2, e.getMessage());

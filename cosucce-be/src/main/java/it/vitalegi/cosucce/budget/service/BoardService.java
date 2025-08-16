@@ -37,6 +37,12 @@ public class BoardService {
 
     @Transactional
     public Board addBoard(UUID boardId, String name, UUID userId) {
+        if (boardId != null) {
+            if (boardRepository.findById(boardId).isPresent()) {
+                throw new IllegalArgumentException("Invalid ID");
+            }
+        }
+
         var entity = new BoardEntity();
         var ts = Instant.now();
         entity.setBoardId(boardId);

@@ -38,6 +38,11 @@ public class BoardEntryService {
     @Transactional
     public BoardEntry addBoardEntry( //
                                      UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, UUID lastUpdatedBy) {
+        if (entryId != null) {
+            if (boardEntryRepository.findById(entryId).isPresent()) {
+                throw new IllegalArgumentException("Invalid ID");
+            }
+        }
 
         validateBoard(boardId);
         validateAccount(boardId, accountId);

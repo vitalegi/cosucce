@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(classes = {App.class})
 @Slf4j
@@ -112,6 +113,16 @@ public class BoardEntryServiceTests {
         }
 
         @Test
+        void given_boardExists_then_fail() {
+            var userId = UserUtil.createUser();
+            var entryId = UUID.randomUUID();
+            boardEntryService.addBoardEntry(boardId, entryId, accountId, categoryId, "desc", AMOUNT1, userId);
+            assertThrows(RuntimeException.class, () -> boardEntryService.addBoardEntry(boardId, entryId, accountId, categoryId, "desc2", AMOUNT1, userId));
+            var actual = boardEntryService.getBoardEntry(entryId);
+            assertEquals("desc", actual.getDescription());
+        }
+
+        @Test
         void given_boardDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.addBoardEntry(fakeId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId));
@@ -189,7 +200,7 @@ public class BoardEntryServiceTests {
 
         @Test
         void given_accountConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.addBoard(UUID.randomUUID(),"name",  userId).getBoardId();
+            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
             var entry = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             accountId = boardAccountService.addBoardAccount(boardId2, UUID.randomUUID(), "", "").getAccountId();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));
@@ -206,7 +217,7 @@ public class BoardEntryServiceTests {
 
         @Test
         void given_categoryConnectedToDifferentBoard_then_fail() {
-            var boardId2 = boardService.addBoard(UUID.randomUUID(),"name",  userId).getBoardId();
+            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
             var entry = boardEntryService.addBoardEntry(boardId, UUID.randomUUID(), accountId, categoryId, "desc", AMOUNT1, userId);
             categoryId = boardCategoryService.addBoardCategory(boardId2, UUID.randomUUID(), "", "").getCategoryId();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardEntryService.updateBoardEntry(boardId, entry.getEntryId(), accountId, categoryId, "desc", AMOUNT1, userId, 0));

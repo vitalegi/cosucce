@@ -29,6 +29,11 @@ public class BoardAccountService {
     }
 
     public BoardAccount addBoardAccount(UUID boardId, UUID accountId, String label, String icon) {
+        if (accountId != null) {
+            if (boardAccountRepository.findById(accountId).isPresent()) {
+                throw new IllegalArgumentException("Invalid ID");
+            }
+        }
         var entity = new BoardAccountEntity();
         var ts = Instant.now();
         entity.setAccountId(accountId);

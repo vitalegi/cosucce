@@ -18,6 +18,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(classes = {App.class})
@@ -94,6 +95,15 @@ public class BoardAccountServiceTests {
             var accountId = UUID.randomUUID();
             var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.addBoardAccount(id, accountId, "label1", "icon1"));
             assertEquals("Board " + id + " not found", e.getMessage());
+        }
+
+        @Test
+        void given_boardExists_then_fail() {
+            var accountId = UUID.randomUUID();
+            boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1");
+            assertThrows(RuntimeException.class, () -> boardAccountService.addBoardAccount(boardId, accountId, "label2", "icon1"));
+            var actual = boardAccountService.getBoardAccount(accountId);
+            assertEquals("label1", actual.getLabel());
         }
     }
 
