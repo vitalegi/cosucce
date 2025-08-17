@@ -1,9 +1,9 @@
-import type { AxiosInstance } from 'axios';
 import { OidcAuth } from 'src/auth/auth';
+import { AxiosWrapperPublic } from './authenticated-axios';
 
 export default class OidcService {
-  axios: AxiosInstance;
-  public constructor(axios: AxiosInstance) {
+  axios: AxiosWrapperPublic;
+  public constructor(axios: AxiosWrapperPublic) {
     this.axios = axios;
   }
   public async oidcToken(code: string, redirectUrl: string): Promise<OidcAuth> {

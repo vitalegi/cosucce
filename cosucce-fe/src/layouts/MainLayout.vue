@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import EssentialLink, { type EssentialLinkProps } from 'components/EssentialLink.vue';
-import authService from 'src/auth/auth-service';
+import { authService } from 'src/services/backend-service';
 
 const linksList: EssentialLinkProps[] = [
   {

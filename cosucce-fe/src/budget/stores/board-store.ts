@@ -1,23 +1,24 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import Board from '../models/board';
-import backendService from 'src/services/backend-service';
+import persistenceManager from 'src/persistence/persistence-manager';
 
 export const useBoardStore = defineStore('board', {
-  state: () => ({
-    board: new Array<Board>(),
-  }),
+  state: () => ({}),
   getters: {},
   actions: {
-    async addBoard(name: string): Promise<Board> {
+    async addBoard(id: string, name: string): Promise<void> {
       console.log(`add board ${name}`);
-      return await backendService.boardResource().add(name);
+      const board = new Board(id, name);
+      const engine = persistenceManager.addBoard();
+      const changelogId = await engine.changeLocal('add', board);
+      await engine.syncRemote(changelogId, true);
     },
-    updateBoard(id: string, name: string): Board {
-      const board = new Board();
-      board.boardId = id;
-      board.name = name;
-      console.log(`update board ${name}`);
-      return board;
+    async updateBoard(id: string, name: string): Promise<void> {
+      console.log(`update board ${id} ${name}`);
+      const board = new Board(id, name);
+      const engine = persistenceManager.updateBoard();
+      const changelogId = await engine.changeLocal('update', board);
+      await engine.syncRemote(changelogId, true);
     },
   },
 });

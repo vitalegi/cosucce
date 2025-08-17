@@ -3,9 +3,17 @@ import ObjectUtil from 'src/utils/object-util';
 export default class Board {
   boardId = '';
   name = '';
-  creationDate = new Date();
-  lastUpdate = new Date();
-  version = 0;
+  creationDate;
+  lastUpdate;
+  version;
+
+  public constructor(boardId = '', name = '') {
+    this.boardId = boardId;
+    this.name = name;
+    this.creationDate = new Date();
+    this.lastUpdate = new Date();
+    this.version = 0;
+  }
 
   public static fromJson(obj: unknown): Board {
     const out = new Board();

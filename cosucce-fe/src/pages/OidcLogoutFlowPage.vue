@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import authService from 'src/auth/auth-service';
+import { authService } from 'src/services/backend-service';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
