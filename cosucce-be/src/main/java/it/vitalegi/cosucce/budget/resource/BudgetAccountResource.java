@@ -35,8 +35,8 @@ public class BudgetAccountResource {
     @PostMapping
     public BoardAccount addBoardAccount(@PathVariable("boardId") UUID boardId, @RequestBody AddBoardAccountDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        var out = boardAccountService.addBoardAccount(boardId, request.getAccountId(), request.getLabel(), request.getIcon());
-        log.info("action=ADD, board={}, account={}, label={}, version={}", boardId, out.getAccountId(), out.getLabel(), out.getVersion());
+        var out = boardAccountService.addBoardAccount(boardId, request.getAccountId(), request.getLabel(), request.getIcon(), request.getEtag());
+        log.info("action=ADD, board={}, account={}, label={}, etag={}", boardId, out.getAccountId(), out.getLabel(), out.getEtag());
         return out;
     }
 
@@ -44,8 +44,8 @@ public class BudgetAccountResource {
     public BoardAccount updateBoardAccount(@PathVariable("boardId") UUID boardId, @PathVariable("accountId") UUID accountId, @RequestBody UpdateBoardAccountDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        var out = boardAccountService.updateBoardAccount(boardId, accountId, request.getLabel(), request.getIcon(), request.isEnabled(), request.getVersion());
-        log.info("action=UPDATE, board={}, account={}, label={}, version={}", boardId, out.getAccountId(), out.getLabel(), out.getVersion());
+        var out = boardAccountService.updateBoardAccount(boardId, accountId, request.getLabel(), request.getIcon(), request.isEnabled(), request.getEtag(), request.getNewETag());
+        log.info("action=UPDATE, board={}, account={}, label={}, etag={}", boardId, out.getAccountId(), out.getLabel(), out.getEtag());
         return out;
     }
 
@@ -54,7 +54,7 @@ public class BudgetAccountResource {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
         var out = boardAccountService.deleteBoardAccount(boardId, accountId);
-        log.info("action=DELETE, board={}, account={}, label={}, version={}", boardId, out.getAccountId(), out.getLabel(), out.getVersion());
+        log.info("action=DELETE, board={}, account={}, label={}, etag={}", boardId, out.getAccountId(), out.getLabel(), out.getEtag());
         return out;
     }
 

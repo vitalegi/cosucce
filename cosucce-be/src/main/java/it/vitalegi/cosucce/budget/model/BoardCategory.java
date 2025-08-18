@@ -15,7 +15,7 @@ import java.util.UUID;
 public class BoardCategory {
     private UUID categoryId;
     private UUID boardId;
-    private int version;
+    private String etag;
     private String label;
     private String icon;
     private boolean enabled;

@@ -10,9 +10,9 @@ import java.util.UUID;
 @Service
 public class OptimisticLockService {
 
-    public void checkLock(UUID entryId, int expectedVersion, int actualVersion) {
-        if (expectedVersion != actualVersion) {
-            throw new OptimisticLockException(entryId, expectedVersion, actualVersion);
+    public void checkLock(UUID entryId, String expectedETag, String actualETag) {
+        if (!expectedETag.equalsIgnoreCase(actualETag)) {
+            throw new OptimisticLockException(entryId, expectedETag, actualETag);
         }
     }
 }

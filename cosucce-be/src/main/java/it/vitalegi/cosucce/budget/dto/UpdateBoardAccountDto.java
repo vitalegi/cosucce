@@ -13,5 +13,6 @@ public class UpdateBoardAccountDto {
     String label;
     String icon;
     boolean enabled;
-    int version;
+    String etag;
+    String newETag;
 }

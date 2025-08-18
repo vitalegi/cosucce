@@ -30,7 +30,7 @@ import static it.vitalegi.cosucce.util.MockMvcUtil.assert409;
 import static it.vitalegi.cosucce.util.MockMvcUtil.getUserId;
 import static java.time.Instant.now;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,21 +63,21 @@ public class BudgetBoardResourceTests {
             var auth = member();
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
-            var expected = Board.builder().boardId(boardId).name("bar").version(1).creationDate(now()).lastUpdate(now()).build();
+            var expected = Board.builder().boardId(boardId).name("bar").etag("1").creationDate(now()).lastUpdate(now()).build();
 
-            when(boardService.addBoard(any(), any(), any())).thenReturn(expected);
+            when(boardService.addBoard(any(), any(), any(), any())).thenReturn(expected);
 
-            mockMvc.perform(request(AddBoardDto.builder().boardId(boardId).name("bar").build()).with(csrf()).with(auth)) //
+            mockMvc.perform(request(AddBoardDto.builder().boardId(boardId).name("bar").etag("1").build()).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
-                    .andExpect(jsonPath("$.version").value(1)) //
+                    .andExpect(jsonPath("$.etag").value("1")) //
                     .andExpect(jsonPath("$.name").value("bar")) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(0)).checkPermission(any(), any(), any());
-            verify(boardService, times(1)).addBoard(boardId, "bar", userId);
+            verify(boardService, times(1)).addBoard(boardId, "bar", "1", userId);
         }
 
         @Test
@@ -103,21 +103,21 @@ public class BudgetBoardResourceTests {
             var auth = member();
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
-            var expected = Board.builder().boardId(boardId).name("bar").version(1).creationDate(now()).lastUpdate(now()).build();
+            var expected = Board.builder().boardId(boardId).name("bar").etag("2").creationDate(now()).lastUpdate(now()).build();
 
-            when(boardService.updateBoard(any(), any(), anyInt())).thenReturn(expected);
+            when(boardService.updateBoard(any(), any(), any(), any())).thenReturn(expected);
 
-            mockMvc.perform(request(boardId, "bar").with(csrf()).with(auth)) //
+            mockMvc.perform(request(boardId, "bar", "1", "2").with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$.name").value("bar")) //
-                    .andExpect(jsonPath("$.version").value(1)) //
+                    .andExpect(jsonPath("$.etag").value("2")) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
-            verify(boardService, times(1)).updateBoard(boardId, "bar", 0);
+            verify(boardService, times(1)).updateBoard(boardId, "bar", "1", "2");
         }
 
         @Test
@@ -131,29 +131,29 @@ public class BudgetBoardResourceTests {
         }
 
         @Test
-        void given_invalidVersion_when_authenticated_then_409() throws Exception {
+        void given_invalidEtag_when_authenticated_then_409() throws Exception {
             var auth = member();
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
 
-            when(boardService.updateBoard(any(), any(), anyInt())).thenThrow(new OptimisticLockException(boardId, 5, 10));
+            when(boardService.updateBoard(any(), any(), any(), any())).thenThrow(new OptimisticLockException(boardId, "5", "10"));
 
-            assert409(mockMvc.perform(request(boardId, "bar", 5).with(csrf()).with(auth)) //
+            assert409(mockMvc.perform(request(boardId, "bar", "5", "10").with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(jsonPath("$.error").value("OptimisticLockException")));
 
             verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
-            verify(boardService, times(1)).updateBoard(boardId, "bar", 5);
+            verify(boardService, times(1)).updateBoard(boardId, "bar", "5", "10");
         }
 
         protected MockHttpServletRequestBuilder request(UUID boardId, String name) {
-            return request(boardId, name, 0);
+            return request(boardId, name, "0", "1");
         }
 
-        protected MockHttpServletRequestBuilder request(UUID boardId, String name, int version) {
+        protected MockHttpServletRequestBuilder request(UUID boardId, String name, String etag, String newETag) {
             var request = put("/budget/board/" + boardId);
             return request.contentType(MediaType.APPLICATION_JSON) //
-                    .content("{\"name\": \"" + name + "\", \"version\": " + version + "}");
+                    .content("{\"name\": \"" + name + "\", \"etag\": \"" + etag + "\", \"newETag\": \"" + newETag + "\" }");
         }
     }
 
@@ -205,8 +205,8 @@ public class BudgetBoardResourceTests {
             var boardId1 = UUID.randomUUID();
             var boardId2 = UUID.randomUUID();
             var expected = Arrays.asList( //
-                    Board.builder().boardId(boardId1).name("foo").version(1).creationDate(now()).lastUpdate(now()).build(), //
-                    Board.builder().boardId(boardId2).name("bar").version(2).creationDate(now()).lastUpdate(now()).build());
+                    Board.builder().boardId(boardId1).name("foo").etag("1").creationDate(now()).lastUpdate(now()).build(), //
+                    Board.builder().boardId(boardId2).name("bar").etag("2").creationDate(now()).lastUpdate(now()).build());
 
             when(boardService.getVisibleBoards(any())).thenReturn(expected);
 
@@ -215,12 +215,12 @@ public class BudgetBoardResourceTests {
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$[0].boardId").value(boardId1.toString())) //
                     .andExpect(jsonPath("$[0].name").value("foo")) //
-                    .andExpect(jsonPath("$[0].version").value(1)) //
+                    .andExpect(jsonPath("$[0].etag").value("1")) //
                     .andExpect(jsonPath("$[0].creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$[0].lastUpdate").isNotEmpty()) //
                     .andExpect(jsonPath("$[1].boardId").value(boardId2.toString())) //
                     .andExpect(jsonPath("$[1].name").value("bar")) //
-                    .andExpect(jsonPath("$[1].version").value(2)) //
+                    .andExpect(jsonPath("$[1].etag").value("2")) //
                     .andExpect(jsonPath("$[1].creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$[1].lastUpdate").isNotEmpty());
 

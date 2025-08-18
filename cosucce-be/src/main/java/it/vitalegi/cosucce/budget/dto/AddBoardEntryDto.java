@@ -18,4 +18,5 @@ public class AddBoardEntryDto {
     UUID categoryId;
     String description;
     BigDecimal amount;
+    String etag;
 }

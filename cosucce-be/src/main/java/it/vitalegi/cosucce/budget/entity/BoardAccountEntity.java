@@ -25,7 +25,7 @@ public class BoardAccountEntity {
     @Id
     private UUID accountId;
     private UUID boardId;
-    private int version;
+    private String etag;
     private String label;
     private String icon;
     private boolean enabled;

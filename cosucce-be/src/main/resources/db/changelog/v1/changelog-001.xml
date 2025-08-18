@@ -66,7 +66,7 @@
             <column name="name" type="varchar(500)">
                 <constraints nullable="true"/>
             </column>
-            <column name="version" type="int">
+            <column name="etag" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
             <column name="creation_date" type="timestamp without time zone">
@@ -84,9 +84,6 @@
                 <constraints nullable="false"/>
             </column>
             <column name="user_id" type="uuid">
-                <constraints nullable="false"/>
-            </column>
-            <column name="version" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="role" type="varchar(500)">
@@ -134,7 +131,7 @@
             <column name="board_id" type="uuid">
                 <constraints nullable="false"/>
             </column>
-            <column name="version" type="int">
+            <column name="etag" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
             <column name="label" type="varchar(500)">
@@ -174,7 +171,7 @@
             <column name="board_id" type="uuid">
                 <constraints nullable="false"/>
             </column>
-            <column name="version" type="int">
+            <column name="etag" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
             <column name="label" type="varchar(500)">
@@ -215,7 +212,7 @@
             <column name="board_id" type="uuid">
                 <constraints nullable="false"/>
             </column>
-            <column name="version" type="int">
+            <column name="etag" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
             <column name="account_id" type="uuid">

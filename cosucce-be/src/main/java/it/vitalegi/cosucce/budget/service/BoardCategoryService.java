@@ -28,7 +28,7 @@ public class BoardCategoryService {
         return boardCategoryRepository.findAllByBoardId(boardId).stream().map(boardMapper::toCategory).toList();
     }
 
-    public BoardCategory addBoardCategory(UUID boardId, UUID categoryId, String label, String icon) {
+    public BoardCategory addBoardCategory(UUID boardId, UUID categoryId, String label, String icon, String etag) {
         if (categoryId != null) {
             if (boardCategoryRepository.findById(categoryId).isPresent()) {
                 throw new IllegalArgumentException("Invalid ID");
@@ -39,6 +39,7 @@ public class BoardCategoryService {
         var ts = Instant.now();
         entity.setCategoryId(categoryId);
         entity.setBoardId(boardId);
+        entity.setEtag(etag);
         entity.setLabel(label);
         entity.setIcon(icon);
         entity.setEnabled(true);
@@ -53,17 +54,17 @@ public class BoardCategoryService {
     }
 
     @Transactional
-    public BoardCategory updateBoardCategory(UUID boardId, UUID categoryId, String label, String icon, boolean enabled, int version) {
+    public BoardCategory updateBoardCategory(UUID boardId, UUID categoryId, String label, String icon, boolean enabled, String etag, String newEtag) {
         var opt = boardCategoryRepository.findById(categoryId);
         if (opt.isEmpty()) {
             throw new BudgetException("Category " + categoryId + " not found");
         }
         var entity = opt.get();
-        optimisticLockService.checkLock(categoryId, entity.getVersion(), version);
+        optimisticLockService.checkLock(categoryId, entity.getEtag(), etag);
         if (!entity.getBoardId().equals(boardId)) {
             throw new BudgetException("Category " + categoryId + " is not part of board " + boardId);
         }
-        entity.setVersion(entity.getVersion() + 1);
+        entity.setEtag(newEtag);
         entity.setLabel(label);
         entity.setIcon(icon);
         entity.setEnabled(enabled);

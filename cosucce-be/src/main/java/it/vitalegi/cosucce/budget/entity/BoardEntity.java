@@ -28,7 +28,7 @@ public class BoardEntity {
     @Id
     private UUID boardId;
     private String name;
-    private int version;
+    private String etag;
     private Instant creationDate;
     private Instant lastUpdate;
 

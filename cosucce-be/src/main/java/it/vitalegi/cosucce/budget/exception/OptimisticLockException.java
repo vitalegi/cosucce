@@ -9,13 +9,13 @@ import java.util.UUID;
 @ToString
 public class OptimisticLockException extends RuntimeException {
     UUID id;
-    int expectedVersion;
-    int actualVersion;
+    String expectedETag;
+    String actualETag;
 
-    public OptimisticLockException(UUID id, int expectedVersion, int actualVersion) {
-        super("Version mismatch on " + id + ", expected " + expectedVersion + ", got " + actualVersion);
+    public OptimisticLockException(UUID id, String expectedETag, String actualETag) {
+        super("ETag mismatch on " + id + ", expected " + expectedETag + ", got " + actualETag);
         this.id = id;
-        this.expectedVersion = expectedVersion;
-        this.actualVersion = actualVersion;
+        this.expectedETag = expectedETag;
+        this.actualETag = actualETag;
     }
 }

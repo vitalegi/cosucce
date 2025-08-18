@@ -36,7 +36,7 @@ public class BoardCategoryServiceTests {
     @BeforeEach
     void init() {
         userId = UserUtil.createUser();
-        boardId = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
+        boardId = boardService.addBoard(UUID.randomUUID(), "name", "a", userId).getBoardId();
     }
 
     @Nested
@@ -45,7 +45,7 @@ public class BoardCategoryServiceTests {
         @Test
         void given_boardExists_then_return() {
             var categoryId = UUID.randomUUID();
-            boardCategoryService.addBoardCategory(boardId, categoryId, "label1", "icon1");
+            boardCategoryService.addBoardCategory(boardId, categoryId, "label1", "icon1", "a");
             var actual = boardCategoryService.getBoardCategories(boardId);
             assertEquals(1, actual.size());
             var e = actual.get(0);
@@ -59,8 +59,8 @@ public class BoardCategoryServiceTests {
 
         @Test
         void given_boardExists_then_returnAll() {
-            boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", null);
-            boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label2", null);
+            boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", null, "a");
+            boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label2", null, "a");
             var actual = boardCategoryService.getBoardCategories(boardId);
             assertEquals(2, actual.size());
         }
@@ -77,10 +77,10 @@ public class BoardCategoryServiceTests {
     class AddBoardCategories {
         @Test
         void given_boardExists_then_addAccount() {
-            var actual = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1");
+            var actual = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1", "a");
             assertEquals(boardId, actual.getBoardId());
             assertNotNull(actual.getCategoryId());
-            assertEquals(0, actual.getVersion());
+            assertEquals("a", actual.getEtag());
             assertEquals("icon1", actual.getIcon());
             assertEquals("label1", actual.getLabel());
             assertTrue(actual.isEnabled());
@@ -91,15 +91,15 @@ public class BoardCategoryServiceTests {
         @Test
         void given_boardDoesntExist_then_fail() {
             var id = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.addBoardCategory(id, UUID.randomUUID(), "label1", "icon1"));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.addBoardCategory(id, UUID.randomUUID(), "label1", "icon1", "a"));
             assertEquals("Board " + id + " not found", e.getMessage());
         }
 
         @Test
         void given_boardExists_then_fail() {
             var categoryId = UUID.randomUUID();
-            boardCategoryService.addBoardCategory(boardId, categoryId, "label1", "icon1");
-            assertThrows(RuntimeException.class, () -> boardCategoryService.addBoardCategory(boardId, categoryId, "label2", "icon1"));
+            boardCategoryService.addBoardCategory(boardId, categoryId, "label1", "icon1", "a");
+            assertThrows(RuntimeException.class, () -> boardCategoryService.addBoardCategory(boardId, categoryId, "label2", "icon1", "a"));
             var actual = boardCategoryService.getBoardCategory(categoryId);
             assertEquals("label1", actual.getLabel());
         }
@@ -109,11 +109,11 @@ public class BoardCategoryServiceTests {
     class UpdateBoardCategories {
         @Test
         void given_boardExists_then_update() {
-            var element = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1");
-            var actual = boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false, 0);
+            var element = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1", "a");
+            var actual = boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false, "a", "b");
             assertEquals(boardId, actual.getBoardId());
             assertEquals(element.getCategoryId(), actual.getCategoryId());
-            assertEquals(1, actual.getVersion());
+            assertEquals("b", actual.getEtag());
             assertEquals("icon2", actual.getIcon());
             assertEquals("label2", actual.getLabel());
             assertFalse(actual.isEnabled());
@@ -124,34 +124,34 @@ public class BoardCategoryServiceTests {
         @Test
         void given_boardDoesntExist_then_fail() {
             var id = UUID.randomUUID();
-            var element = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1");
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(id, element.getCategoryId(), "label1", "icon1", true, 0));
+            var element = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1", "a");
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(id, element.getCategoryId(), "label1", "icon1", true, "a", "b"));
             assertEquals("Category " + element.getCategoryId() + " is not part of board " + id, e.getMessage());
         }
 
         @Test
         void given_categoryIsNotPartOfBoard_then_fail() {
-            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
-            var element = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1");
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(boardId2, element.getCategoryId(), "label1", "icon1", true, 0));
+            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", "a", userId).getBoardId();
+            var element = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1", "a");
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(boardId2, element.getCategoryId(), "label1", "icon1", true, "a", "b"));
             assertEquals("Category " + element.getCategoryId() + " is not part of board " + boardId2, e.getMessage());
         }
 
         @Test
         void given_categoryDoesntExist_then_fail() {
             var id = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(boardId, id, "label1", "icon1", true, 0));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.updateBoardCategory(boardId, id, "label1", "icon1", true, "a", "b"));
             assertEquals("Category " + id + " not found", e.getMessage());
         }
 
         @Test
         void given_categoryHasOldVersion_then_fail() {
-            var element = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1");
-            boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false, 0);
-            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false, 0));
+            var element = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label1", "icon1", "a");
+            boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false, "a", "b");
+            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardCategoryService.updateBoardCategory(boardId, element.getCategoryId(), "label2", "icon2", false, "a", "c"));
             assertEquals(element.getCategoryId(), e.getId());
-            assertEquals(1, e.getExpectedVersion());
-            assertEquals(0, e.getActualVersion());
+            assertEquals("b", e.getExpectedETag());
+            assertEquals("a", e.getActualETag());
         }
     }
 
@@ -159,14 +159,14 @@ public class BoardCategoryServiceTests {
     class DeleteBoardCategory {
         @Test
         void given_entryExists_then_delete() {
-            var original = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label", "icon");
+            var original = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label", "icon", "a");
             var actual = boardCategoryService.deleteBoardCategory(boardId, original.getCategoryId());
             assertEquals(boardId, actual.getBoardId());
             assertEquals(original.getCategoryId(), actual.getCategoryId());
             assertEquals("label", actual.getLabel());
             assertEquals("icon", actual.getIcon());
             assertTrue(actual.isEnabled());
-            assertEquals(0, actual.getVersion());
+            assertEquals("a", actual.getEtag());
             assertNotNull(actual.getLastUpdate());
             assertNotNull(actual.getCreationDate());
 
@@ -177,7 +177,7 @@ public class BoardCategoryServiceTests {
         @Test
         void given_boardDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
-            var entry = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label", "icon");
+            var entry = boardCategoryService.addBoardCategory(boardId, UUID.randomUUID(), "label", "icon", "a");
             var e = Assertions.assertThrows(BudgetException.class, () -> boardCategoryService.deleteBoardCategory(fakeId, entry.getCategoryId()));
             assertEquals("Category " + entry.getCategoryId() + " is not part of board " + fakeId, e.getMessage());
         }

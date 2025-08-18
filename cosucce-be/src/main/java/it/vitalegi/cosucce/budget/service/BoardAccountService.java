@@ -28,7 +28,7 @@ public class BoardAccountService {
         return boardAccountRepository.findAllByBoardId(boardId).stream().map(boardMapper::toAccount).toList();
     }
 
-    public BoardAccount addBoardAccount(UUID boardId, UUID accountId, String label, String icon) {
+    public BoardAccount addBoardAccount(UUID boardId, UUID accountId, String label, String icon, String etag) {
         if (accountId != null) {
             if (boardAccountRepository.findById(accountId).isPresent()) {
                 throw new IllegalArgumentException("Invalid ID");
@@ -38,6 +38,7 @@ public class BoardAccountService {
         var ts = Instant.now();
         entity.setAccountId(accountId);
         entity.setBoardId(boardId);
+        entity.setEtag(etag);
         entity.setLabel(label);
         entity.setIcon(icon);
         entity.setEnabled(true);
@@ -52,17 +53,17 @@ public class BoardAccountService {
     }
 
     @Transactional
-    public BoardAccount updateBoardAccount(UUID boardId, UUID accountId, String label, String icon, boolean enabled, int version) {
+    public BoardAccount updateBoardAccount(UUID boardId, UUID accountId, String label, String icon, boolean enabled, String etag, String newEtag) {
         var opt = boardAccountRepository.findById(accountId);
         if (opt.isEmpty()) {
             throw new BudgetException("Account " + accountId + " not found");
         }
         var entity = opt.get();
-        optimisticLockService.checkLock(accountId, entity.getVersion(), version);
+        optimisticLockService.checkLock(accountId, entity.getEtag(), etag);
         if (!entity.getBoardId().equals(boardId)) {
             throw new BudgetException("Account " + accountId + " is not part of board " + boardId);
         }
-        entity.setVersion(entity.getVersion() + 1);
+        entity.setEtag(newEtag);
         entity.setLabel(label);
         entity.setIcon(icon);
         entity.setEnabled(enabled);

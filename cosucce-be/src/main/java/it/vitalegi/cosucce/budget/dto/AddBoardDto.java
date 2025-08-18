@@ -11,4 +11,5 @@ public class AddBoardDto {
 
     UUID boardId;
     String name;
+    String etag;
 }

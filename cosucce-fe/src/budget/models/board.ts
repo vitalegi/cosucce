@@ -1,3 +1,4 @@
+import { MD5 } from 'crypto-js';
 import ObjectUtil from 'src/utils/object-util';
 
 export default class Board {
@@ -26,5 +27,10 @@ export default class Board {
     out.lastUpdate = ObjectUtil.propAsDate(obj, 'lastUpdate');
     out.version = ObjectUtil.propAsInt(obj, 'version');
     return out;
+  }
+
+  public static hash(element: Board): string {
+    const str = JSON.stringify([element.boardId, element.name].filter((e) => !!e));
+    return MD5(str).toString();
   }
 }

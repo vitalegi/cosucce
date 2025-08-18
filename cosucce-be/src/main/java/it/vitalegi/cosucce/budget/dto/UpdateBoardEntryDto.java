@@ -17,5 +17,6 @@ public class UpdateBoardEntryDto {
     UUID categoryId;
     String description;
     BigDecimal amount;
-    int version;
+    String etag;
+    String newETag;
 }

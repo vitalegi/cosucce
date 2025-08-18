@@ -29,7 +29,6 @@ public class BoardUserEntity {
     @EmbeddedId
     private BoardUserId id;
     private String role;
-    private int version;
     private Instant creationDate;
     private Instant lastUpdate;
 

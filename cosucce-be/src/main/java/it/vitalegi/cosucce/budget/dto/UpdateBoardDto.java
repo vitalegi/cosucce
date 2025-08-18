@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class UpdateBoardDto {
-
     String name;
-    int version;
+    String etag;
+    String newETag;
 }

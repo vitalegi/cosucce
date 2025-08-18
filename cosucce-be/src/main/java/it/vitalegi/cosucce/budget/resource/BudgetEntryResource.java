@@ -35,8 +35,8 @@ public class BudgetEntryResource {
     @PostMapping
     public BoardEntry addBoardEntry(@PathVariable("boardId") UUID boardId, @RequestBody AddBoardEntryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        var out = boardEntryService.addBoardEntry(boardId, request.getEntryId(), request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), userId());
-        log.info("action=ADD, board={}, account={}, category={}, amount={}, version={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount());
+        var out = boardEntryService.addBoardEntry(boardId, request.getEntryId(), request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), request.getEtag(), userId());
+        log.info("action=ADD, board={}, account={}, category={}, amount={}, etag={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount(), out.getEtag());
         return out;
     }
 
@@ -44,8 +44,8 @@ public class BudgetEntryResource {
     public BoardEntry updateBoardEntry(@PathVariable("boardId") UUID boardId, @PathVariable("entryId") UUID entryId, @RequestBody UpdateBoardEntryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        var out = boardEntryService.updateBoardEntry(boardId, entryId, request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), userId(), request.getVersion());
-        log.info("action=UPDATE, board={}, account={}, category={}, amount={}, version={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount());
+        var out = boardEntryService.updateBoardEntry(boardId, entryId, request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), userId(), request.getEtag(), request.getNewETag());
+        log.info("action=UPDATE, board={}, account={}, category={}, amount={}, etag={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount(), out.getEtag());
         return out;
     }
 
@@ -54,7 +54,7 @@ public class BudgetEntryResource {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
         var out = boardEntryService.deleteBoardEntry(boardId, entryId);
-        log.info("action=DELETE, board={}, account={}, category={}, amount={}, version={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount());
+        log.info("action=DELETE, board={}, account={}, category={}, amount={}, etag={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount(), out.getEtag());
         return out;
     }
 

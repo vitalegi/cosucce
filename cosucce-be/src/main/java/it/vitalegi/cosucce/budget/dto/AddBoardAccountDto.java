@@ -16,4 +16,5 @@ public class AddBoardAccountDto {
     String label;
     String icon;
     boolean enabled;
+    String etag;
 }

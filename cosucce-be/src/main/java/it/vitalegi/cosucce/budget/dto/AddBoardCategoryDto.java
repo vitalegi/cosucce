@@ -16,4 +16,5 @@ public class AddBoardCategoryDto {
     String label;
     String icon;
     boolean enabled;
+    String etag;
 }

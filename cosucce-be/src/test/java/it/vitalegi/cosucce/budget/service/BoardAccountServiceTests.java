@@ -36,7 +36,7 @@ public class BoardAccountServiceTests {
     @BeforeEach
     void init() {
         userId = UserUtil.createUser();
-        boardId = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
+        boardId = boardService.addBoard(UUID.randomUUID(), "name", "a", userId).getBoardId();
     }
 
     @Nested
@@ -45,7 +45,7 @@ public class BoardAccountServiceTests {
         @Test
         void given_boardExists_then_return() {
             var accountId = UUID.randomUUID();
-            boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1");
+            boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1", "a");
             var actual = boardAccountService.getBoardAccounts(boardId);
             assertEquals(1, actual.size());
             var e = actual.get(0);
@@ -53,14 +53,15 @@ public class BoardAccountServiceTests {
             assertEquals(accountId, e.getAccountId());
             assertEquals("icon1", e.getIcon());
             assertEquals("label1", e.getLabel());
+            assertEquals("a", e.getEtag());
             assertNotNull(e.getLastUpdate());
             assertNotNull(e.getCreationDate());
         }
 
         @Test
         void given_boardExists_then_returnAll() {
-            boardAccountService.addBoardAccount(boardId, UUID.randomUUID(), "label1", null);
-            boardAccountService.addBoardAccount(boardId, UUID.randomUUID(), "label2", null);
+            boardAccountService.addBoardAccount(boardId, UUID.randomUUID(), "label1", null, "a");
+            boardAccountService.addBoardAccount(boardId, UUID.randomUUID(), "label2", null, "a");
             var actual = boardAccountService.getBoardAccounts(boardId);
             assertEquals(2, actual.size());
         }
@@ -78,12 +79,12 @@ public class BoardAccountServiceTests {
         @Test
         void given_boardExists_then_addAccount() {
             var accountId = UUID.randomUUID();
-            var actual = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1");
+            var actual = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1", "a");
             assertEquals(boardId, actual.getBoardId());
             assertNotNull(actual.getAccountId());
             assertEquals("icon1", actual.getIcon());
             assertEquals("label1", actual.getLabel());
-            assertEquals(0, actual.getVersion());
+            assertEquals("a", actual.getEtag());
             assertTrue(actual.isEnabled());
             assertNotNull(actual.getLastUpdate());
             assertNotNull(actual.getCreationDate());
@@ -93,15 +94,15 @@ public class BoardAccountServiceTests {
         void given_boardDoesntExist_then_fail() {
             var id = UUID.randomUUID();
             var accountId = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.addBoardAccount(id, accountId, "label1", "icon1"));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.addBoardAccount(id, accountId, "label1", "icon1", "a"));
             assertEquals("Board " + id + " not found", e.getMessage());
         }
 
         @Test
         void given_boardExists_then_fail() {
             var accountId = UUID.randomUUID();
-            boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1");
-            assertThrows(RuntimeException.class, () -> boardAccountService.addBoardAccount(boardId, accountId, "label2", "icon1"));
+            boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1", "a");
+            assertThrows(RuntimeException.class, () -> boardAccountService.addBoardAccount(boardId, accountId, "label2", "icon1", "a"));
             var actual = boardAccountService.getBoardAccount(accountId);
             assertEquals("label1", actual.getLabel());
         }
@@ -112,13 +113,13 @@ public class BoardAccountServiceTests {
         @Test
         void given_boardExists_then_update() {
             var accountId = UUID.randomUUID();
-            var element = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1");
-            var actual = boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false, 0);
+            var element = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1", "1");
+            var actual = boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false, "1", "2");
             assertEquals(boardId, actual.getBoardId());
             assertEquals(element.getAccountId(), actual.getAccountId());
             assertEquals("icon2", actual.getIcon());
             assertEquals("label2", actual.getLabel());
-            assertEquals(1, actual.getVersion(), "Version is increased");
+            assertEquals("2", actual.getEtag(), "ETag is changed");
             assertFalse(actual.isEnabled());
             assertNotNull(actual.getLastUpdate());
             assertNotNull(actual.getCreationDate());
@@ -128,36 +129,36 @@ public class BoardAccountServiceTests {
         void given_boardDoesntExist_then_fail() {
             var id = UUID.randomUUID();
             var accountId = UUID.randomUUID();
-            var element = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1");
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(id, element.getAccountId(), "label1", "icon1", true, 0));
+            var element = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1", "a");
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(id, element.getAccountId(), "label1", "icon1", true, "a", "b"));
             assertEquals("Account " + element.getAccountId() + " is not part of board " + id, e.getMessage());
         }
 
         @Test
         void given_accountIsNotPartOfBoard_then_fail() {
-            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", userId).getBoardId();
+            var boardId2 = boardService.addBoard(UUID.randomUUID(), "name", "a", userId).getBoardId();
             var accountId = UUID.randomUUID();
-            var element = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1");
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(boardId2, element.getAccountId(), "label1", "icon1", true, 0));
+            var element = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1", "a");
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(boardId2, element.getAccountId(), "label1", "icon1", true, "a", "b"));
             assertEquals("Account " + element.getAccountId() + " is not part of board " + boardId2, e.getMessage());
         }
 
         @Test
         void given_accountDoesntExist_then_fail() {
             var id = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(boardId, id, "label1", "icon1", true, 0));
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.updateBoardAccount(boardId, id, "label1", "icon1", true, "a", "b"));
             assertEquals("Account " + id + " not found", e.getMessage());
         }
 
         @Test
-        void given_accountHasOldVersion_then_fail() {
+        void given_accountHasOldEtag_then_fail() {
             var accountId = UUID.randomUUID();
-            var element = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1");
-            boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false, 0);
-            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false, 0));
+            var element = boardAccountService.addBoardAccount(boardId, accountId, "label1", "icon1", "a");
+            boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false, "a", "b");
+            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardAccountService.updateBoardAccount(boardId, element.getAccountId(), "label2", "icon2", false, "a", "c"));
             assertEquals(element.getAccountId(), e.getId());
-            assertEquals(1, e.getExpectedVersion());
-            assertEquals(0, e.getActualVersion());
+            assertEquals("b", e.getExpectedETag());
+            assertEquals("a", e.getActualETag());
         }
     }
 
@@ -166,14 +167,14 @@ public class BoardAccountServiceTests {
         @Test
         void given_entryExists_then_delete() {
             var accountId = UUID.randomUUID();
-            var original = boardAccountService.addBoardAccount(boardId, accountId, "label", "icon");
+            var original = boardAccountService.addBoardAccount(boardId, accountId, "label", "icon", "a");
             var actual = boardAccountService.deleteBoardAccount(boardId, original.getAccountId());
             assertEquals(boardId, actual.getBoardId());
             assertEquals(original.getAccountId(), actual.getAccountId());
             assertEquals("label", actual.getLabel());
             assertEquals("icon", actual.getIcon());
             assertTrue(actual.isEnabled());
-            assertEquals(0, actual.getVersion());
+            assertEquals("a", actual.getEtag());
             assertNotNull(actual.getLastUpdate());
             assertNotNull(actual.getCreationDate());
 
@@ -185,7 +186,7 @@ public class BoardAccountServiceTests {
         void given_boardDoesntExist_then_fail() {
             var fakeId = UUID.randomUUID();
             var accountId = UUID.randomUUID();
-            var entry = boardAccountService.addBoardAccount(boardId, accountId, "label", "icon");
+            var entry = boardAccountService.addBoardAccount(boardId, accountId, "label", "icon", "a");
             var e = Assertions.assertThrows(BudgetException.class, () -> boardAccountService.deleteBoardAccount(fakeId, entry.getAccountId()));
             assertEquals("Account " + entry.getAccountId() + " is not part of board " + fakeId, e.getMessage());
         }

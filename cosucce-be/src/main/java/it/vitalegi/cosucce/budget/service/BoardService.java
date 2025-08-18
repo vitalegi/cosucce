@@ -36,7 +36,7 @@ public class BoardService {
     OptimisticLockService optimisticLockService;
 
     @Transactional
-    public Board addBoard(UUID boardId, String name, UUID userId) {
+    public Board addBoard(UUID boardId, String name, String etag, UUID userId) {
         if (boardId != null) {
             if (boardRepository.findById(boardId).isPresent()) {
                 throw new IllegalArgumentException("Invalid ID");
@@ -47,6 +47,7 @@ public class BoardService {
         var ts = Instant.now();
         entity.setBoardId(boardId);
         entity.setName(name);
+        entity.setEtag(etag);
         entity.setCreationDate(ts);
         entity.setLastUpdate(ts);
         entity = boardRepository.save(entity);
@@ -62,10 +63,10 @@ public class BoardService {
     }
 
     @Transactional
-    public Board updateBoard(UUID boardId, String name, int version) {
+    public Board updateBoard(UUID boardId, String name, String etag, String newEtag) {
         var entity = getBoard(boardId);
-        optimisticLockService.checkLock(boardId, entity.getVersion(), version);
-        entity.setVersion(entity.getVersion() + 1);
+        optimisticLockService.checkLock(boardId, entity.getEtag(), etag);
+        entity.setEtag(newEtag);
         entity.setName(name);
         entity.setLastUpdate(Instant.now());
         entity = boardRepository.save(entity);

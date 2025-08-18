@@ -55,7 +55,7 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler(OptimisticLockException.class)
     public ResponseEntity<ErrorResponse> handle(OptimisticLockException e) {
-        log.info("Version conflict on resource {}, expected version: {}, actual: {}", e.getId(), e.getExpectedVersion(), e.getActualVersion());
+        log.info("ETag conflict on resource {}, expected: {}, actual: {}", e.getId(), e.getExpectedETag(), e.getActualETag());
         return new ResponseEntity<>(new ErrorResponse(e.getClass().getSimpleName(), e.getMessage()), HttpStatus.CONFLICT);
     }
 

@@ -37,7 +37,7 @@ public class BoardEntryService {
 
     @Transactional
     public BoardEntry addBoardEntry( //
-                                     UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, UUID lastUpdatedBy) {
+                                     UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, String etag, UUID lastUpdatedBy) {
         if (entryId != null) {
             if (boardEntryRepository.findById(entryId).isPresent()) {
                 throw new IllegalArgumentException("Invalid ID");
@@ -57,6 +57,7 @@ public class BoardEntryService {
         entity.setDescription(description);
         entity.setAmount(amount);
         entity.setLastUpdatedBy(lastUpdatedBy);
+        entity.setEtag(etag);
         entity.setCreationDate(ts);
         entity.setLastUpdate(ts);
         try {
@@ -68,13 +69,13 @@ public class BoardEntryService {
     }
 
     @Transactional
-    public BoardEntry updateBoardEntry(UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, UUID lastUpdatedBy, int version) {
+    public BoardEntry updateBoardEntry(UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, UUID lastUpdatedBy, String etag, String newEtag) {
         var opt = boardEntryRepository.findById(entryId);
         if (opt.isEmpty()) {
             throw new BudgetException("Entry " + entryId + " not found");
         }
         var entity = opt.get();
-        optimisticLockService.checkLock(entryId, entity.getVersion(), version);
+        optimisticLockService.checkLock(entryId, entity.getEtag(), etag);
         if (!entity.getBoardId().equals(boardId)) {
             throw new BudgetException("Entry " + entryId + " is not part of board " + boardId);
         }
@@ -83,7 +84,7 @@ public class BoardEntryService {
         validateCategory(boardId, categoryId);
 
         entity.setBoardId(boardId);
-        entity.setVersion(entity.getVersion() + 1);
+        entity.setEtag(newEtag);
         entity.setAccountId(accountId);
         entity.setCategoryId(categoryId);
         entity.setDescription(description);

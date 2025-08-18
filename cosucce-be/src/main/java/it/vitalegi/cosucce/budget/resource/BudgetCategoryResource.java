@@ -35,8 +35,8 @@ public class BudgetCategoryResource {
     @PostMapping
     public BoardCategory addBoardCategory(@PathVariable("boardId") UUID boardId, @RequestBody AddBoardCategoryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        var out = boardCategoryService.addBoardCategory(boardId, request.getCategoryId(), request.getLabel(), request.getIcon());
-        log.info("action=ADD, board={}, category={}, label={}, version={}", boardId, out.getCategoryId(), out.getLabel(), out.getVersion());
+        var out = boardCategoryService.addBoardCategory(boardId, request.getCategoryId(), request.getLabel(), request.getIcon(),request.getEtag());
+        log.info("action=ADD, board={}, category={}, label={}, etag={}", boardId, out.getCategoryId(), out.getLabel(), out.getEtag());
         return out;
     }
 
@@ -44,8 +44,8 @@ public class BudgetCategoryResource {
     public BoardCategory updateBoardCategory(@PathVariable("boardId") UUID boardId, @PathVariable("categoryId") UUID categoryId, @RequestBody UpdateBoardCategoryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        var out = boardCategoryService.updateBoardCategory(boardId, categoryId, request.getLabel(), request.getIcon(), request.isEnabled(), request.getVersion());
-        log.info("action=UPDATE, board={}, category={}, label={}, version={}", boardId, out.getCategoryId(), out.getLabel(), out.getVersion());
+        var out = boardCategoryService.updateBoardCategory(boardId, categoryId, request.getLabel(), request.getIcon(), request.isEnabled(), request.getEtag(), request.getNewETag());
+        log.info("action=UPDATE, board={}, category={}, label={}, etag={}", boardId, out.getCategoryId(), out.getLabel(), out.getEtag());
         return out;
     }
 
@@ -54,7 +54,7 @@ public class BudgetCategoryResource {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
         var out = boardCategoryService.deleteBoardCategory(boardId, categoryId);
-        log.info("action=DELETE, board={}, category={}, label={}, version={}", boardId, out.getCategoryId(), out.getLabel(), out.getVersion());
+        log.info("action=DELETE, board={}, category={}, label={}, etag={}", boardId, out.getCategoryId(), out.getLabel(), out.getEtag());
         return out;
     }
 

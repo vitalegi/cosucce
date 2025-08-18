@@ -26,7 +26,7 @@ public class BoardEntryEntity {
     @Id
     private UUID entryId;
     private UUID boardId;
-    private int version;
+    private String etag;
     private UUID accountId;
     private UUID categoryId;
     private String description;
