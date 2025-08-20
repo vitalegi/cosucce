@@ -6,14 +6,14 @@ export default class Board {
   name = '';
   creationDate;
   lastUpdate;
-  version;
+  etag;
 
-  public constructor(boardId = '', name = '') {
+  public constructor(boardId = '', name = '', etag = '') {
     this.boardId = boardId;
     this.name = name;
     this.creationDate = new Date();
     this.lastUpdate = new Date();
-    this.version = 0;
+    this.etag = etag;
   }
 
   public static fromJson(obj: unknown): Board {
@@ -25,7 +25,7 @@ export default class Board {
     out.name = ObjectUtil.propAsString(obj, 'name');
     out.creationDate = ObjectUtil.propAsDate(obj, 'creationDate');
     out.lastUpdate = ObjectUtil.propAsDate(obj, 'lastUpdate');
-    out.version = ObjectUtil.propAsInt(obj, 'version');
+    out.etag = ObjectUtil.propAsString(obj, 'etag');
     return out;
   }
 

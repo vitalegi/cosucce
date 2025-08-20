@@ -19,8 +19,8 @@ export default class PersistenceEngine<E> {
 
   public async changeLocal(action: Action, element: E): Promise<number> {
     console.log(`Execute ${action} on ${JSON.stringify(element)}`);
-    await this.localPersistence.executeLocal(element);
     const changelog = await this.changelogFactory.addChangelog(action, element);
+    await this.localPersistence.executeLocal(element);
     const changelogId = changelog.changelogId;
     if (changelogId === undefined) {
       throw new Error(

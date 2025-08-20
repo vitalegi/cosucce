@@ -18,6 +18,8 @@ export default class Changelog {
   entityType: EntityType = 'board';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: any = {};
+  oldETag: string | undefined;
+  newETag = '';
   status: ChangelogStatus = 'new';
   creationDate = new Date();
   lastUpdate = new Date();

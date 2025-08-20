@@ -6,7 +6,8 @@
     <div>Available boards: {{ boards.items.length }}</div>
     <ul>
       <li v-for="(board, index) in boards.items" :key="index">
-        {{ board.boardId }} / {{ board.name }} / {{ board.creationDate.toISOString() }}
+        {{ board.boardId }} / {{ board.name }} / {{ board.etag }} /
+        {{ board.creationDate.toISOString() }}
       </li>
     </ul>
   </q-form>
