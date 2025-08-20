@@ -1,7 +1,7 @@
 <template>
   <q-form class="col-12 q-gutter-y-md" style="max-width: 600px" greedy @submit="submit()">
     <q-input outlined v-model="editor.name" label="Name" />
-    <q-btn class="full-width" size="xl" type="submit" color="primary">Save</q-btn>
+    <q-btn class="full-width" size="xl" type="submit" color="primary">{{ submitLabel }}</q-btn>
   </q-form>
 </template>
 <script setup lang="ts">
@@ -26,6 +26,13 @@ const editor = ref<{
 const boardStore = useBoardStore();
 
 const addMode = computed(() => props.id === undefined);
+
+const submitLabel = computed(() => {
+  if (addMode.value) {
+    return 'Add';
+  }
+  return 'Update';
+});
 
 async function submit(): Promise<void> {
   if (addMode.value) {

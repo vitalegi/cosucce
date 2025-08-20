@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <BoardEditor name="bbb" @save="save"></BoardEditor>
+    <BoardEditor name="" @save="save"></BoardEditor>
   </q-page>
 </template>
 
