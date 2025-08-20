@@ -1,3 +1,5 @@
+import { date } from 'quasar';
+
 export default class DateUtil {
   public static readonly Q_DATE_FORMAT = 'dd/MM/yyyy';
   public static readonly Q_DATE_MASK = 'DD/MM/YYYY';
@@ -32,5 +34,24 @@ export default class DateUtil {
 
   public static timestamp() {
     return Date.now();
+  }
+
+  public static timeDiff(time: Date) {
+    const minutes = date.getDateDiff(new Date(), time, 'minutes');
+    if (minutes == 0) {
+      return 'now';
+    }
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    }
+    const hours = date.getDateDiff(new Date(), time, 'hours');
+    if (hours === 0) {
+      return '<1h ago';
+    }
+    if (hours < 24) {
+      return `${hours}h ago`;
+    }
+    const days = date.getDateDiff(new Date(), time, 'days');
+    return `${days}d ago`;
   }
 }
