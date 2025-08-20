@@ -18,8 +18,11 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.UUID;
 
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG2;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.NAME1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.NAME2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,6 +37,8 @@ public class BoardServiceTests {
     BoardRepository boardRepository;
     @Autowired
     BoardUserRepository boardUserRepository;
+    @Autowired
+    BudgetUtil budgetUtil;
 
     @Nested
     class AddBoard {
@@ -42,20 +47,21 @@ public class BoardServiceTests {
         void boardIsCreated() {
             var userId = UserUtil.createUser();
             var boardId = UUID.randomUUID();
-            var board = boardService.addBoard(boardId, "name", "a", userId);
+            var board = boardService.addBoard(budgetUtil.addBoardDto1().boardId(boardId).build(), userId);
             assertEquals(boardId, board.getBoardId());
-            assertEquals("a", board.getEtag());
-            assertNotNull(board.getName());
+            assertEquals(ETAG1, board.getEtag());
+            assertEquals(NAME1, board.getName());
             assertNotNull(board.getCreationDate());
             assertNotNull(board.getLastUpdate());
             assertTrue(boardRepository.findById(board.getBoardId()).isPresent());
         }
 
         @Test
-        void boardUserIsCreatedWithOwnerRole() {
+        void given_boardIsCreated_then_boardUserIsCreatedWithOwnerRole() {
             var userId = UserUtil.createUser();
 
-            var board = boardService.addBoard(UUID.randomUUID(), "name", "a", userId);
+            var boardId = UUID.randomUUID();
+            var board = boardService.addBoard(budgetUtil.addBoardDto1().boardId(boardId).build(), userId);
             var entity = boardUserRepository.findById(new BoardUserId(board.getBoardId(), userId));
             assertTrue(entity.isPresent());
             assertEquals(BoardUserRole.OWNER.name(), entity.get().getRole());
@@ -65,10 +71,11 @@ public class BoardServiceTests {
         void given_boardExists_then_fail() {
             var userId = UserUtil.createUser();
             var boardId = UUID.randomUUID();
-            boardService.addBoard(boardId, "name", "a", userId);
-            assertThrows(RuntimeException.class, () -> boardService.addBoard(boardId, "name2", "a", userId));
+            boardService.addBoard(budgetUtil.addBoardDto1().boardId(boardId).build(), userId);
+            assertThrows(RuntimeException.class, () -> boardService.addBoard(budgetUtil.addBoardDto2().boardId(boardId).build(), userId));
             var actual = boardService.getBoard(boardId);
-            assertEquals("name", actual.getName());
+            assertEquals(NAME1, actual.getName());
+            assertEquals(ETAG1, actual.getEtag());
         }
     }
 
@@ -79,12 +86,13 @@ public class BoardServiceTests {
             var userId1 = UserUtil.createUser();
             var userId2 = UserUtil.createUser();
 
-            var board1 = boardService.addBoard(UUID.randomUUID(), "name", "a", userId1);
-            var board2 = boardService.addBoard(UUID.randomUUID(), "name", "a", userId1);
-            var board3 = boardService.addBoard(UUID.randomUUID(), "name", "a", userId2);
+            var board1 = boardService.addBoard(budgetUtil.addBoardDto1().build(), userId1);
+            var board2 = boardService.addBoard(budgetUtil.addBoardDto1().build(), userId1);
+            var board3 = boardService.addBoard(budgetUtil.addBoardDto1().build(), userId2);
 
             var actuals = boardService.getVisibleBoards(userId1);
             assertEquals(2, actuals.size());
+
             actuals = boardService.getVisibleBoards(userId2);
             assertEquals(1, actuals.size());
         }
@@ -102,53 +110,58 @@ public class BoardServiceTests {
         @Test
         void given_boardExists_then_updateBoard() {
             var userId = UserUtil.createUser();
-            var board = boardService.addBoard(UUID.randomUUID(), "name", "a", userId);
-            var actual = boardService.updateBoard(board.getBoardId(), "New name", "a", "b");
+            var board = boardService.addBoard(budgetUtil.addBoardDto1().build(), userId);
+            var actual = boardService.updateBoard(board.getBoardId(), budgetUtil.updateBoardDto1().build());
             assertEquals(board.getBoardId(), actual.getBoardId());
-            assertEquals("b", actual.getEtag());
-            assertEquals("New name", actual.getName());
+            assertEquals(ETAG2, actual.getEtag());
+            assertEquals(NAME2, actual.getName());
             assertNotNull(actual.getCreationDate());
             assertNotNull(actual.getLastUpdate());
         }
 
         @Test
-        void given_boardDoesntExist_then_fail() {
-            var id = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardService.updateBoard(id, "", "a", "b"));
-            assertEquals("Board " + id + " not found", e.getMessage());
+        void given_boardDoesNotExist_then_fail() {
+            var fakeId = UUID.randomUUID();
+            var e = Assertions.assertThrows(BudgetException.class, () -> boardService.updateBoard(fakeId, budgetUtil.updateBoardDto1().build()));
+            assertEquals("Board " + fakeId + " not found", e.getMessage());
         }
 
         @Test
         void given_entryHasOldVersion_then_fail() {
             var userId = UserUtil.createUser();
-            var board = boardService.addBoard(UUID.randomUUID(), "name", "a", userId);
-            var entry = boardService.updateBoard(board.getBoardId(), "New name", "a", "b");
-            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardService.updateBoard(board.getBoardId(), "New name", "a", "c"));
+            var board = boardService.addBoard(budgetUtil.addBoardDto1().build(), userId);
+            var actual = boardService.updateBoard(board.getBoardId(), budgetUtil.updateBoardDto1().build());
+            var e = Assertions.assertThrows(OptimisticLockException.class, () -> boardService.updateBoard(board.getBoardId(), budgetUtil.updateBoardDto1().build()));
             assertEquals(board.getBoardId(), e.getId());
-            assertEquals("b", e.getExpectedETag());
-            assertEquals("a", e.getActualETag());
+            assertEquals(ETAG2, e.getExpectedETag());
+            assertEquals(ETAG1, e.getActualETag());
         }
     }
 
     @Nested
     class DeleteBoard {
         @Test
-        void given_boardExists_then_deleteBoard() {
+        void given_entryExists_then_delete() {
             var userId = UserUtil.createUser();
-            var board = boardService.addBoard(UUID.randomUUID(), "name", "a", userId);
-            var actual = boardService.deleteBoard(board.getBoardId());
-            assertEquals(board.getBoardId(), actual.getBoardId());
-            assertNotNull(actual.getName());
-            assertNotNull(actual.getCreationDate());
-            assertNotNull(actual.getLastUpdate());
-            assertFalse(boardRepository.findById(board.getBoardId()).isPresent());
+            var boardId = UUID.randomUUID();
+            boardService.addBoard(budgetUtil.addBoardDto1().boardId(boardId).build(), userId);
+            boardService.deleteBoard(boardId);
+
+            var entries = boardService.getVisibleBoards(userId);
+            assertEquals(0, entries.size(), "Required entry is deleted");
+
+            boardService.addBoard(budgetUtil.addBoardDto1().boardId(boardId).build(), userId);
+            boardService.addBoard(budgetUtil.addBoardDto1().build(), userId);
+            boardService.deleteBoard(boardId);
+
+            entries = boardService.getVisibleBoards(userId);
+            assertEquals(1, entries.size(), "Other entries are preserved");
         }
 
         @Test
-        void given_boardDoesntExist_then_fail() {
-            var id = UUID.randomUUID();
-            var e = Assertions.assertThrows(BudgetException.class, () -> boardService.deleteBoard(id));
-            assertEquals("Board " + id + " not found", e.getMessage());
+        void given_boardDoesNotExist_then_ignore() {
+            var fakeId = UUID.randomUUID();
+            boardService.deleteBoard(fakeId);
         }
     }
 }

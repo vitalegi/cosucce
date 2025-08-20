@@ -7,6 +7,7 @@ import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
 import it.vitalegi.cosucce.budget.model.BoardCategory;
 import it.vitalegi.cosucce.budget.service.BoardCategoryService;
 import it.vitalegi.cosucce.budget.service.BudgetAuthorizationService;
+import it.vitalegi.cosucce.budget.service.BudgetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,12 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.util.Arrays;
 import java.util.UUID;
 
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG2;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ICON1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ICON2;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.LABEL1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.LABEL2;
 import static it.vitalegi.cosucce.util.JsonUtil.json;
 import static it.vitalegi.cosucce.util.MockAuth.guest;
 import static it.vitalegi.cosucce.util.MockAuth.member;
@@ -32,7 +39,7 @@ import static it.vitalegi.cosucce.util.MockMvcUtil.getUserId;
 import static java.time.Instant.now;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,13 +57,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @ActiveProfiles("test")
 public class BudgetCategoryResourceTests {
-    @Autowired
+        @Autowired
     MockMvc mockMvc;
 
     @MockitoBean
     BoardCategoryService boardCategoryService;
     @MockitoBean
     BudgetAuthorizationService budgetAuthorizationService;
+    @Autowired
+    BudgetUtil budgetUtil;
 
     @Nested
     class AddBoardCategory {
@@ -65,24 +74,25 @@ public class BudgetCategoryResourceTests {
             var auth = member();
             var boardId = UUID.randomUUID();
             var categoryId = UUID.randomUUID();
-            var expected = BoardCategory.builder().boardId(boardId).categoryId(categoryId).label("lab").icon("ico").enabled(true).etag("1").creationDate(now()).lastUpdate(now()).build();
+            var request = budgetUtil.addBoardCategoryDto1().categoryId(categoryId).build();
+            var expected = budgetUtil.category1().boardId(boardId).categoryId(categoryId).creationDate(now()).lastUpdate(now()).build();
 
-            when(boardCategoryService.addBoardCategory(any(), any(), any(), any(), any())).thenReturn(expected);
+            when(boardCategoryService.addBoardCategory(any(), eq(request))).thenReturn(expected);
 
-            mockMvc.perform(request(boardId, AddBoardCategoryDto.builder().categoryId(categoryId).label("lab").icon("ico").etag("1").enabled(true).build()).with(csrf()).with(auth)) //
+            mockMvc.perform(request(boardId, request).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$.categoryId").value(categoryId.toString())) //
-                    .andExpect(jsonPath("$.etag").value("1")) //
-                    .andExpect(jsonPath("$.label").value("lab")) //
-                    .andExpect(jsonPath("$.icon").value("ico")) //
-                    .andExpect(jsonPath("$.enabled").value(true)) //
+                    .andExpect(jsonPath("$.etag").value(expected.getEtag())) //
+                    .andExpect(jsonPath("$.label").value(expected.getLabel())) //
+                    .andExpect(jsonPath("$.icon").value(expected.getIcon())) //
+                    .andExpect(jsonPath("$.enabled").value(expected.isEnabled())) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(0)).checkPermission(any(), any(), any());
-            verify(boardCategoryService, times(1)).addBoardCategory(boardId, categoryId, "lab", "ico", "1");
+            verify(boardCategoryService, times(1)).addBoardCategory(boardId, request);
         }
 
         @Test
@@ -113,24 +123,25 @@ public class BudgetCategoryResourceTests {
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
             var categoryId = UUID.randomUUID();
-            var expected = BoardCategory.builder().boardId(boardId).categoryId(categoryId).label("lab2").icon("ico2").enabled(true).etag("2").creationDate(now()).lastUpdate(now()).build();
 
-            when(boardCategoryService.updateBoardCategory(any(), any(), any(), any(), anyBoolean(), any(), any())).thenReturn(expected);
+            var request = budgetUtil.updateBoardCategoryDto1().build();
+            var expected = budgetUtil.category2().boardId(boardId).categoryId(categoryId).build();
+            when(boardCategoryService.updateBoardCategory(boardId, categoryId, request)).thenReturn(expected);
 
-            mockMvc.perform(request(boardId, categoryId, UpdateBoardCategoryDto.builder().label("lab2").icon("ico2").enabled(true).etag("1").newETag("2").build()).with(csrf()).with(auth)) //
+            mockMvc.perform(request(boardId, categoryId, request).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$.categoryId").value(categoryId.toString())) //
-                    .andExpect(jsonPath("$.etag").value("2")) //
-                    .andExpect(jsonPath("$.label").value("lab2")) //
-                    .andExpect(jsonPath("$.icon").value("ico2")) //
+                    .andExpect(jsonPath("$.etag").value(ETAG2)) //
+                    .andExpect(jsonPath("$.label").value(LABEL2)) //
+                    .andExpect(jsonPath("$.icon").value(ICON2)) //
                     .andExpect(jsonPath("$.enabled").value(true)) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
-            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
-            verify(boardCategoryService, times(1)).updateBoardCategory(boardId, categoryId, "lab2", "ico2", true, "1", "2");
+            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.WRITE);
+            verify(boardCategoryService, times(1)).updateBoardCategory(boardId, categoryId, request);
         }
 
         @Test
@@ -150,14 +161,15 @@ public class BudgetCategoryResourceTests {
             var boardId = UUID.randomUUID();
             var categoryId = UUID.randomUUID();
 
-            when(boardCategoryService.updateBoardCategory(any(), any(), any(), any(), anyBoolean(), any(), any())).thenThrow(new OptimisticLockException(boardId, "5", "10"));
+            var request = budgetUtil.updateBoardCategoryDto1().build();
+            when(boardCategoryService.updateBoardCategory(boardId, categoryId, request)).thenThrow(new OptimisticLockException(boardId, "5", "10"));
 
-            assert409(mockMvc.perform(request(boardId, categoryId, UpdateBoardCategoryDto.builder().label("bar").icon("ico").enabled(true).etag("5").newETag("10").build()).with(csrf()).with(auth)) //
+            assert409(mockMvc.perform(request(boardId, categoryId, request).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(jsonPath("$.error").value("OptimisticLockException")));
 
-            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
-            verify(boardCategoryService, times(1)).updateBoardCategory(boardId, categoryId, "bar", "ico", true, "5", "10");
+            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.WRITE);
+            verify(boardCategoryService, times(1)).updateBoardCategory(boardId, categoryId, request);
         }
 
         protected MockHttpServletRequestBuilder request() {
@@ -178,23 +190,12 @@ public class BudgetCategoryResourceTests {
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
             var categoryId = UUID.randomUUID();
-            var expected = BoardCategory.builder().boardId(boardId).categoryId(categoryId).label("lab").icon("ico").enabled(true).etag("1").creationDate(now()).lastUpdate(now()).build();
-
-            when(boardCategoryService.deleteBoardCategory(boardId, categoryId)).thenReturn(expected);
 
             mockMvc.perform(request(boardId, categoryId).with(csrf()).with(auth)) //
                     .andDo(print()) //
-                    .andExpect(status().isOk()) //
-                    .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
-                    .andExpect(jsonPath("$.categoryId").value(categoryId.toString())) //
-                    .andExpect(jsonPath("$.etag").value("1")) //
-                    .andExpect(jsonPath("$.label").value("lab")) //
-                    .andExpect(jsonPath("$.icon").value("ico")) //
-                    .andExpect(jsonPath("$.enabled").value(true)) //
-                    .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
-                    .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
+                    .andExpect(status().isOk());
 
-            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
+            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.WRITE);
             verify(boardCategoryService, times(1)).deleteBoardCategory(boardId, categoryId);
         }
 
@@ -223,12 +224,11 @@ public class BudgetCategoryResourceTests {
         @Test
         void when_authenticated_then_serviceIsCalled() throws Exception {
             var auth = member();
-            var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
             var categoryId1 = UUID.randomUUID();
             var categoryId2 = UUID.randomUUID();
-            var expected1 = BoardCategory.builder().boardId(boardId).categoryId(categoryId1).label("lab1").icon("ico1").enabled(true).etag("1").creationDate(now()).lastUpdate(now()).build();
-            var expected2 = BoardCategory.builder().boardId(boardId).categoryId(categoryId2).label("lab2").icon("ico2").enabled(true).etag("2").creationDate(now()).lastUpdate(now()).build();
+            var expected1 = budgetUtil.category1().boardId(boardId).categoryId(categoryId1).build();
+            var expected2 = budgetUtil.category2().boardId(boardId).categoryId(categoryId2).build();
             var expected = Arrays.asList(expected1, expected2);
 
             when(boardCategoryService.getBoardCategories(boardId)).thenReturn(expected);
@@ -237,19 +237,20 @@ public class BudgetCategoryResourceTests {
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$[0].boardId").value(boardId.toString())) //
-                    .andExpect(jsonPath("$[0].categoryId").value(categoryId1.toString())) //
-                    .andExpect(jsonPath("$[0].etag").value("1")) //
-                    .andExpect(jsonPath("$[0].label").value("lab1")) //
-                    .andExpect(jsonPath("$[0].icon").value("ico1")) //
+                    .andExpect(jsonPath("$[0].categoryId").value(categoryId1.toString()))
+                    .andExpect(jsonPath("$[0].etag").value(ETAG1)) //
+                    .andExpect(jsonPath("$[0].label").value(LABEL1)) //
+                    .andExpect(jsonPath("$[0].icon").value(ICON1)) //
                     .andExpect(jsonPath("$[0].enabled").value(true)) //
                     .andExpect(jsonPath("$[0].creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$[0].lastUpdate").isNotEmpty()) //
 
+
                     .andExpect(jsonPath("$[1].boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$[1].categoryId").value(categoryId2.toString())) //
-                    .andExpect(jsonPath("$[1].etag").value("2")) //
-                    .andExpect(jsonPath("$[1].label").value("lab2")) //
-                    .andExpect(jsonPath("$[1].icon").value("ico2")) //
+                    .andExpect(jsonPath("$[1].etag").value(ETAG2)) //
+                    .andExpect(jsonPath("$[1].label").value(LABEL2)) //
+                    .andExpect(jsonPath("$[1].icon").value(ICON2)) //
                     .andExpect(jsonPath("$[1].enabled").value(true)) //
                     .andExpect(jsonPath("$[1].creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$[1].lastUpdate").isNotEmpty());

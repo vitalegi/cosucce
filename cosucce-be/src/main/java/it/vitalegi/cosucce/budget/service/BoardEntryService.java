@@ -1,5 +1,7 @@
 package it.vitalegi.cosucce.budget.service;
 
+import it.vitalegi.cosucce.budget.dto.AddBoardEntryDto;
+import it.vitalegi.cosucce.budget.dto.UpdateBoardEntryDto;
 import it.vitalegi.cosucce.budget.entity.BoardEntryEntity;
 import it.vitalegi.cosucce.budget.exception.BudgetException;
 import it.vitalegi.cosucce.budget.mapper.BoardMapper;
@@ -14,7 +16,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -36,28 +37,27 @@ public class BoardEntryService {
     }
 
     @Transactional
-    public BoardEntry addBoardEntry( //
-                                     UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, String etag, UUID lastUpdatedBy) {
-        if (entryId != null) {
-            if (boardEntryRepository.findById(entryId).isPresent()) {
+    public BoardEntry addBoardEntry(UUID boardId, AddBoardEntryDto request, UUID userId) {
+        if (request.getEntryId() != null) {
+            if (boardEntryRepository.findById(request.getEntryId()).isPresent()) {
                 throw new IllegalArgumentException("Invalid ID");
             }
         }
 
         validateBoard(boardId);
-        validateAccount(boardId, accountId);
-        validateCategory(boardId, categoryId);
+        validateAccount(boardId, request.getAccountId());
+        validateCategory(boardId, request.getCategoryId());
 
         var entity = new BoardEntryEntity();
         var ts = Instant.now();
-        entity.setEntryId(entryId);
+        entity.setEntryId(request.getEntryId());
         entity.setBoardId(boardId);
-        entity.setAccountId(accountId);
-        entity.setCategoryId(categoryId);
-        entity.setDescription(description);
-        entity.setAmount(amount);
-        entity.setLastUpdatedBy(lastUpdatedBy);
-        entity.setEtag(etag);
+        entity.setAccountId(request.getAccountId());
+        entity.setCategoryId(request.getCategoryId());
+        entity.setDescription(request.getDescription());
+        entity.setAmount(request.getAmount());
+        entity.setLastUpdatedBy(userId);
+        entity.setEtag(request.getEtag());
         entity.setCreationDate(ts);
         entity.setLastUpdate(ts);
         try {
@@ -69,41 +69,44 @@ public class BoardEntryService {
     }
 
     @Transactional
-    public BoardEntry updateBoardEntry(UUID boardId, UUID entryId, UUID accountId, UUID categoryId, String description, BigDecimal amount, UUID lastUpdatedBy, String etag, String newEtag) {
+    public BoardEntry updateBoardEntry(UUID boardId, UUID entryId, UpdateBoardEntryDto request, UUID userId) {
         var opt = boardEntryRepository.findById(entryId);
         if (opt.isEmpty()) {
             throw new BudgetException("Entry " + entryId + " not found");
         }
         var entity = opt.get();
-        optimisticLockService.checkLock(entryId, entity.getEtag(), etag);
+        optimisticLockService.checkLock(entryId, entity.getEtag(), request.getEtag());
         if (!entity.getBoardId().equals(boardId)) {
             throw new BudgetException("Entry " + entryId + " is not part of board " + boardId);
         }
 
-        validateAccount(boardId, accountId);
-        validateCategory(boardId, categoryId);
+        validateAccount(boardId, request.getAccountId());
+        validateCategory(boardId, request.getCategoryId());
 
         entity.setBoardId(boardId);
-        entity.setEtag(newEtag);
-        entity.setAccountId(accountId);
-        entity.setCategoryId(categoryId);
-        entity.setDescription(description);
-        entity.setAmount(amount);
+        entity.setEtag(request.getNewETag());
+        entity.setAccountId(request.getAccountId());
+        entity.setCategoryId(request.getCategoryId());
+        entity.setDescription(request.getDescription());
+        entity.setAmount(request.getAmount());
 
-        entity.setLastUpdatedBy(lastUpdatedBy);
+        entity.setLastUpdatedBy(userId);
         entity.setLastUpdate(Instant.now());
         entity = boardEntryRepository.save(entity);
         return boardMapper.toEntry(entity);
     }
 
     @Transactional
-    public BoardEntry deleteBoardEntry(UUID boardId, UUID entryId) {
-        var entity = getBoardEntry(entryId);
-        if (!entity.getBoardId().equals(boardId)) {
-            throw new BudgetException("Entry " + entryId + " is not part of board " + boardId);
+    public void deleteBoardEntry(UUID boardId, UUID id) {
+        var entity = boardEntryRepository.findById(id);
+        if (entity.isEmpty()) {
+            return;
         }
-        boardEntryRepository.delete(entity);
-        return boardMapper.toEntry(entity);
+        var e = entity.get();
+        if (!e.getBoardId().equals(boardId)) {
+            throw new BudgetException("Entry " + id + " is not part of board " + boardId);
+        }
+        boardEntryRepository.deleteById(id);
     }
 
     protected void validateBoard(UUID boardId) {

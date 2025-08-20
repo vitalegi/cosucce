@@ -4,9 +4,9 @@ import it.vitalegi.cosucce.budget.constants.BoardUserPermission;
 import it.vitalegi.cosucce.budget.dto.AddBoardEntryDto;
 import it.vitalegi.cosucce.budget.dto.UpdateBoardEntryDto;
 import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
-import it.vitalegi.cosucce.budget.model.BoardEntry;
 import it.vitalegi.cosucce.budget.service.BoardEntryService;
 import it.vitalegi.cosucce.budget.service.BudgetAuthorizationService;
+import it.vitalegi.cosucce.budget.service.BudgetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,10 +19,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.UUID;
 
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.AMOUNT1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.AMOUNT2;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.DESCRIPTION1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.DESCRIPTION2;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG2;
 import static it.vitalegi.cosucce.util.JsonUtil.json;
 import static it.vitalegi.cosucce.util.MockAuth.guest;
 import static it.vitalegi.cosucce.util.MockAuth.member;
@@ -30,9 +35,8 @@ import static it.vitalegi.cosucce.util.MockMvcUtil.assert401;
 import static it.vitalegi.cosucce.util.MockMvcUtil.assert403;
 import static it.vitalegi.cosucce.util.MockMvcUtil.assert409;
 import static it.vitalegi.cosucce.util.MockMvcUtil.getUserId;
-import static java.time.Instant.now;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @ActiveProfiles("test")
 public class BudgetEntryResourceTests {
+
     @Autowired
     MockMvc mockMvc;
 
@@ -57,6 +62,13 @@ public class BudgetEntryResourceTests {
     BoardEntryService boardEntryService;
     @MockitoBean
     BudgetAuthorizationService budgetAuthorizationService;
+    @Autowired
+    BudgetUtil budgetUtil;
+
+    final static UUID ACCOUNT1 = UUID.randomUUID();
+    final static UUID ACCOUNT2 = UUID.randomUUID();
+    final static UUID CATEGORY1 = UUID.randomUUID();
+    final static UUID CATEGORY2 = UUID.randomUUID();
 
     @Nested
     class AddBoardEntry {
@@ -66,29 +78,28 @@ public class BudgetEntryResourceTests {
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
             var entryId = UUID.randomUUID();
-            var accountId = UUID.randomUUID();
-            var categoryId = UUID.randomUUID();
 
-            var expected = BoardEntry.builder().boardId(boardId).entryId(entryId).accountId(accountId).categoryId(categoryId).description("desc").amount(BigDecimal.ONE).lastUpdatedBy(UUID.randomUUID()).etag("1").creationDate(now()).lastUpdate(now()).build();
+            var request = budgetUtil.addBoardEntryDto1(ACCOUNT1, CATEGORY1).entryId(entryId).build();
+            var expected = budgetUtil.entry1().boardId(boardId).entryId(entryId).accountId(ACCOUNT1).categoryId(CATEGORY1).lastUpdatedBy(userId).build();
 
-            when(boardEntryService.addBoardEntry(any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(expected);
+            when(boardEntryService.addBoardEntry(any(), eq(request), eq(userId))).thenReturn(expected);
 
-            mockMvc.perform(request(boardId, AddBoardEntryDto.builder().entryId(entryId).accountId(accountId).categoryId(categoryId).description("desc").etag("1").amount(BigDecimal.ONE).build()).with(csrf()).with(auth)) //
+            mockMvc.perform(request(boardId, request).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$.entryId").value(entryId.toString())) //
-                    .andExpect(jsonPath("$.etag").value("1")) //
-                    .andExpect(jsonPath("$.accountId").value(accountId.toString())) //
-                    .andExpect(jsonPath("$.categoryId").value(categoryId.toString())) //
-                    .andExpect(jsonPath("$.description").value("desc")) //
-                    .andExpect(jsonPath("$.amount").value("1")) //
-                    .andExpect(jsonPath("$.lastUpdatedBy").isNotEmpty()) //
+                    .andExpect(jsonPath("$.etag").value(ETAG1)) //
+                    .andExpect(jsonPath("$.accountId").value(ACCOUNT1.toString())) //
+                    .andExpect(jsonPath("$.categoryId").value(CATEGORY1.toString())) //
+                    .andExpect(jsonPath("$.description").value(DESCRIPTION1)) //
+                    .andExpect(jsonPath("$.amount").value(AMOUNT1)) //
+                    .andExpect(jsonPath("$.lastUpdatedBy").value(userId.toString())) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(0)).checkPermission(any(), any(), any());
-            verify(boardEntryService, times(1)).addBoardEntry(boardId, entryId, accountId, categoryId, "desc", BigDecimal.ONE, "1", userId);
+            verify(boardEntryService, times(1)).addBoardEntry(boardId, request, userId);
         }
 
         @Test
@@ -119,29 +130,28 @@ public class BudgetEntryResourceTests {
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
             var entryId = UUID.randomUUID();
-            var accountId = UUID.randomUUID();
-            var categoryId = UUID.randomUUID();
 
-            var expected = BoardEntry.builder().boardId(boardId).entryId(entryId).accountId(accountId).categoryId(categoryId).description("desc").amount(BigDecimal.ONE).lastUpdatedBy(UUID.randomUUID()).etag("10").creationDate(now()).lastUpdate(now()).build();
+            var request = budgetUtil.updateBoardEntryDto1().build();
+            var expected = budgetUtil.entry2().entryId(entryId).boardId(boardId).accountId(ACCOUNT2).categoryId(CATEGORY2).lastUpdatedBy(userId).build();
 
-            when(boardEntryService.updateBoardEntry(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(expected);
+            when(boardEntryService.updateBoardEntry(boardId, entryId, request, userId)).thenReturn(expected);
 
-            mockMvc.perform(request(boardId, entryId, UpdateBoardEntryDto.builder().accountId(accountId).categoryId(categoryId).description("desc").amount(BigDecimal.ONE).etag("5").newETag("10").build()).with(csrf()).with(auth)) //
+            mockMvc.perform(request(boardId, entryId, request).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$.entryId").value(entryId.toString())) //
-                    .andExpect(jsonPath("$.etag").value("10")) //
-                    .andExpect(jsonPath("$.accountId").value(accountId.toString())) //
-                    .andExpect(jsonPath("$.categoryId").value(categoryId.toString())) //
-                    .andExpect(jsonPath("$.description").value("desc")) //
-                    .andExpect(jsonPath("$.amount").value("1")) //
-                    .andExpect(jsonPath("$.lastUpdatedBy").isNotEmpty()) //
+                    .andExpect(jsonPath("$.etag").value(ETAG2)) //
+                    .andExpect(jsonPath("$.accountId").value(ACCOUNT2.toString())) //
+                    .andExpect(jsonPath("$.categoryId").value(CATEGORY2.toString())) //
+                    .andExpect(jsonPath("$.description").value(DESCRIPTION2)) //
+                    .andExpect(jsonPath("$.amount").value(AMOUNT2)) //
+                    .andExpect(jsonPath("$.lastUpdatedBy").value(userId.toString())) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
-            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
-            verify(boardEntryService, times(1)).updateBoardEntry(boardId, entryId, accountId, categoryId, "desc", BigDecimal.ONE, userId, "5", "10");
+            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.WRITE);
+            verify(boardEntryService, times(1)).updateBoardEntry(boardId, entryId, request, userId);
         }
 
         @Test
@@ -160,17 +170,16 @@ public class BudgetEntryResourceTests {
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
             var entryId = UUID.randomUUID();
-            var accountId = UUID.randomUUID();
-            var categoryId = UUID.randomUUID();
+            var dto = budgetUtil.updateBoardEntryDto1().build();
 
-            when(boardEntryService.updateBoardEntry(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new OptimisticLockException(boardId, "5", "10"));
+            when(boardEntryService.updateBoardEntry(boardId, entryId, dto, userId)).thenThrow(new OptimisticLockException(boardId, "5", "10"));
 
-            assert409(mockMvc.perform(request(boardId, entryId, UpdateBoardEntryDto.builder().accountId(accountId).categoryId(categoryId).description("desc").amount(BigDecimal.ONE).etag("5").newETag("10").build()).with(csrf()).with(auth)) //
+            assert409(mockMvc.perform(request(boardId, entryId, dto).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(jsonPath("$.error").value("OptimisticLockException")));
 
-            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
-            verify(boardEntryService, times(1)).updateBoardEntry(boardId, entryId, accountId, categoryId, "desc", BigDecimal.ONE, userId, "5", "10");
+            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.WRITE);
+            verify(boardEntryService, times(1)).updateBoardEntry(boardId, entryId, dto, userId);
         }
 
         protected MockHttpServletRequestBuilder request() {
@@ -191,28 +200,12 @@ public class BudgetEntryResourceTests {
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
             var entryId = UUID.randomUUID();
-            var accountId = UUID.randomUUID();
-            var categoryId = UUID.randomUUID();
-
-            var expected = BoardEntry.builder().boardId(boardId).entryId(entryId).accountId(accountId).categoryId(categoryId).description("desc").amount(BigDecimal.ONE).lastUpdatedBy(UUID.randomUUID()).etag("1").creationDate(now()).lastUpdate(now()).build();
-
-            when(boardEntryService.deleteBoardEntry(boardId, entryId)).thenReturn(expected);
 
             mockMvc.perform(request(boardId, entryId).with(csrf()).with(auth)) //
                     .andDo(print()) //
-                    .andExpect(status().isOk()) //
-                    .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
-                    .andExpect(jsonPath("$.entryId").value(entryId.toString())) //
-                    .andExpect(jsonPath("$.etag").value(1)) //
-                    .andExpect(jsonPath("$.accountId").value(accountId.toString())) //
-                    .andExpect(jsonPath("$.categoryId").value(categoryId.toString())) //
-                    .andExpect(jsonPath("$.description").value("desc")) //
-                    .andExpect(jsonPath("$.amount").value("1")) //
-                    .andExpect(jsonPath("$.lastUpdatedBy").isNotEmpty()) //
-                    .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
-                    .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
+                    .andExpect(status().isOk());
 
-            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
+            verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.WRITE);
             verify(boardEntryService, times(1)).deleteBoardEntry(boardId, entryId);
         }
 
@@ -248,8 +241,8 @@ public class BudgetEntryResourceTests {
 
             var entryId1 = UUID.randomUUID();
             var entryId2 = UUID.randomUUID();
-            var expected1 = BoardEntry.builder().boardId(boardId).entryId(entryId1).accountId(accountId).categoryId(categoryId).description("desc1").amount(BigDecimal.ONE).lastUpdatedBy(UUID.randomUUID()).etag("1").creationDate(now()).lastUpdate(now()).build();
-            var expected2 = BoardEntry.builder().boardId(boardId).entryId(entryId2).accountId(accountId).categoryId(categoryId).description("desc2").amount(BigDecimal.ONE).lastUpdatedBy(UUID.randomUUID()).etag("2").creationDate(now()).lastUpdate(now()).build();
+            var expected1 = budgetUtil.entry1().boardId(boardId).entryId(entryId1).accountId(accountId).categoryId(categoryId).lastUpdatedBy(userId).build();
+            var expected2 = budgetUtil.entry2().boardId(boardId).entryId(entryId2).accountId(accountId).categoryId(categoryId).lastUpdatedBy(userId).build();
             var expected = Arrays.asList(expected1, expected2);
 
             when(boardEntryService.getBoardEntries(boardId)).thenReturn(expected);
@@ -259,23 +252,23 @@ public class BudgetEntryResourceTests {
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$[0].boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$[0].entryId").value(entryId1.toString())) //
-                    .andExpect(jsonPath("$[0].etag").value(1)) //
+                    .andExpect(jsonPath("$[0].etag").value(ETAG1)) //
                     .andExpect(jsonPath("$[0].accountId").value(accountId.toString())) //
                     .andExpect(jsonPath("$[0].categoryId").value(categoryId.toString())) //
-                    .andExpect(jsonPath("$[0].description").value("desc1")) //
-                    .andExpect(jsonPath("$[0].amount").value("1")) //
-                    .andExpect(jsonPath("$[0].lastUpdatedBy").isNotEmpty()) //
+                    .andExpect(jsonPath("$[0].description").value(DESCRIPTION1)) //
+                    .andExpect(jsonPath("$[0].amount").value(AMOUNT1)) //
+                    .andExpect(jsonPath("$[0].lastUpdatedBy").value(userId.toString())) //
                     .andExpect(jsonPath("$[0].creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$[0].lastUpdate").isNotEmpty()) //
 
                     .andExpect(jsonPath("$[1].boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$[1].entryId").value(entryId2.toString())) //
-                    .andExpect(jsonPath("$[1].etag").value(2)) //
+                    .andExpect(jsonPath("$[1].etag").value(ETAG2)) //
                     .andExpect(jsonPath("$[1].accountId").value(accountId.toString())) //
                     .andExpect(jsonPath("$[1].categoryId").value(categoryId.toString())) //
-                    .andExpect(jsonPath("$[1].description").value("desc2")) //
-                    .andExpect(jsonPath("$[1].amount").value("1")) //
-                    .andExpect(jsonPath("$[1].lastUpdatedBy").isNotEmpty()) //
+                    .andExpect(jsonPath("$[1].description").value(DESCRIPTION2)) //
+                    .andExpect(jsonPath("$[1].amount").value(AMOUNT2)) //
+                    .andExpect(jsonPath("$[1].lastUpdatedBy").value(userId.toString())) //
                     .andExpect(jsonPath("$[1].creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$[1].lastUpdate").isNotEmpty());
 

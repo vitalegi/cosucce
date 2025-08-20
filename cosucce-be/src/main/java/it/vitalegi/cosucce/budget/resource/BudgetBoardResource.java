@@ -35,7 +35,7 @@ public class BudgetBoardResource {
     @PostMapping
     public Board addBoard(@RequestBody AddBoardDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        var out = boardService.addBoard(request.getBoardId(), request.getName(), request.getEtag(), userId());
+        var out = boardService.addBoard(request, userId());
         log.info("action=ADD, board={}, name={}, etag={}", out.getBoardId(), out.getName(), out.getEtag());
         return out;
     }
@@ -44,18 +44,17 @@ public class BudgetBoardResource {
     public Board updateBoard(@PathVariable("boardId") UUID boardId, @RequestBody UpdateBoardDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        var out = boardService.updateBoard(boardId, request.getName(), request.getEtag(), request.getNewETag());
+        var out = boardService.updateBoard(boardId, request);
         log.info("action=UPDATE, board={}, name={}, etag={}", out.getBoardId(), out.getName(), out.getEtag());
         return out;
     }
 
     @DeleteMapping("/{boardId}")
-    public Board deleteBoard(@PathVariable("boardId") UUID boardId) {
+    public void deleteBoard(@PathVariable("boardId") UUID boardId) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
         budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        var out = boardService.deleteBoard(boardId);
-        log.info("action=DELETE, board={}, name={}, etag={}", out.getBoardId(), out.getName(), out.getEtag());
-        return out;
+        boardService.deleteBoard(boardId);
+        log.info("action=DELETE, board={}", boardId);
     }
 
     @GetMapping

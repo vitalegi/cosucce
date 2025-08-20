@@ -35,7 +35,7 @@ public class BudgetEntryResource {
     @PostMapping
     public BoardEntry addBoardEntry(@PathVariable("boardId") UUID boardId, @RequestBody AddBoardEntryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        var out = boardEntryService.addBoardEntry(boardId, request.getEntryId(), request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), request.getEtag(), userId());
+        var out = boardEntryService.addBoardEntry(boardId, request, userId());
         log.info("action=ADD, board={}, account={}, category={}, amount={}, etag={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount(), out.getEtag());
         return out;
     }
@@ -43,19 +43,18 @@ public class BudgetEntryResource {
     @PutMapping("/{entryId}")
     public BoardEntry updateBoardEntry(@PathVariable("boardId") UUID boardId, @PathVariable("entryId") UUID entryId, @RequestBody UpdateBoardEntryDto request) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        var out = boardEntryService.updateBoardEntry(boardId, entryId, request.getAccountId(), request.getCategoryId(), request.getDescription(), request.getAmount(), userId(), request.getEtag(), request.getNewETag());
+        budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.WRITE);
+        var out = boardEntryService.updateBoardEntry(boardId, entryId, request, userId());
         log.info("action=UPDATE, board={}, account={}, category={}, amount={}, etag={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount(), out.getEtag());
         return out;
     }
 
     @DeleteMapping("/{entryId}")
-    public BoardEntry deleteBoardEntry(@PathVariable("boardId") UUID boardId, @PathVariable("entryId") UUID entryId) {
+    public void deleteBoardEntry(@PathVariable("boardId") UUID boardId, @PathVariable("entryId") UUID entryId) {
         authenticationService.checkPermission(Permission.BUDGET_ACCESS);
-        budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.ADMIN);
-        var out = boardEntryService.deleteBoardEntry(boardId, entryId);
-        log.info("action=DELETE, board={}, account={}, category={}, amount={}, etag={}", boardId, out.getAccountId(), out.getCategoryId(), out.getAmount(), out.getEtag());
-        return out;
+        budgetAuthorizationService.checkPermission(boardId, userId(), BoardUserPermission.WRITE);
+        boardEntryService.deleteBoardEntry(boardId, entryId);
+        log.info("action=DELETE, board={}, entryId={}", boardId, entryId);
     }
 
     @GetMapping

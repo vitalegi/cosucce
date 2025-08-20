@@ -1,5 +1,7 @@
 package it.vitalegi.cosucce.budget.service;
 
+import it.vitalegi.cosucce.budget.dto.AddBoardCategoryDto;
+import it.vitalegi.cosucce.budget.dto.UpdateBoardCategoryDto;
 import it.vitalegi.cosucce.budget.entity.BoardCategoryEntity;
 import it.vitalegi.cosucce.budget.exception.BudgetException;
 import it.vitalegi.cosucce.budget.mapper.BoardMapper;
@@ -28,21 +30,21 @@ public class BoardCategoryService {
         return boardCategoryRepository.findAllByBoardId(boardId).stream().map(boardMapper::toCategory).toList();
     }
 
-    public BoardCategory addBoardCategory(UUID boardId, UUID categoryId, String label, String icon, String etag) {
-        if (categoryId != null) {
-            if (boardCategoryRepository.findById(categoryId).isPresent()) {
+    public BoardCategory addBoardCategory(UUID boardId, AddBoardCategoryDto dto) {
+        if (dto.getCategoryId() != null) {
+            if (boardCategoryRepository.findById(dto.getCategoryId()).isPresent()) {
                 throw new IllegalArgumentException("Invalid ID");
             }
         }
 
         var entity = new BoardCategoryEntity();
         var ts = Instant.now();
-        entity.setCategoryId(categoryId);
+        entity.setCategoryId(dto.getCategoryId());
         entity.setBoardId(boardId);
-        entity.setEtag(etag);
-        entity.setLabel(label);
-        entity.setIcon(icon);
-        entity.setEnabled(true);
+        entity.setEtag(dto.getEtag());
+        entity.setLabel(dto.getLabel());
+        entity.setIcon(dto.getIcon());
+        entity.setEnabled(dto.isEnabled());
         entity.setCreationDate(ts);
         entity.setLastUpdate(ts);
         try {
@@ -54,34 +56,36 @@ public class BoardCategoryService {
     }
 
     @Transactional
-    public BoardCategory updateBoardCategory(UUID boardId, UUID categoryId, String label, String icon, boolean enabled, String etag, String newEtag) {
+    public BoardCategory updateBoardCategory(UUID boardId, UUID categoryId, UpdateBoardCategoryDto dto) {
         var opt = boardCategoryRepository.findById(categoryId);
         if (opt.isEmpty()) {
             throw new BudgetException("Category " + categoryId + " not found");
         }
         var entity = opt.get();
-        optimisticLockService.checkLock(categoryId, entity.getEtag(), etag);
+        optimisticLockService.checkLock(categoryId, entity.getEtag(), dto.getEtag());
         if (!entity.getBoardId().equals(boardId)) {
             throw new BudgetException("Category " + categoryId + " is not part of board " + boardId);
         }
-        entity.setEtag(newEtag);
-        entity.setLabel(label);
-        entity.setIcon(icon);
-        entity.setEnabled(enabled);
+        entity.setEtag(dto.getNewETag());
+        entity.setLabel(dto.getLabel());
+        entity.setIcon(dto.getIcon());
+        entity.setEnabled(dto.isEnabled());
         entity.setLastUpdate(Instant.now());
         entity = boardCategoryRepository.save(entity);
         return boardMapper.toCategory(entity);
     }
 
     @Transactional
-    public BoardCategory deleteBoardCategory(UUID boardId, UUID id) {
-        var entity = getBoardCategory(id);
-        if (!entity.getBoardId().equals(boardId)) {
+    public void deleteBoardCategory(UUID boardId, UUID id) {
+        var entity = boardCategoryRepository.findById(id);
+        if (entity.isEmpty()) {
+            return;
+        }
+        var e = entity.get();
+        if (!e.getBoardId().equals(boardId)) {
             throw new BudgetException("Category " + id + " is not part of board " + boardId);
         }
-
-        boardCategoryRepository.delete(entity);
-        return boardMapper.toCategory(entity);
+        boardCategoryRepository.deleteById(id);
     }
 
     protected BoardCategoryEntity getBoardCategory(UUID id) {

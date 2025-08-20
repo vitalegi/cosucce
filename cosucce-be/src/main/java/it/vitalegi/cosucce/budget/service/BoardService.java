@@ -1,6 +1,8 @@
 package it.vitalegi.cosucce.budget.service;
 
 import it.vitalegi.cosucce.budget.constants.BoardUserRole;
+import it.vitalegi.cosucce.budget.dto.AddBoardDto;
+import it.vitalegi.cosucce.budget.dto.UpdateBoardDto;
 import it.vitalegi.cosucce.budget.entity.BoardEntity;
 import it.vitalegi.cosucce.budget.entity.BoardUserEntity;
 import it.vitalegi.cosucce.budget.entity.BoardUserId;
@@ -36,18 +38,18 @@ public class BoardService {
     OptimisticLockService optimisticLockService;
 
     @Transactional
-    public Board addBoard(UUID boardId, String name, String etag, UUID userId) {
-        if (boardId != null) {
-            if (boardRepository.findById(boardId).isPresent()) {
+    public Board addBoard(AddBoardDto dto, UUID userId) {
+        if (dto.getBoardId() != null) {
+            if (boardRepository.findById(dto.getBoardId()).isPresent()) {
                 throw new IllegalArgumentException("Invalid ID");
             }
         }
 
         var entity = new BoardEntity();
         var ts = Instant.now();
-        entity.setBoardId(boardId);
-        entity.setName(name);
-        entity.setEtag(etag);
+        entity.setBoardId(dto.getBoardId());
+        entity.setName(dto.getName());
+        entity.setEtag(dto.getEtag());
         entity.setCreationDate(ts);
         entity.setLastUpdate(ts);
         entity = boardRepository.save(entity);
@@ -63,21 +65,23 @@ public class BoardService {
     }
 
     @Transactional
-    public Board updateBoard(UUID boardId, String name, String etag, String newEtag) {
+    public Board updateBoard(UUID boardId, UpdateBoardDto dto) {
         var entity = getBoard(boardId);
-        optimisticLockService.checkLock(boardId, entity.getEtag(), etag);
-        entity.setEtag(newEtag);
-        entity.setName(name);
+        optimisticLockService.checkLock(boardId, entity.getEtag(), dto.getEtag());
+        entity.setEtag(dto.getNewETag());
+        entity.setName(dto.getName());
         entity.setLastUpdate(Instant.now());
         entity = boardRepository.save(entity);
         return boardMapper.toBoard(entity);
     }
 
     @Transactional
-    public Board deleteBoard(UUID boardId) {
-        var entity = getBoard(boardId);
-        boardRepository.delete(entity);
-        return boardMapper.toBoard(entity);
+    public void deleteBoard(UUID id) {
+        var entity = boardRepository.findById(id);
+        if (entity.isEmpty()) {
+            return;
+        }
+        boardRepository.deleteById(id);
     }
 
     public List<Board> getVisibleBoards(UUID userId) {

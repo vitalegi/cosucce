@@ -2,10 +2,12 @@ package it.vitalegi.cosucce.budget.resource;
 
 import it.vitalegi.cosucce.budget.constants.BoardUserPermission;
 import it.vitalegi.cosucce.budget.dto.AddBoardDto;
+import it.vitalegi.cosucce.budget.dto.UpdateBoardDto;
 import it.vitalegi.cosucce.budget.exception.OptimisticLockException;
 import it.vitalegi.cosucce.budget.model.Board;
 import it.vitalegi.cosucce.budget.service.BoardService;
 import it.vitalegi.cosucce.budget.service.BudgetAuthorizationService;
+import it.vitalegi.cosucce.budget.service.BudgetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,10 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.util.Arrays;
 import java.util.UUID;
 
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG2;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.NAME1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.NAME2;
 import static it.vitalegi.cosucce.util.JsonUtil.json;
 import static it.vitalegi.cosucce.util.MockAuth.guest;
 import static it.vitalegi.cosucce.util.MockAuth.member;
@@ -30,7 +36,6 @@ import static it.vitalegi.cosucce.util.MockMvcUtil.assert409;
 import static it.vitalegi.cosucce.util.MockMvcUtil.getUserId;
 import static java.time.Instant.now;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,6 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @ActiveProfiles("test")
 public class BudgetBoardResourceTests {
+
     @Autowired
     MockMvc mockMvc;
 
@@ -55,6 +61,8 @@ public class BudgetBoardResourceTests {
     BoardService boardService;
     @MockitoBean
     BudgetAuthorizationService budgetAuthorizationService;
+    @Autowired
+    BudgetUtil budgetUtil;
 
     @Nested
     class AddBoard {
@@ -63,31 +71,32 @@ public class BudgetBoardResourceTests {
             var auth = member();
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
-            var expected = Board.builder().boardId(boardId).name("bar").etag("1").creationDate(now()).lastUpdate(now()).build();
+            var request = budgetUtil.addBoardDto1().boardId(boardId).build();
+            var expected = budgetUtil.board1().boardId(boardId).build();
 
-            when(boardService.addBoard(any(), any(), any(), any())).thenReturn(expected);
+            when(boardService.addBoard(request, userId)).thenReturn(expected);
 
-            mockMvc.perform(request(AddBoardDto.builder().boardId(boardId).name("bar").etag("1").build()).with(csrf()).with(auth)) //
+            mockMvc.perform(request(request).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
-                    .andExpect(jsonPath("$.etag").value("1")) //
-                    .andExpect(jsonPath("$.name").value("bar")) //
+                    .andExpect(jsonPath("$.etag").value(ETAG1)) //
+                    .andExpect(jsonPath("$.name").value(NAME1)) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(0)).checkPermission(any(), any(), any());
-            verify(boardService, times(1)).addBoard(boardId, "bar", "1", userId);
+            verify(boardService, times(1)).addBoard(request, userId);
         }
 
         @Test
         void when_notAuthenticated_then_401() throws Exception {
-            assert401(mockMvc.perform(request(AddBoardDto.builder().build())).andDo(print()));
+            assert401(mockMvc.perform(request(budgetUtil.addBoardDto1().build())).andDo(print()));
         }
 
         @Test
         void when_notAuthorized_then_403() throws Exception {
-            assert403(mockMvc.perform(request(AddBoardDto.builder().build()).with(guest())).andDo(print()));
+            assert403(mockMvc.perform(request(budgetUtil.addBoardDto1().build()).with(guest())).andDo(print()));
         }
 
         protected MockHttpServletRequestBuilder request(AddBoardDto payload) {
@@ -103,31 +112,31 @@ public class BudgetBoardResourceTests {
             var auth = member();
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
-            var expected = Board.builder().boardId(boardId).name("bar").etag("2").creationDate(now()).lastUpdate(now()).build();
+            var request = budgetUtil.updateBoardDto1().build();
+            var expected = budgetUtil.board2().boardId(boardId).build();
+            when(boardService.updateBoard(boardId, request)).thenReturn(expected);
 
-            when(boardService.updateBoard(any(), any(), any(), any())).thenReturn(expected);
-
-            mockMvc.perform(request(boardId, "bar", "1", "2").with(csrf()).with(auth)) //
+            mockMvc.perform(request(boardId, request).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(status().isOk()) //
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
-                    .andExpect(jsonPath("$.name").value("bar")) //
-                    .andExpect(jsonPath("$.etag").value("2")) //
+                    .andExpect(jsonPath("$.name").value(NAME2)) //
+                    .andExpect(jsonPath("$.etag").value(ETAG2)) //
                     .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
                     .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
 
             verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
-            verify(boardService, times(1)).updateBoard(boardId, "bar", "1", "2");
+            verify(boardService, times(1)).updateBoard(boardId, request);
         }
 
         @Test
         void when_notAuthenticated_then_401() throws Exception {
-            assert401(mockMvc.perform(request(UUID.randomUUID(), "foo")).andDo(print()));
+            assert401(mockMvc.perform(request(UUID.randomUUID(), budgetUtil.updateBoardDto1().build())).andDo(print()));
         }
 
         @Test
         void when_notAuthorized_then_403() throws Exception {
-            assert403(mockMvc.perform(request(UUID.randomUUID(), "foo").with(guest())).andDo(print()));
+            assert403(mockMvc.perform(request(UUID.randomUUID(), budgetUtil.updateBoardDto1().build()).with(guest())).andDo(print()));
         }
 
         @Test
@@ -136,24 +145,25 @@ public class BudgetBoardResourceTests {
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
 
-            when(boardService.updateBoard(any(), any(), any(), any())).thenThrow(new OptimisticLockException(boardId, "5", "10"));
+            var request = budgetUtil.updateBoardDto1().build();
+            when(boardService.updateBoard(boardId, request)).thenThrow(new OptimisticLockException(boardId, "5", "10"));
 
-            assert409(mockMvc.perform(request(boardId, "bar", "5", "10").with(csrf()).with(auth)) //
+            assert409(mockMvc.perform(request(boardId, request).with(csrf()).with(auth)) //
                     .andDo(print()) //
                     .andExpect(jsonPath("$.error").value("OptimisticLockException")));
 
             verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
-            verify(boardService, times(1)).updateBoard(boardId, "bar", "5", "10");
+            verify(boardService, times(1)).updateBoard(boardId, request);
         }
 
-        protected MockHttpServletRequestBuilder request(UUID boardId, String name) {
-            return request(boardId, name, "0", "1");
+        protected MockHttpServletRequestBuilder request() {
+            return request(UUID.randomUUID(), budgetUtil.updateBoardDto1().build());
         }
 
-        protected MockHttpServletRequestBuilder request(UUID boardId, String name, String etag, String newETag) {
+        protected MockHttpServletRequestBuilder request(UUID boardId, UpdateBoardDto dto) {
             var request = put("/budget/board/" + boardId);
             return request.contentType(MediaType.APPLICATION_JSON) //
-                    .content("{\"name\": \"" + name + "\", \"etag\": \"" + etag + "\", \"newETag\": \"" + newETag + "\" }");
+                    .content("{\"name\": \"" + dto.getName() + "\", \"etag\": \"" + dto.getEtag() + "\", \"newETag\": \"" + dto.getNewETag() + "\" }");
         }
     }
 
@@ -164,17 +174,10 @@ public class BudgetBoardResourceTests {
             var auth = member();
             var userId = getUserId(mockMvc, auth);
             var boardId = UUID.randomUUID();
-            var expected = Board.builder().boardId(boardId).name("bar").creationDate(now()).lastUpdate(now()).build();
-
-            when(boardService.deleteBoard(any())).thenReturn(expected);
 
             mockMvc.perform(request(boardId).with(csrf()).with(auth)) //
                     .andDo(print()) //
-                    .andExpect(status().isOk()) //
-                    .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
-                    .andExpect(jsonPath("$.name").value("bar")) //
-                    .andExpect(jsonPath("$.creationDate").isNotEmpty()) //
-                    .andExpect(jsonPath("$.lastUpdate").isNotEmpty());
+                    .andExpect(status().isOk());
 
             verify(budgetAuthorizationService, times(1)).checkPermission(boardId, userId, BoardUserPermission.ADMIN);
             verify(boardService, times(1)).deleteBoard(boardId);
