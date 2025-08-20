@@ -8,6 +8,11 @@ const routes: RouteRecordRaw[] = [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'budget', component: () => import('/src/budget/pages/ViewBoardsPage.vue') },
       { path: 'budget/add-board', component: () => import('/src/budget/pages/AddBoardPage.vue') },
+      { path: 'budget/board/:boardId', component: () => import('/src/budget/pages/BoardPage.vue') },
+      {
+        path: 'budget/board/:boardId/add-entry',
+        component: () => import('/src/budget/pages/AddBoardEntryPage.vue'),
+      },
     ],
   },
   {

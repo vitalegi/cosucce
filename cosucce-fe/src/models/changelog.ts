@@ -9,7 +9,7 @@ export type ChangelogStatus =
   | 'forbidden'
   | 'conflict';
 
-export type EntityType = 'board';
+export type EntityType = 'board' | 'board-entry' | 'board-account' | 'board-category';
 
 export default class Changelog {
   changelogId?: number;

@@ -1,16 +1,17 @@
 <template>
   <q-table
-    title="Boards"
+    title="Entries"
     ref="table"
     class="col-12"
     style="max-width: 1200px"
-    :rows="boards.items"
+    :rows="entries.items"
     :columns="columns"
-    row-key="SERIES_ID"
+    row-key="entryId"
     :binary-state-sort="true"
     :rows-per-page-options="[5, 10, 20, 50, 75, 100]"
     v-model:pagination="pagination"
     :loading="loading"
+    :grid="false"
   >
     <template v-slot:top>
       <div class="q-gutter-md justify-between full-width">
@@ -19,6 +20,14 @@
             <q-btn round color="primary" icon="add" @click="$emit('add')" />
           </template>
         </q-input>
+      </div>
+    </template>
+    <template v-slot:item="props">
+      <div
+        class="q-py-xs q-px-xs col-xs-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 grid-style-transition"
+        :style="props.selected ? 'transform: scale(0.95);' : ''"
+      >
+        <BoardCard :board="props.row" />
       </div>
     </template>
   </q-table>
@@ -30,12 +39,19 @@ import localDb from 'src/persistence/local-db';
 import Board from '../models/board';
 import { QTableColumn } from 'quasar';
 import DateUtil from 'src/utils/date-util';
+import BoardCard from './BoardCard.vue';
+import BoardEntry from '../models/board-entry';
 
-const boards = reactive({ items: new Array<Board>() });
-let boardsSubscription: Subscription | undefined;
+interface Props {
+  boardId: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {});
 
 const loading = ref(false);
 const search = ref('');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const table = ref<any>(null);
 
 const pagination = {
   sortBy: 'desc',
@@ -48,15 +64,33 @@ defineEmits(['update', 'add', 'delete']);
 
 const columns: QTableColumn[] = [
   {
-    name: 'boardId',
+    name: 'entryId',
     label: 'ID',
-    field: 'boardId',
+    field: 'entryId',
     sortable: false,
   },
   {
-    name: 'name',
-    label: 'Name',
-    field: 'name',
+    name: 'accountId',
+    label: 'Account',
+    field: 'accountId',
+    sortable: true,
+  },
+  {
+    name: 'categoryId',
+    label: 'Category',
+    field: 'categoryId',
+    sortable: true,
+  },
+  {
+    name: 'description',
+    label: 'Description',
+    field: 'description',
+    sortable: false,
+  },
+  {
+    name: 'amount',
+    label: 'Amount',
+    field: 'amount',
     sortable: true,
   },
   {
@@ -78,15 +112,17 @@ const columns: QTableColumn[] = [
     format: (val: Date) => DateUtil.timeDiff(val),
   },
 ];
+const entries = reactive({ items: new Array<BoardEntry>() });
+let subscription: Subscription | undefined;
 
 onMounted(() => {
-  boardsSubscription = liveQuery(() => localDb.boards.toArray()).subscribe(
-    (elements) => (boards.items = elements),
-  );
+  subscription = liveQuery(() =>
+    localDb.boardEntries.where('boardId').equals(props.boardId).toArray(),
+  ).subscribe((elements) => (entries.items = elements));
 });
 
 onUnmounted(() => {
-  boardsSubscription?.unsubscribe();
-  boardsSubscription = undefined;
+  subscription?.unsubscribe();
+  subscription = undefined;
 });
 </script>
