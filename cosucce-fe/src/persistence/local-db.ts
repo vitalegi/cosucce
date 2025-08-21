@@ -1,6 +1,6 @@
 import Dexie, { EntityTable, Table } from 'dexie';
-import Board from '../budget/models/board';
-import Changelog from '../models/changelog';
+import Board from 'src/budget/models/board';
+import Changelog from 'src/models/changelog';
 import BoardEntry from 'src/budget/models/board-entry';
 
 const localDb = new Dexie('cosucce') as Dexie & {

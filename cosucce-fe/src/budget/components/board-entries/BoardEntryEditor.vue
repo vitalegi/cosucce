@@ -11,7 +11,7 @@
 </template>
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { useBoardEntryStore } from '../stores/board-entry-store';
+import { useBoardEntryStore } from 'src/budget/stores/board-entry-store';
 import UuidUtil from 'src/utils/uuid-util';
 
 const emit = defineEmits(['save']);

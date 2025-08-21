@@ -6,7 +6,7 @@
 </template>
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { useBoardStore } from '../stores/board-store';
+import { useBoardStore } from 'src/budget/stores/board-store';
 import UuidUtil from 'src/utils/uuid-util';
 
 const emit = defineEmits(['save']);

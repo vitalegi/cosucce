@@ -1,6 +1,6 @@
 import { AxiosResponse } from 'axios';
-import Board from '../budget/models/board';
-import Changelog, { Action, EntityType } from '../models/changelog';
+import Board from 'src/budget/models/board';
+import Changelog, { Action, EntityType } from 'src/models/changelog';
 import localDb from './local-db';
 import { AbstractChangelogFactory, ChangelogFactory } from './changelog/changelog-factory';
 import LocalPersistence from './local/local-persistence';

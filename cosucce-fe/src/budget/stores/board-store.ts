@@ -1,5 +1,5 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import Board from '../models/board';
+import Board from 'src/budget/models/board';
 import persistenceManager from 'src/persistence/persistence-manager';
 export const useBoardStore = defineStore('board', {
   state: () => ({}),

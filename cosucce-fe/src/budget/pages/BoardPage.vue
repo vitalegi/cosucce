@@ -7,8 +7,8 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
 import { ref, watch } from 'vue';
-import { toBoardId } from '../util/budget-route-params-util';
-import BoardEntriesTable from '../components/BoardEntriesTable.vue';
+import { toBoardId } from 'src/budget/util/budget-route-params-util';
+import BoardEntriesTable from 'src/budget/components/board-entries/BoardEntriesTable.vue';
 import { useRouter } from 'vue-router';
 const router = useRouter();
 const route = useRoute();

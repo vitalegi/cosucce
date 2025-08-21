@@ -1,17 +1,17 @@
 <template>
   <q-table
-    title="Boards"
+    title="Entries"
     ref="table"
     class="col-12"
     style="max-width: 1200px"
-    :rows="boards.items"
+    :rows="entries.items"
     :columns="columns"
-    row-key="boardId"
+    row-key="entryId"
     :binary-state-sort="true"
     :rows-per-page-options="[5, 10, 20, 50, 75, 100]"
     v-model:pagination="pagination"
     :loading="loading"
-    :grid="true"
+    :grid="false"
   >
     <template v-slot:top>
       <div class="q-gutter-md justify-between full-width">
@@ -36,13 +36,17 @@
 import { onMounted, onUnmounted, reactive, ref } from 'vue';
 import { Subscription, liveQuery } from 'dexie';
 import localDb from 'src/persistence/local-db';
-import Board from '../models/board';
+import Board from 'src/budget/models/board';
 import { QTableColumn } from 'quasar';
 import DateUtil from 'src/utils/date-util';
-import BoardCard from './BoardCard.vue';
+import BoardCard from 'src/budget/components/boards/BoardCard.vue';
+import BoardEntry from 'src/budget/models/board-entry';
 
-const boards = reactive({ items: new Array<Board>() });
-let boardsSubscription: Subscription | undefined;
+interface Props {
+  boardId: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {});
 
 const loading = ref(false);
 const search = ref('');
@@ -60,15 +64,33 @@ defineEmits(['update', 'add', 'delete']);
 
 const columns: QTableColumn[] = [
   {
-    name: 'boardId',
+    name: 'entryId',
     label: 'ID',
-    field: 'boardId',
+    field: 'entryId',
     sortable: false,
   },
   {
-    name: 'name',
-    label: 'Name',
-    field: 'name',
+    name: 'accountId',
+    label: 'Account',
+    field: 'accountId',
+    sortable: true,
+  },
+  {
+    name: 'categoryId',
+    label: 'Category',
+    field: 'categoryId',
+    sortable: true,
+  },
+  {
+    name: 'description',
+    label: 'Description',
+    field: 'description',
+    sortable: false,
+  },
+  {
+    name: 'amount',
+    label: 'Amount',
+    field: 'amount',
     sortable: true,
   },
   {
@@ -90,15 +112,17 @@ const columns: QTableColumn[] = [
     format: (val: Date) => DateUtil.timeDiff(val),
   },
 ];
+const entries = reactive({ items: new Array<BoardEntry>() });
+let subscription: Subscription | undefined;
 
 onMounted(() => {
-  boardsSubscription = liveQuery(() => localDb.boards.toArray()).subscribe(
-    (elements) => (boards.items = elements),
-  );
+  subscription = liveQuery(() =>
+    localDb.boardEntries.where('boardId').equals(props.boardId).toArray(),
+  ).subscribe((elements) => (entries.items = elements));
 });
 
 onUnmounted(() => {
-  boardsSubscription?.unsubscribe();
-  boardsSubscription = undefined;
+  subscription?.unsubscribe();
+  subscription = undefined;
 });
 </script>

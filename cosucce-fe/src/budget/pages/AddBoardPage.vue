@@ -5,9 +5,9 @@
 </template>
 
 <script setup lang="ts">
-import BoardEditor from '../components/BoardEditor.vue';
-import budgetSyncService from '../services/budget-sync';
+import budgetSyncService from 'src/budget/services/budget-sync';
 import { useRouter } from 'vue-router';
+import BoardEditor from 'src/budget/components/boards/BoardEditor.vue';
 
 const router = useRouter();
 

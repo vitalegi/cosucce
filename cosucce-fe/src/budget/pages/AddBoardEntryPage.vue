@@ -14,10 +14,10 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import BoardEntryEditor from '../components/BoardEntryEditor.vue';
-import budgetSyncService from '../services/budget-sync';
+import BoardEntryEditor from 'src/budget/components/board-entries/BoardEntryEditor.vue';
+import budgetSyncService from 'src/budget/services/budget-sync';
 import { useRoute, useRouter } from 'vue-router';
-import { toBoardId } from '../util/budget-route-params-util';
+import { toBoardId } from 'src/budget/util/budget-route-params-util';
 
 const router = useRouter();
 const route = useRoute();

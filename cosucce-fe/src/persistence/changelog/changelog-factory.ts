@@ -1,5 +1,5 @@
 import Changelog, { Action, EntityType } from 'src/models/changelog';
-import localDb from '../local-db';
+import localDb from 'src/persistence/local-db';
 
 export interface ChangelogFactory<E> {
   addChangelog(action: Action, entity: E): Promise<Changelog>;

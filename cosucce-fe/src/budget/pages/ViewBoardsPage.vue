@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import BoardsTable from '../components/BoardsTable.vue';
+import BoardsTable from 'src/budget/components/boards/BoardsTable.vue';
 const router = useRouter();
 
 function addBoard(): void {

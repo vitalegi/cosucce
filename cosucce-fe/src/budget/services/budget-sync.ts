@@ -2,7 +2,7 @@ import Changelog, { ChangelogStatus } from 'src/models/changelog';
 import localDb from 'src/persistence/local-db';
 import persistenceManager from 'src/persistence/persistence-manager';
 import backendService from 'src/services/backend-service';
-import Board from '../models/board';
+import Board from 'src/budget/models/board';
 
 function ts() {
   return Date.now();

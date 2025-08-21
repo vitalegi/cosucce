@@ -1,17 +1,17 @@
 <template>
   <q-table
-    title="Entries"
+    title="Boards"
     ref="table"
     class="col-12"
     style="max-width: 1200px"
-    :rows="entries.items"
+    :rows="boards.items"
     :columns="columns"
-    row-key="entryId"
+    row-key="boardId"
     :binary-state-sort="true"
     :rows-per-page-options="[5, 10, 20, 50, 75, 100]"
     v-model:pagination="pagination"
     :loading="loading"
-    :grid="false"
+    :grid="true"
   >
     <template v-slot:top>
       <div class="q-gutter-md justify-between full-width">
@@ -36,17 +36,13 @@
 import { onMounted, onUnmounted, reactive, ref } from 'vue';
 import { Subscription, liveQuery } from 'dexie';
 import localDb from 'src/persistence/local-db';
-import Board from '../models/board';
+import Board from 'src/budget/models/board';
 import { QTableColumn } from 'quasar';
 import DateUtil from 'src/utils/date-util';
 import BoardCard from './BoardCard.vue';
-import BoardEntry from '../models/board-entry';
 
-interface Props {
-  boardId: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {});
+const boards = reactive({ items: new Array<Board>() });
+let boardsSubscription: Subscription | undefined;
 
 const loading = ref(false);
 const search = ref('');
@@ -64,33 +60,15 @@ defineEmits(['update', 'add', 'delete']);
 
 const columns: QTableColumn[] = [
   {
-    name: 'entryId',
+    name: 'boardId',
     label: 'ID',
-    field: 'entryId',
+    field: 'boardId',
     sortable: false,
   },
   {
-    name: 'accountId',
-    label: 'Account',
-    field: 'accountId',
-    sortable: true,
-  },
-  {
-    name: 'categoryId',
-    label: 'Category',
-    field: 'categoryId',
-    sortable: true,
-  },
-  {
-    name: 'description',
-    label: 'Description',
-    field: 'description',
-    sortable: false,
-  },
-  {
-    name: 'amount',
-    label: 'Amount',
-    field: 'amount',
+    name: 'name',
+    label: 'Name',
+    field: 'name',
     sortable: true,
   },
   {
@@ -112,17 +90,15 @@ const columns: QTableColumn[] = [
     format: (val: Date) => DateUtil.timeDiff(val),
   },
 ];
-const entries = reactive({ items: new Array<BoardEntry>() });
-let subscription: Subscription | undefined;
 
 onMounted(() => {
-  subscription = liveQuery(() =>
-    localDb.boardEntries.where('boardId').equals(props.boardId).toArray(),
-  ).subscribe((elements) => (entries.items = elements));
+  boardsSubscription = liveQuery(() => localDb.boards.toArray()).subscribe(
+    (elements) => (boards.items = elements),
+  );
 });
 
 onUnmounted(() => {
-  subscription?.unsubscribe();
-  subscription = undefined;
+  boardsSubscription?.unsubscribe();
+  boardsSubscription = undefined;
 });
 </script>

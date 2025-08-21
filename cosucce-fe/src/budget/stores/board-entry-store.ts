@@ -1,6 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import persistenceManager from 'src/persistence/persistence-manager';
-import BoardEntry from '../models/board-entry';
+import BoardEntry from 'src/budget/models/board-entry';
 
 type Element = {
   entryId: string;
