@@ -1,12 +1,19 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
+  <q-layout view="hHh lpR lFr">
+    <q-header elevated class="bg-primary text-white">
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title> Quasar App </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <q-btn
+          dense
+          flat
+          round
+          icon="settings"
+          @click="toggleRightDrawer"
+          v-if="mainLayoutStore.showRightMenu"
+        />
       </q-toolbar>
     </q-header>
 
@@ -16,6 +23,33 @@
 
         <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
       </q-list>
+    </q-drawer>
+
+    <q-drawer
+      v-model="rightDrawerOpen"
+      side="right"
+      overlay
+      bordered
+      v-if="mainLayoutStore.isBudgetView"
+    >
+      <div class="row items-start justify-start">
+        <q-list bordered class="col-12">
+          <q-item clickable v-ripple>
+            <q-item-section
+              @click="$router.push(`/budget/${mainLayoutStore.boardId}/settings/accounts`)"
+            >
+              Accounts
+            </q-item-section>
+          </q-item>
+          <q-item clickable v-ripple>
+            <q-item-section
+              @click="$router.push(`/budget/${mainLayoutStore.boardId}/settings/categories`)"
+            >
+              Categories
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
     </q-drawer>
 
     <q-page-container>
@@ -28,6 +62,9 @@
 import { ref } from 'vue';
 import EssentialLink, { type EssentialLinkProps } from 'components/EssentialLink.vue';
 import { authService } from 'src/services/backend-service';
+import { useMainLayoutStore } from 'src/stores/main-layout-store';
+
+const mainLayoutStore = useMainLayoutStore();
 
 const linksList: EssentialLinkProps[] = [
   {
@@ -75,9 +112,13 @@ const linksList: EssentialLinkProps[] = [
 ];
 
 const leftDrawerOpen = ref(false);
+const rightDrawerOpen = ref(false);
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
+}
+function toggleRightDrawer() {
+  rightDrawerOpen.value = !rightDrawerOpen.value;
 }
 void authService.tokenRefresh();
 </script>

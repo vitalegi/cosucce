@@ -9,7 +9,7 @@
     row-key="entryId"
     :binary-state-sort="true"
     :rows-per-page-options="[5, 10, 20, 50, 75, 100]"
-    v-model:pagination="pagination"
+    :pagination="pagination"
     :loading="loading"
     :grid="false"
   >
@@ -68,6 +68,12 @@ const columns: QTableColumn[] = [
     label: 'ID',
     field: 'entryId',
     sortable: false,
+  },
+  {
+    name: 'date',
+    label: 'Date',
+    field: 'date',
+    sortable: true,
   },
   {
     name: 'accountId',
