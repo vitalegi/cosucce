@@ -31,11 +31,9 @@ class BoardEntryChangelogFactory extends AbstractChangelogFactory<BoardEntry> {
   }
 }
 
-export class AddBoardEntryPersistence
-  implements ChangelogFactory<BoardEntry>, LocalPersistence<BoardEntry>, RemotePersistence
-{
+abstract class AbstractBoardEntryPersistence implements ChangelogFactory<BoardEntry> {
   private _factory;
-  private _axios;
+  protected _axios;
 
   public constructor(axios: AxiosWrapperAuth) {
     this._factory = new BoardEntryChangelogFactory();
@@ -44,6 +42,15 @@ export class AddBoardEntryPersistence
 
   async addChangelog(action: Action, entity: BoardEntry): Promise<Changelog> {
     return this._factory.addChangelog(action, entity);
+  }
+}
+
+export class AddBoardEntryPersistence
+  extends AbstractBoardEntryPersistence
+  implements LocalPersistence<BoardEntry>, RemotePersistence
+{
+  public constructor(axios: AxiosWrapperAuth) {
+    super(axios);
   }
 
   async executeLocal(entity: BoardEntry): Promise<void> {
@@ -55,6 +62,7 @@ export class AddBoardEntryPersistence
       `/budget/board/${entity.boardId}/entry`,
       {
         entryId: entity.entryId,
+        date: entity.date,
         accountId: entity.accountId,
         categoryId: entity.categoryId,
         description: entity.description,
@@ -68,20 +76,12 @@ export class AddBoardEntryPersistence
 }
 
 export class UpdateBoardEntryPersistence
-  implements ChangelogFactory<BoardEntry>, LocalPersistence<BoardEntry>, RemotePersistence
+  extends AbstractBoardEntryPersistence
+  implements LocalPersistence<BoardEntry>, RemotePersistence
 {
-  private _factory;
-  private _axios;
-
   public constructor(axios: AxiosWrapperAuth) {
-    this._factory = new BoardEntryChangelogFactory();
-    this._axios = axios;
+    super(axios);
   }
-
-  async addChangelog(action: Action, entity: BoardEntry): Promise<Changelog> {
-    return this._factory.addChangelog(action, entity);
-  }
-
   async executeLocal(entity: BoardEntry): Promise<void> {
     await localDb.boardEntries.put(entity);
   }
@@ -91,6 +91,7 @@ export class UpdateBoardEntryPersistence
       `/budget/board/${entity.boardId}/entry/${entity.entryId}`,
       {
         entryId: entity.entryId,
+        date: entity.date,
         accountId: entity.accountId,
         categoryId: entity.categoryId,
         description: entity.description,
@@ -105,18 +106,11 @@ export class UpdateBoardEntryPersistence
 }
 
 export class DeleteBoardEntryPersistence
-  implements ChangelogFactory<BoardEntry>, LocalPersistence<BoardEntry>, RemotePersistence
+  extends AbstractBoardEntryPersistence
+  implements LocalPersistence<BoardEntry>, RemotePersistence
 {
-  private _factory;
-  private _axios;
-
   public constructor(axios: AxiosWrapperAuth) {
-    this._factory = new BoardEntryChangelogFactory();
-    this._axios = axios;
-  }
-
-  async addChangelog(action: Action, entity: BoardEntry): Promise<Changelog> {
-    return this._factory.addChangelog(action, entity);
+    super(axios);
   }
 
   async executeLocal(entity: BoardEntry): Promise<void> {

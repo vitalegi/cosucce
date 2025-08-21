@@ -31,11 +31,9 @@ class BoardChangelogFactory extends AbstractChangelogFactory<Board> {
   }
 }
 
-export class AddBoardPersistence
-  implements ChangelogFactory<Board>, LocalPersistence<Board>, RemotePersistence
-{
+abstract class AbstractBoardPersistence implements ChangelogFactory<Board> {
   private _factory;
-  private _axios;
+  protected _axios;
 
   public constructor(axios: AxiosWrapperAuth) {
     this._factory = new BoardChangelogFactory();
@@ -44,6 +42,15 @@ export class AddBoardPersistence
 
   async addChangelog(action: Action, entity: Board): Promise<Changelog> {
     return this._factory.addChangelog(action, entity);
+  }
+}
+
+export class AddBoardPersistence
+  extends AbstractBoardPersistence
+  implements LocalPersistence<Board>, RemotePersistence
+{
+  public constructor(axios: AxiosWrapperAuth) {
+    super(axios);
   }
 
   async executeLocal(entity: Board): Promise<void> {
@@ -61,18 +68,11 @@ export class AddBoardPersistence
 }
 
 export class UpdateBoardPersistence
-  implements ChangelogFactory<Board>, LocalPersistence<Board>, RemotePersistence
+  extends AbstractBoardPersistence
+  implements LocalPersistence<Board>, RemotePersistence
 {
-  private _factory;
-  private _axios;
-
   public constructor(axios: AxiosWrapperAuth) {
-    this._factory = new BoardChangelogFactory();
-    this._axios = axios;
-  }
-
-  async addChangelog(action: Action, entity: Board): Promise<Changelog> {
-    return this._factory.addChangelog(action, entity);
+    super(axios);
   }
 
   async executeLocal(entity: Board): Promise<void> {
@@ -95,18 +95,11 @@ export class UpdateBoardPersistence
 }
 
 export class DeleteBoardPersistence
-  implements ChangelogFactory<Board>, LocalPersistence<Board>, RemotePersistence
+  extends AbstractBoardPersistence
+  implements LocalPersistence<Board>, RemotePersistence
 {
-  private _factory;
-  private _axios;
-
   public constructor(axios: AxiosWrapperAuth) {
-    this._factory = new BoardChangelogFactory();
-    this._axios = axios;
-  }
-
-  async addChangelog(action: Action, entity: Board): Promise<Changelog> {
-    return this._factory.addChangelog(action, entity);
+    super(axios);
   }
 
   async executeLocal(entity: Board): Promise<void> {
