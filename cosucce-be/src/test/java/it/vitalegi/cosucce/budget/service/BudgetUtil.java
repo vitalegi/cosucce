@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import static java.time.Instant.now;
@@ -42,6 +43,9 @@ public class BudgetUtil {
 
     public static final String NAME1 = "NAME1";
     public static final String NAME2 = "NAME2";
+
+    public static final LocalDate DATE1 = LocalDate.of(2025, 5, 10);
+    public static final LocalDate DATE2 = LocalDate.of(2026, 8, 20);
 
     @Autowired
     BoardService boardService;
@@ -131,27 +135,27 @@ public class BudgetUtil {
     // ENTRIES
 
     public BoardEntry.BoardEntryBuilder entry1() {
-        return BoardEntry.builder().entryId(uuid()).boardId(uuid()).accountId(uuid()).categoryId(uuid()).description(DESCRIPTION1).amount(AMOUNT1).etag(ETAG1).creationDate(now()).lastUpdate(now());
+        return BoardEntry.builder().entryId(uuid()).boardId(uuid()).date(DATE1).accountId(uuid()).categoryId(uuid()).description(DESCRIPTION1).amount(AMOUNT1).etag(ETAG1).creationDate(now()).lastUpdate(now());
     }
 
     public BoardEntry.BoardEntryBuilder entry2() {
-        return BoardEntry.builder().entryId(uuid()).boardId(uuid()).accountId(uuid()).categoryId(uuid()).description(DESCRIPTION2).amount(AMOUNT2).etag(ETAG2).creationDate(now()).lastUpdate(now());
+        return BoardEntry.builder().entryId(uuid()).boardId(uuid()).date(DATE2).accountId(uuid()).categoryId(uuid()).description(DESCRIPTION2).amount(AMOUNT2).etag(ETAG2).creationDate(now()).lastUpdate(now());
     }
 
     public AddBoardEntryDto.AddBoardEntryDtoBuilder addBoardEntryDto1(UUID accountId, UUID categoryId) {
-        return AddBoardEntryDto.builder().entryId(uuid()).accountId(accountId).categoryId(categoryId).description(DESCRIPTION1).amount(AMOUNT1).etag(ETAG1);
+        return AddBoardEntryDto.builder().entryId(uuid()).date(DATE1).accountId(accountId).categoryId(categoryId).description(DESCRIPTION1).amount(AMOUNT1).etag(ETAG1);
     }
 
     public AddBoardEntryDto.AddBoardEntryDtoBuilder addBoardEntryDto2(UUID accountId, UUID categoryId) {
-        return AddBoardEntryDto.builder().entryId(uuid()).accountId(accountId).categoryId(categoryId).description(DESCRIPTION2).amount(AMOUNT2).etag(ETAG2);
+        return AddBoardEntryDto.builder().entryId(uuid()).date(DATE2).accountId(accountId).categoryId(categoryId).description(DESCRIPTION2).amount(AMOUNT2).etag(ETAG2);
     }
 
     public UpdateBoardEntryDto.UpdateBoardEntryDtoBuilder updateBoardEntryDto1() {
-        return UpdateBoardEntryDto.builder().description(DESCRIPTION1).amount(AMOUNT1).etag(ETAG1).newETag(ETAG2);
+        return UpdateBoardEntryDto.builder().date(DATE1).description(DESCRIPTION1).amount(AMOUNT1).etag(ETAG1).newETag(ETAG2);
     }
 
     public UpdateBoardEntryDto.UpdateBoardEntryDtoBuilder updateBoardEntryDto2() {
-        return UpdateBoardEntryDto.builder().description(DESCRIPTION2).amount(AMOUNT2).etag(ETAG2).newETag(ETAG3);
+        return UpdateBoardEntryDto.builder().date(DATE2).description(DESCRIPTION2).amount(AMOUNT2).etag(ETAG2).newETag(ETAG3);
     }
 
     public UUID uuid() {

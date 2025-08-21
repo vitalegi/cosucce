@@ -215,6 +215,9 @@
             <column name="etag" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
+            <column name="date" type="date">
+                <constraints nullable="false"/>
+            </column>
             <column name="account_id" type="uuid">
                 <constraints nullable="false"/>
             </column>

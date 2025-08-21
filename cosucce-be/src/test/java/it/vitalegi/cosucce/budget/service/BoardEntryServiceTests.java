@@ -17,6 +17,8 @@ import java.util.UUID;
 
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.AMOUNT1;
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.AMOUNT2;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.DATE1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.DATE2;
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.DESCRIPTION1;
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.DESCRIPTION2;
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG1;
@@ -66,6 +68,7 @@ public class BoardEntryServiceTests {
             var e = actual.get(0);
             assertEquals(boardId, e.getBoardId());
             assertNotNull(e.getEntryId());
+            assertEquals(DATE1, e.getDate());
             assertEquals(accountId, e.getAccountId());
             assertEquals(categoryId, e.getCategoryId());
             assertEquals(DESCRIPTION1, e.getDescription());
@@ -113,6 +116,7 @@ public class BoardEntryServiceTests {
             var actual = boardEntryService.addBoardEntry(boardId, budgetUtil.addBoardEntryDto1(accountId, categoryId).build(), userId);
             assertEquals(boardId, actual.getBoardId());
             assertNotNull(actual.getEntryId());
+            assertEquals(DATE1, actual.getDate());
             assertEquals(ETAG1, actual.getEtag());
             assertEquals(accountId, actual.getAccountId());
             assertEquals(categoryId, actual.getCategoryId());
@@ -186,6 +190,7 @@ public class BoardEntryServiceTests {
 
             assertEquals(boardId, actual.getBoardId());
             assertEquals(original.getEntryId(), actual.getEntryId());
+            assertEquals(DATE1, actual.getDate());
             assertEquals(ETAG2, actual.getEtag());
             assertEquals(accountId2, actual.getAccountId());
             assertEquals(categoryId2, actual.getCategoryId());

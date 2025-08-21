@@ -19,11 +19,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.UUID;
 
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.AMOUNT1;
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.AMOUNT2;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.DATE1;
+import static it.vitalegi.cosucce.budget.service.BudgetUtil.DATE2;
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.DESCRIPTION1;
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.DESCRIPTION2;
 import static it.vitalegi.cosucce.budget.service.BudgetUtil.ETAG1;
@@ -90,6 +93,7 @@ public class BudgetEntryResourceTests {
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$.entryId").value(entryId.toString())) //
                     .andExpect(jsonPath("$.etag").value(ETAG1)) //
+                    .andExpect(jsonPath("$.date").value(DATE1.format(DateTimeFormatter.ISO_DATE))) //
                     .andExpect(jsonPath("$.accountId").value(ACCOUNT1.toString())) //
                     .andExpect(jsonPath("$.categoryId").value(CATEGORY1.toString())) //
                     .andExpect(jsonPath("$.description").value(DESCRIPTION1)) //
@@ -142,6 +146,7 @@ public class BudgetEntryResourceTests {
                     .andExpect(jsonPath("$.boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$.entryId").value(entryId.toString())) //
                     .andExpect(jsonPath("$.etag").value(ETAG2)) //
+                    .andExpect(jsonPath("$.date").value(DATE2.format(DateTimeFormatter.ISO_DATE))) //
                     .andExpect(jsonPath("$.accountId").value(ACCOUNT2.toString())) //
                     .andExpect(jsonPath("$.categoryId").value(CATEGORY2.toString())) //
                     .andExpect(jsonPath("$.description").value(DESCRIPTION2)) //
@@ -253,6 +258,7 @@ public class BudgetEntryResourceTests {
                     .andExpect(jsonPath("$[0].boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$[0].entryId").value(entryId1.toString())) //
                     .andExpect(jsonPath("$[0].etag").value(ETAG1)) //
+                    .andExpect(jsonPath("$[0].date").value(DATE1.format(DateTimeFormatter.ISO_DATE))) //
                     .andExpect(jsonPath("$[0].accountId").value(accountId.toString())) //
                     .andExpect(jsonPath("$[0].categoryId").value(categoryId.toString())) //
                     .andExpect(jsonPath("$[0].description").value(DESCRIPTION1)) //
@@ -264,6 +270,7 @@ public class BudgetEntryResourceTests {
                     .andExpect(jsonPath("$[1].boardId").value(boardId.toString())) //
                     .andExpect(jsonPath("$[1].entryId").value(entryId2.toString())) //
                     .andExpect(jsonPath("$[1].etag").value(ETAG2)) //
+                    .andExpect(jsonPath("$[1].date").value(DATE2.format(DateTimeFormatter.ISO_DATE))) //
                     .andExpect(jsonPath("$[1].accountId").value(accountId.toString())) //
                     .andExpect(jsonPath("$[1].categoryId").value(categoryId.toString())) //
                     .andExpect(jsonPath("$[1].description").value(DESCRIPTION2)) //

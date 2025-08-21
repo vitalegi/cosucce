@@ -11,6 +11,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,6 +28,7 @@ public class BoardEntryEntity {
     private UUID entryId;
     private UUID boardId;
     private String etag;
+    private LocalDate date;
     private UUID accountId;
     private UUID categoryId;
     private String description;

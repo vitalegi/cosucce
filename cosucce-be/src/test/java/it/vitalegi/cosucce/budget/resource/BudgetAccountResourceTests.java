@@ -36,7 +36,6 @@ import static it.vitalegi.cosucce.util.MockMvcUtil.assert401;
 import static it.vitalegi.cosucce.util.MockMvcUtil.assert403;
 import static it.vitalegi.cosucce.util.MockMvcUtil.assert409;
 import static it.vitalegi.cosucce.util.MockMvcUtil.getUserId;
-import static java.time.Instant.now;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;

@@ -53,6 +53,7 @@ public class BoardMapper {
         var out = new BoardEntry();
         out.setEntryId(entity.getEntryId());
         out.setBoardId(entity.getBoardId());
+        out.setDate(entity.getDate());
         out.setEtag(entity.getEtag());
         out.setAccountId(entity.getAccountId());
         out.setCategoryId(entity.getCategoryId());

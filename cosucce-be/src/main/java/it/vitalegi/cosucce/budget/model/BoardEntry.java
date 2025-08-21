@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -17,6 +18,7 @@ public class BoardEntry {
     private UUID entryId;
     private UUID boardId;
     private String etag;
+    private LocalDate date;
     private UUID accountId;
     private UUID categoryId;
     private String description;

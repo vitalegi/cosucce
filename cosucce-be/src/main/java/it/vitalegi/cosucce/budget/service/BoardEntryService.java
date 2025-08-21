@@ -52,6 +52,7 @@ public class BoardEntryService {
         var ts = Instant.now();
         entity.setEntryId(request.getEntryId());
         entity.setBoardId(boardId);
+        entity.setDate(request.getDate());
         entity.setAccountId(request.getAccountId());
         entity.setCategoryId(request.getCategoryId());
         entity.setDescription(request.getDescription());
@@ -84,6 +85,7 @@ public class BoardEntryService {
         validateCategory(boardId, request.getCategoryId());
 
         entity.setBoardId(boardId);
+        entity.setDate(request.getDate());
         entity.setEtag(request.getNewETag());
         entity.setAccountId(request.getAccountId());
         entity.setCategoryId(request.getCategoryId());

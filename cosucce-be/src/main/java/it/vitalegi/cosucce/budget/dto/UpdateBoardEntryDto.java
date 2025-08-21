@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -13,6 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class UpdateBoardEntryDto {
+    LocalDate date;
     UUID accountId;
     UUID categoryId;
     String description;
