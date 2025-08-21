@@ -1,5 +1,5 @@
 import { AxiosWrapperAuth } from 'src/services/authenticated-axios';
-import Board from '../models/board';
+import Board from 'src/budget/models/board';
 
 export default class BoardResource {
   api;

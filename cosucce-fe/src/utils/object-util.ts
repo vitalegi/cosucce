@@ -103,14 +103,26 @@ export default class ObjectUtil {
     throw Error(`Value is not a number ${value}: ${typeof value}`);
   }
 
-  public static asBoolean(value: unknown, defaultValue: boolean): boolean {
+  public static asBoolean(value: unknown, defaultValue: boolean | undefined): boolean {
     if (ObjectUtil.isNullOrUndefined(value)) {
+      if (defaultValue === undefined) {
+        throw Error('Value is mandatory');
+      }
       return defaultValue;
     }
     if (typeof value === 'boolean') {
       return value;
     }
     throw Error(`Value is not a boolean ${value}: ${typeof value}`);
+  }
+
+  public static propAsBoolean(
+    obj: unknown,
+    key: string,
+    defaultValue: boolean | undefined = undefined,
+  ): boolean {
+    const value = ObjectUtil.getProperty(obj, key);
+    return ObjectUtil.asBoolean(value, defaultValue);
   }
 
   public static asDateOptional(value: unknown, defaultValue?: Date): Date | null {

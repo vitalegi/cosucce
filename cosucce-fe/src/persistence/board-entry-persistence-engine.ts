@@ -118,7 +118,7 @@ export class DeleteBoardEntryPersistence
   }
   async executeRemote(changelog: Changelog, allowSSORedirect: boolean): Promise<AxiosResponse> {
     return await this._axios.delete(
-      '/budget/board/' + changelog.payload.boardId,
+      `/budget/board/${changelog.payload.boardId}/entry/${changelog.payload.entryId}`,
       {},
       allowSSORedirect,
     );

@@ -6,8 +6,8 @@
 </template>
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { useBoardStore } from 'src/budget/stores/board-store';
 import UuidUtil from 'src/utils/uuid-util';
+import { useBudgetStore } from 'src/budget/stores/budget-store';
 
 const emit = defineEmits(['save']);
 
@@ -23,7 +23,7 @@ const editor = ref<{
 }>({
   name: '',
 });
-const boardStore = useBoardStore();
+const budgetStore = useBudgetStore();
 
 const addMode = computed(() => props.id === undefined);
 
@@ -36,10 +36,19 @@ const submitLabel = computed(() => {
 
 async function submit(): Promise<void> {
   if (addMode.value) {
-    await boardStore.addBoard(UuidUtil.uuid(), editor.value.name.trim());
-    emit('save', { name: editor.value.name.trim() });
+    const id = UuidUtil.uuid();
+    await budgetStore.addBoard({ boardId: id, name: editor.value.name.trim() });
+    emit('save', {
+      id: id,
+    });
   } else {
-    emit('save', { id: props.id, name: editor.value.name.trim() });
+    if (props.id === undefined) {
+      throw Error('id is undefined, code should be unreachable');
+    }
+    await budgetStore.updateBoard({ boardId: props.id, name: editor.value.name.trim() });
+    emit('save', {
+      id: props.id,
+    });
   }
 }
 
