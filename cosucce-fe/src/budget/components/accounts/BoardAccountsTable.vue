@@ -1,12 +1,12 @@
 <template>
   <q-table
-    title="Entries"
+    title="Accounts"
     ref="table"
     class="col-12"
     style="max-width: 1200px"
     :rows="entries.items"
     :columns="columns"
-    row-key="entryId"
+    row-key="accountId"
     :binary-state-sort="true"
     :rows-per-page-options="[5, 10, 20, 50, 75, 100]"
     :pagination="pagination"
@@ -22,14 +22,6 @@
         </q-input>
       </div>
     </template>
-    <template v-slot:item="props">
-      <div
-        class="q-py-xs q-px-xs col-xs-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 grid-style-transition"
-        :style="props.selected ? 'transform: scale(0.95);' : ''"
-      >
-        <BoardCard :board="props.row" />
-      </div>
-    </template>
   </q-table>
 </template>
 <script setup lang="ts">
@@ -38,8 +30,7 @@ import { Subscription, liveQuery } from 'dexie';
 import localDb from 'src/persistence/local-db';
 import { QTableColumn } from 'quasar';
 import DateUtil from 'src/utils/date-util';
-import BoardCard from 'src/budget/components/boards/BoardCard.vue';
-import BoardEntry from 'src/budget/models/board-entry';
+import BoardAccount from 'src/budget/models/board-account';
 
 interface Props {
   boardId: string;
@@ -63,46 +54,34 @@ defineEmits(['update', 'add', 'delete']);
 
 const columns: QTableColumn[] = [
   {
-    name: 'entryId',
-    label: 'ID',
-    field: 'entryId',
-    sortable: false,
-  },
-  {
-    name: 'date',
-    label: 'Date',
-    field: 'date',
-    sortable: true,
-  },
-  {
     name: 'accountId',
-    label: 'Account',
+    label: 'ID',
     field: 'accountId',
-    sortable: true,
-  },
-  {
-    name: 'categoryId',
-    label: 'Category',
-    field: 'categoryId',
-    sortable: true,
-  },
-  {
-    name: 'description',
-    label: 'Description',
-    field: 'description',
     sortable: false,
   },
   {
-    name: 'amount',
-    label: 'Amount',
-    field: 'amount',
+    name: 'label',
+    label: 'Label',
+    field: 'label',
+    sortable: true,
+  },
+  {
+    name: 'icon',
+    label: 'Icon',
+    field: 'icon',
+    sortable: false,
+  },
+  {
+    name: 'enabled',
+    label: 'Enabled',
+    field: 'enabled',
     sortable: true,
   },
   {
     name: 'creationDate',
     label: 'Created',
     style: 'width: 100px',
-    field: (row: BoardEntry) => row.creationDate,
+    field: (row: BoardAccount) => row.creationDate,
     sortable: true,
     sortOrder: 'da',
     format: (val: Date) => DateUtil.timeDiff(val),
@@ -111,18 +90,18 @@ const columns: QTableColumn[] = [
     name: 'lastUpdate',
     label: 'Updated',
     style: 'width: 100px',
-    field: (row: BoardEntry) => row.lastUpdate,
+    field: (row: BoardAccount) => row.lastUpdate,
     sortable: true,
     sortOrder: 'da',
     format: (val: Date) => DateUtil.timeDiff(val),
   },
 ];
-const entries = reactive({ items: new Array<BoardEntry>() });
+const entries = reactive({ items: new Array<BoardAccount>() });
 let subscription: Subscription | undefined;
 
 onMounted(() => {
   subscription = liveQuery(() =>
-    localDb.boardEntries.where('boardId').equals(props.boardId).toArray(),
+    localDb.boardAccounts.where('boardId').equals(props.boardId).toArray(),
   ).subscribe((elements) => (entries.items = elements));
 });
 

@@ -35,18 +35,10 @@
       <div class="row items-start justify-start">
         <q-list bordered class="col-12">
           <q-item clickable v-ripple>
-            <q-item-section
-              @click="$router.push(`/budget/${mainLayoutStore.boardId}/settings/accounts`)"
-            >
-              Accounts
-            </q-item-section>
+            <q-item-section @click="settingsAccounts()"> Accounts </q-item-section>
           </q-item>
           <q-item clickable v-ripple>
-            <q-item-section
-              @click="$router.push(`/budget/${mainLayoutStore.boardId}/settings/categories`)"
-            >
-              Categories
-            </q-item-section>
+            <q-item-section @click="settingsCategories()"> Categories </q-item-section>
           </q-item>
         </q-list>
       </div>
@@ -63,8 +55,12 @@ import { ref } from 'vue';
 import EssentialLink, { type EssentialLinkProps } from 'components/EssentialLink.vue';
 import { authService } from 'src/services/backend-service';
 import { useMainLayoutStore } from 'src/stores/main-layout-store';
+import routing from 'src/router/routing';
+import { useRouter } from 'vue-router';
 
 const mainLayoutStore = useMainLayoutStore();
+
+const router = useRouter();
 
 const linksList: EssentialLinkProps[] = [
   {
@@ -120,5 +116,13 @@ function toggleLeftDrawer() {
 function toggleRightDrawer() {
   rightDrawerOpen.value = !rightDrawerOpen.value;
 }
+
+function settingsAccounts(): Promise<unknown> {
+  return routing.budget().settingsViewAccounts(router, mainLayoutStore.boardId);
+}
+function settingsCategories(): Promise<unknown> {
+  return routing.budget().settingsViewCategories(router, mainLayoutStore.boardId);
+}
+
 void authService.tokenRefresh();
 </script>

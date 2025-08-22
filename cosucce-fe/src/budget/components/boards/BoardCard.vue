@@ -9,21 +9,19 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
 import Board from 'src/budget/models/board';
-
-const router = useRouter();
+import routing from 'src/router/routing';
+import { useRouter } from 'vue-router';
 
 interface Props {
   board: Board;
 }
 
+const router = useRouter();
 const props = withDefaults(defineProps<Props>(), {});
 
 function openBoard() {
-  void router.push({
-    path: `budget/board/${props.board.boardId}`,
-  });
+  void routing.budget().viewBoard(router, props.board.boardId);
 }
 </script>
 
