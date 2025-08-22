@@ -4,18 +4,20 @@
     ref="table"
     class="col-12"
     style="max-width: 1200px"
-    :rows="boards.items"
+    :rows="rows"
     :columns="columns"
     row-key="boardId"
     :binary-state-sort="true"
-    :rows-per-page-options="[5, 10, 20, 50, 75, 100]"
-    v-model:pagination="pagination"
+    :rows-per-page-options="[3, 5, 10, 20, 50, 75, 100]"
     :loading="loading"
     :grid="true"
+    @request="onRequest"
+    v-model:pagination="pagination"
+    :filter="searchParams"
   >
     <template v-slot:top>
       <div class="q-gutter-md justify-between full-width">
-        <q-input clearable autofocus outlined v-model="search" label="Search">
+        <q-input clearable autofocus outlined v-model="searchParams.freeText" label="Search">
           <template v-slot:after>
             <q-btn round color="primary" icon="add" @click="$emit('add')" />
           </template>
@@ -41,20 +43,37 @@ import { QTableColumn } from 'quasar';
 import DateUtil from 'src/utils/date-util';
 import BoardCard from './BoardCard.vue';
 
-const boards = reactive({ items: new Array<Board>() });
-let boardsSubscription: Subscription | undefined;
+type SortBy = 'name' | 'creationDate' | 'lastUpdate';
+
+type Pagination = {
+  sortBy: SortBy;
+  descending?: boolean;
+  page: number;
+  rowsPerPage: number;
+  rowsNumber: number;
+};
+
+const elements = reactive({ items: new Array<Board>() });
+const rows = ref<Board[]>(new Array<Board>());
+let elementsSubscription: Subscription | undefined;
 
 const loading = ref(false);
-const search = ref('');
+
+type TableFilter = {
+  freeText: string;
+};
+const searchParams = ref<TableFilter>({ freeText: '' });
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const table = ref<any>(null);
 
-const pagination = {
-  sortBy: 'desc',
+const pagination = ref<Pagination>({
+  sortBy: 'name',
   descending: false,
-  page: 0,
+  page: 1,
   rowsPerPage: 5,
-};
+  rowsNumber: 0,
+});
 
 defineEmits(['update', 'add', 'delete']);
 
@@ -91,14 +110,65 @@ const columns: QTableColumn[] = [
   },
 ];
 
-onMounted(() => {
-  boardsSubscription = liveQuery(() => localDb.boards.toArray()).subscribe(
-    (elements) => (boards.items = elements),
+function sort(sortBy: SortBy, descending: boolean | undefined): (a: Board, b: Board) => number {
+  const direction = descending ? -1 : 1;
+  switch (sortBy) {
+    case 'name':
+      return (a: Board, b: Board) => direction * (a.name > b.name ? 1 : -1);
+    case 'creationDate':
+      return (a: Board, b: Board) =>
+        direction * DateUtil.compareDates(a.creationDate, b.creationDate);
+    case 'lastUpdate':
+      return (a: Board, b: Board) => direction * DateUtil.compareDates(a.lastUpdate, b.lastUpdate);
+    default:
+      throw new Error(`Sort by is not handled`);
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function onRequest(props: any): void {
+  loading.value = true;
+  updateData(props.pagination as Pagination);
+  loading.value = false;
+}
+
+function updateData(newPagination: Pagination): void {
+  const filtered = elements.items.filter((b: Board) => filterElement(b));
+  const rowsNumber = filtered.length;
+  const sorted = filtered.sort(sort(newPagination.sortBy, newPagination.descending));
+  const paginated = sorted.slice(
+    (newPagination.page - 1) * newPagination.rowsPerPage,
+    newPagination.rowsPerPage,
   );
+  rows.value = paginated;
+  pagination.value.rowsNumber = rowsNumber;
+  pagination.value.descending = newPagination.descending ? newPagination.descending : false;
+  pagination.value.page = newPagination.page;
+  pagination.value.rowsPerPage = newPagination.rowsPerPage;
+  pagination.value.sortBy = newPagination.sortBy;
+}
+
+function filterElement(b: Board): boolean {
+  const freeText = searchParams.value.freeText.trim().toUpperCase();
+  if (freeText !== '') {
+    if (b.name.toUpperCase().indexOf(freeText) === -1) {
+      return false;
+    }
+  }
+  return true;
+}
+
+onMounted(() => {
+  loading.value = true;
+  elementsSubscription = liveQuery(() => localDb.boards.toArray()).subscribe((e) => {
+    elements.items = e;
+    updateData(pagination.value);
+    loading.value = false;
+  });
 });
 
 onUnmounted(() => {
-  boardsSubscription?.unsubscribe();
-  boardsSubscription = undefined;
+  elementsSubscription?.unsubscribe();
+  elementsSubscription = undefined;
 });
 </script>
