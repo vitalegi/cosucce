@@ -17,7 +17,7 @@ const router = useRouter();
 const boardId = ref<string>(toBoardId(route.params));
 
 function addAccount(): Promise<unknown> {
-  return routing.budget().settingsAddAccounts(router, boardId.value);
+  return routing.budget().settingsAddAccount(router, boardId.value);
 }
 
 watch(

@@ -11,7 +11,7 @@
     :rows-per-page-options="[5, 10, 20, 50, 75, 100]"
     :pagination="pagination"
     :loading="loading"
-    :grid="false"
+    :grid="true"
   >
     <template v-slot:top>
       <div class="q-gutter-md justify-between full-width">
@@ -20,6 +20,14 @@
             <q-btn round color="primary" icon="add" @click="$emit('add')" />
           </template>
         </q-input>
+      </div>
+    </template>
+    <template v-slot:item="props">
+      <div
+        class="q-py-xs q-px-xs col-xs-6 col-sm-4 col-md-3 col-lg-2 col-xl-2 grid-style-transition"
+        :style="props.selected ? 'transform: scale(0.95);' : ''"
+      >
+        <BoardAccountCard :element="props.row" />
       </div>
     </template>
   </q-table>
@@ -31,6 +39,7 @@ import localDb from 'src/persistence/local-db';
 import { QTableColumn } from 'quasar';
 import DateUtil from 'src/utils/date-util';
 import BoardAccount from 'src/budget/models/board-account';
+import BoardAccountCard from './BoardAccountCard.vue';
 
 interface Props {
   boardId: string;

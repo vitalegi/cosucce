@@ -12,6 +12,6 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 function addBoard(): Promise<unknown> {
-  return routing.budget().settingsAddAccounts(router, '');
+  return routing.budget().settingsAddAccount(router, '');
 }
 </script>

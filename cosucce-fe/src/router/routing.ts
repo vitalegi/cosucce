@@ -28,11 +28,18 @@ export class BudgetRouting {
   ): Promise<NavigationFailure | void | undefined> {
     return push(router, `/budget/board/${boardId}/settings/accounts`);
   }
-  public settingsAddAccounts(
+  public settingsAddAccount(
     router: Router,
     boardId: string,
   ): Promise<NavigationFailure | void | undefined> {
     return push(router, `/budget/board/${boardId}/settings/add-account`);
+  }
+  public settingsEditAccount(
+    router: Router,
+    boardId: string,
+    accountId: string,
+  ): Promise<NavigationFailure | void | undefined> {
+    return push(router, `/budget/board/${boardId}/settings/account/${accountId}`);
   }
   public settingsViewCategories(
     router: Router,

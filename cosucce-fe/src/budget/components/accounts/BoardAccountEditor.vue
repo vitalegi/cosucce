@@ -8,7 +8,7 @@
   </q-form>
 </template>
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onUpdated, ref } from 'vue';
 import UuidUtil from 'src/utils/uuid-util';
 import { useBudgetStore } from 'src/budget/stores/budget-store';
 import IconSelector from 'src/budget/components/commons/IconSelector.vue';
@@ -75,7 +75,7 @@ async function submit(): Promise<void> {
   }
 }
 
-onMounted(() => {
+function init() {
   editor.value.label = '';
   editor.value.icon = '';
   editor.value.enabled = true;
@@ -89,5 +89,7 @@ onMounted(() => {
   if (props.enabled) {
     editor.value.enabled = props.enabled;
   }
-});
+}
+
+onUpdated(() => init());
 </script>

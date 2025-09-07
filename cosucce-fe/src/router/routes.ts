@@ -32,6 +32,10 @@ const routes: RouteRecordRaw[] = [
             component: () => import('/src/budget/pages/AddBoardAccountPage.vue'),
           },
           {
+            path: 'account/:accountId',
+            component: () => import('/src/budget/pages/UpdateBoardAccountPage.vue'),
+          },
+          {
             path: 'categories',
             component: () => import('/src/budget/pages/ViewCategoriesPage.vue'),
           },
