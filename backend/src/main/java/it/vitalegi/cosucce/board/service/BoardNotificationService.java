@@ -1,10 +1,8 @@
 package it.vitalegi.cosucce.board.service;
 
 import it.vitalegi.cosucce.board.dto.BoardEntry;
-import it.vitalegi.cosucce.board.entity.BoardUserEntity;
 import it.vitalegi.cosucce.board.repository.BoardUserRepository;
 import it.vitalegi.cosucce.user.entity.UserEntity;
-import it.vitalegi.cosucce.user.service.TelegramProxy;
 import it.vitalegi.cosucce.user.service.UserService;
 import it.vitalegi.metrics.Performance;
 import it.vitalegi.metrics.Type;
@@ -15,9 +13,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 
 @Performance(Type.SERVICE)
@@ -29,25 +24,17 @@ public class BoardNotificationService {
 
     @Autowired
     UserService userService;
-    @Autowired
-    TelegramProxy telegramProxy;
 
     public void notifyAddBoardEntry(BoardEntry entry, UserEntity author) {
         String owner = userService.getUserEntity(entry.getOwnerId()).getUsername();
-        notifyBoardUsers(entry.getBoardId(), "Nuova spesa di " + author.getUsername() + ": " + formatBoardEntry(entry
-                , owner));
     }
 
     public void notifyDeleteBoardEntry(BoardEntry entry, UserEntity author) {
         String owner = userService.getUserEntity(entry.getOwnerId()).getUsername();
-        notifyBoardUsers(entry.getBoardId(),
-                "Spesa eliminata da " + author.getUsername() + ": " + formatBoardEntry(entry, owner));
     }
 
     public void notifyUpdateBoardEntry(BoardEntry entry, UserEntity author) {
         String owner = userService.getUserEntity(entry.getOwnerId()).getUsername();
-        notifyBoardUsers(entry.getBoardId(),
-                "Spesa modificata da " + author.getUsername() + ": " + formatBoardEntry(entry, owner));
     }
 
     protected String formatAmount(BigDecimal amount) {
@@ -64,17 +51,4 @@ public class BoardNotificationService {
         return date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
     }
 
-    protected void notifyBoardUser(long telegramUserId, String message) {
-        try {
-            telegramProxy.sendMessage(telegramUserId, message);
-        } catch (Exception e) {
-            log.error("Failed to send message to " + telegramUserId + ". Message: " + message, e);
-        }
-    }
-
-    protected void notifyBoardUsers(UUID boardId, String message) {
-        List<BoardUserEntity> users = boardUserRepository.findByBoard_Id(boardId);
-        users.stream().map(BoardUserEntity::getUser).map(UserEntity::getTelegramUserId).filter(Objects::nonNull)
-             .forEach(telegramUserId -> notifyBoardUser(telegramUserId, message));
-    }
 }

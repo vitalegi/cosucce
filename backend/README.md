@@ -21,6 +21,31 @@ mvn clean package
 
 ## Run
 
+### Local, docker
+
+```bash
+docker run -d `
+  --name cosucce-v1-pg `
+  -e POSTGRES_DB=cosucce `
+  -e POSTGRES_USER=cosucce `
+  -e POSTGRES_PASSWORD=cosucce `
+  -p 50200:5432 `
+  -v cosucce1_pgdata:/var/lib/postgresql `
+  --restart unless-stopped `
+  postgres:18.6
+
+$env:DATASOURCE_URL = 'jdbc:postgresql://localhost:50200/cosucce'
+$env:DATASOURCE_USERNAME = 'cosucce'
+$env:DATASOURCE_PASSWORD = 'cosucce'
+$env:CORS_ALLOWED_ORIGINS = 'http://localhost:9000'
+java -jar "-Dspring.profiles.active=prod" ./target/cosucce-0.0.1-SNAPSHOT.jar
+
+./mvnw spring-boot:run
+```
+
+### Old
+
+
 ```bash
 $env:DATASOURCE_URL = 'jdbc:postgresql://localhost:5432/cosucce'
 $env:DATASOURCE_USERNAME = 'postgres'
