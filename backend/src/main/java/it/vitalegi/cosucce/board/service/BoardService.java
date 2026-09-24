@@ -24,6 +24,8 @@ import it.vitalegi.cosucce.user.entity.UserEntity;
 import it.vitalegi.cosucce.user.service.UserService;
 import it.vitalegi.metrics.Performance;
 import it.vitalegi.metrics.Type;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,27 +55,22 @@ public class BoardService {
     BoardEntryRepository boardEntryRepository;
     @Autowired
     BoardSplitRepository boardSplitRepository;
-
     @Autowired
     BoardUserRepository boardUserRepository;
-
     @Autowired
     UserService userService;
-
     @Autowired
     BoardMapper mapper;
-
     @Autowired
     BoardPermissionService boardPermissionService;
-
     @Autowired
     AggregatedAnalysisService aggregatedAnalysisService;
-
     @Autowired
     BoardInviteRepository boardInviteRepository;
-
     @Autowired
     BoardNotificationService boardNotificationService;
+    @PersistenceContext
+    EntityManager entityManager;
 
     @Transactional
     public Board addBoard(String name) {
@@ -107,10 +104,8 @@ public class BoardService {
         BoardEntity board = boardRepository.findById(boardId).get();
 
         List<BoardUserEntity> members = boardUserRepository.findByBoard_Id(boardId);
-        Map<Long, UserEntity> users = members.stream().map(u -> u.getUser()).distinct()
-                                             .collect(Collectors.toMap(UserEntity::getId, Function.identity()));
-        log.info("Available users: {}", users.entrySet().stream().map(Map.Entry::getKey).map(k -> "" + k)
-                                             .collect(Collectors.joining(", ")));
+        Map<Long, UserEntity> users = members.stream().map(u -> u.getUser()).distinct().collect(Collectors.toMap(UserEntity::getId, Function.identity()));
+        log.info("Available users: {}", users.entrySet().stream().map(Map.Entry::getKey).map(k -> "" + k).collect(Collectors.joining(", ")));
         log.info("Start import procedure for {} entries", entries.size());
         List<BoardEntry> importedEntries = new ArrayList<>();
         for (int i = 0; i < entries.size(); i++) {
@@ -157,8 +152,7 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardSplit addBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear,
-                                    Integer toMonth, BigDecimal value) {
+    public BoardSplit addBoardSplit(UUID boardId, long userId, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value) {
         boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_EDIT);
         BoardEntity boardEntity = getBoardEntity(boardId);
         log.info("User can work on this board");
@@ -173,6 +167,7 @@ public class BoardService {
 
     public void deleteBoard(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_DELETE);
+        entityManager.clear();
         boardRepository.deleteById(boardId);
         log.info("Deleted board {}", boardId);
     }
@@ -194,8 +189,7 @@ public class BoardService {
     public void deleteBoardInvite(UUID boardId, UUID id) {
         boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_MANAGE_MEMBER);
 
-        BoardInviteEntity entry = boardInviteRepository.findById(id)
-                                                       .orElseThrow(() -> new IllegalArgumentException("Entry " + id + " doesn't exist."));
+        BoardInviteEntity entry = boardInviteRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Entry " + id + " doesn't exist."));
 
         UUID entryBoardId = entry.getBoard().getId();
         if (!entryBoardId.equals(boardId)) {
@@ -230,8 +224,7 @@ public class BoardService {
         entry.setDescription(boardEntry.getDescription());
         entry.setAmount(boardEntry.getAmount());
         BoardEntryEntity newEntry = boardEntryRepository.save(entry);
-        log.info("Created boardEntry. board={}, ownerId={}, entryId={}", board.getId(), author.getId(),
-                newEntry.getId());
+        log.info("Created boardEntry. board={}, ownerId={}, entryId={}", board.getId(), author.getId(), newEntry.getId());
         return mapper.map(newEntry);
     }
 
@@ -248,8 +241,7 @@ public class BoardService {
 
     public List<MonthlyUserAnalysis> getBoardAnalysisByMonthUser(UUID boardId) {
         boardPermissionService.checkGrant(boardId, BoardUserRole.BoardGrant.BOARD_VIEW);
-        List<BoardEntryGroupByMonthUserCategory> entries =
-                boardEntryRepository.getAggregatedBoardEntriesByMonthUserCategory(boardId);
+        List<BoardEntryGroupByMonthUserCategory> entries = boardEntryRepository.getAggregatedBoardEntriesByMonthUserCategory(boardId);
         List<BoardSplit> splits = doGetBoardSplits(boardId);
         return aggregatedAnalysisService.getBoardAnalysisByMonthUser(entries, splits);
     }
@@ -305,8 +297,8 @@ public class BoardService {
     public List<Board> getVisibleBoards() {
         Iterable<BoardEntity> boards = boardRepository.findVisibleBoards(userService.getCurrentUser().getId());
         return StreamSupport.stream(boards.spliterator(), false) //
-                            .map(board -> mapper.map(board)) //
-                            .collect(Collectors.toList());
+                .map(board -> mapper.map(board)) //
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -337,8 +329,7 @@ public class BoardService {
         entry.setDescription(boardEntry.getDescription());
         entry.setAmount(boardEntry.getAmount());
         BoardEntryEntity newEntry = boardEntryRepository.save(entry);
-        log.info("Updated boardEntry. board={}, ownerId={}, entryId={}", boardId, boardEntry.getOwnerId(),
-                newEntry.getId());
+        log.info("Updated boardEntry. board={}, ownerId={}, entryId={}", boardId, boardEntry.getOwnerId(), newEntry.getId());
         BoardEntry out = mapper.map(newEntry);
         boardNotificationService.notifyUpdateBoardEntry(out, userService.getCurrentUserEntity());
         return out;
@@ -377,8 +368,7 @@ public class BoardService {
 
         BoardUserEntity membership = boardUserRepository.findUserBoard(boardId, currentUser.getId());
         if (membership != null) {
-            log.debug("User {} is already member of board {} with role {}", currentUser.getId(), boardId,
-                    membership.getRole());
+            log.debug("User {} is already member of board {} with role {}", currentUser.getId(), boardId, membership.getRole());
             return;
         }
 
@@ -390,8 +380,7 @@ public class BoardService {
         boardUserRepository.save(entity);
     }
 
-    protected BoardSplit doAddBoardSplit(BoardEntity boardEntity, UserEntity userEntity, Integer fromYear,
-                                         Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value) {
+    protected BoardSplit doAddBoardSplit(BoardEntity boardEntity, UserEntity userEntity, Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth, BigDecimal value) {
         BoardSplitEntity boardSplitEntity = new BoardSplitEntity();
         boardSplitEntity.setUser(userEntity);
         boardSplitEntity.setBoard(boardEntity);
@@ -402,8 +391,7 @@ public class BoardService {
         boardSplitEntity.setValue1(processBoardSplitValue(value));
 
         BoardSplitEntity out = boardSplitRepository.save(boardSplitEntity);
-        log.info("board split rule created. Board={}, rule={}, value={}", boardEntity.getId(), out.getId(),
-                out.getValue1());
+        log.info("board split rule created. Board={}, rule={}, value={}", boardEntity.getId(), out.getId(), out.getValue1());
         return mapper.map(out);
     }
 

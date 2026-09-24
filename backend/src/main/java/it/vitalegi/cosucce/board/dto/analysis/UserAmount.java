@@ -1,14 +1,11 @@
 package it.vitalegi.cosucce.board.dto.analysis;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class UserAmount extends Amount {
     @NotNull
-    @Schema(description = "User ID")
     long userId;
 
 }

@@ -1,6 +1,5 @@
 package it.vitalegi.cosucce.resource;
 
-import io.swagger.v3.oas.annotations.Operation;
 import it.vitalegi.cosucce.spando.dto.SpandoDays;
 import it.vitalegi.cosucce.spando.dto.SpandoEntry;
 import it.vitalegi.cosucce.spando.service.SpandoService;
@@ -30,26 +29,22 @@ public class SpandoResource {
     @Autowired
     SpandoService spandoService;
 
-    @Operation(summary = "Update an entry")
     @PostMapping(path = "/{date}", consumes = MediaType.APPLICATION_JSON_VALUE, produces =
             MediaType.APPLICATION_JSON_VALUE)
     public SpandoEntry changeSpandoEntry(@PathVariable("date") String date) {
         return spandoService.addOrUpdateSpandoEntry(parseDate(date));
     }
 
-    @Operation(summary = "Delete an entry")
     @DeleteMapping(path = "/{date}")
     public void deleteSpandoEntry(@PathVariable("date") String date) {
         spandoService.deleteSpandoEntry(parseDate(date));
     }
 
-    @Operation(summary = "Get spando estimates")
     @GetMapping(path = "/estimate", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<SpandoDays> getSpandoEstimates() {
         return spandoService.getSpandoEstimates();
     }
 
-    @Operation(summary = "Retrieve spando periods")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<SpandoDays> getSpandos() {
         return spandoService.getSpandoDays();

@@ -30,16 +30,15 @@ public class BoardEntryEntity {
     @GeneratedValue
     @JdbcTypeCode(java.sql.Types.VARCHAR)
     UUID id;
+
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_entry__user__owner_id"))
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
     UserEntity owner;
 
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk__board_entry__board__board_id"))
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
     BoardEntity board;
 
     @NotNull LocalDate date;
