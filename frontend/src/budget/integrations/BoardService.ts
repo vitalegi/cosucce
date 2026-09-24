@@ -16,37 +16,37 @@ const sleep = (ms: number): Promise<void> => {
 
 export class BoardService {
   getBoards = async (): Promise<Board[]> => {
-    const out = await api.get('/board', null);
+    const out = await api.get('/api/board', null);
     return out.map(Board.fromJson);
   };
 
   getBoard = async (boardId: string): Promise<Board> => {
-    const out = await api.get(`/board/${boardId}`, null);
+    const out = await api.get(`/api/board/${boardId}`, null);
     return Board.fromJson(out);
   };
 
   addBoard = async (name: string): Promise<Board> => {
-    const out = await api.post('/board', null, {
+    const out = await api.post('/api/board', null, {
       name: name,
     });
     return Board.fromJson(out);
   };
   updateBoardName = async (id: string, name: string): Promise<Board> => {
-    const out = await api.put(`/board/${id}`, null, {
+    const out = await api.put(`/api/board/${id}`, null, {
       name: name,
     });
     return Board.fromJson(out);
   };
 
   deleteBoard = async (id: string): Promise<void> => {
-    await api.delete(`/board/${id}`, null, {});
+    await api.delete(`/api/board/${id}`, null, {});
   };
 
   addBoardEntry = async (
     boardId: string,
     entry: BoardEntry,
   ): Promise<BoardEntry> => {
-    const out = await api.post(`/board/${boardId}/entry`, null, entry);
+    const out = await api.post(`/api/board/${boardId}/entry`, null, entry);
     return BoardEntry.fromJson(out);
   };
 
@@ -54,7 +54,7 @@ export class BoardService {
     boardId: string,
     entries: Array<BoardEntry>,
   ): Promise<Array<BoardEntry>> => {
-    const out = await api.post(`/board/${boardId}/entries`, null, {
+    const out = await api.post(`/api/board/${boardId}/entries`, null, {
       entries: entries,
     });
     return out.map(BoardEntry.fromJson);
@@ -64,7 +64,7 @@ export class BoardService {
     boardId: string,
     entry: BoardEntry,
   ): Promise<BoardEntry> => {
-    const out = await api.put(`/board/${boardId}/entry`, null, entry);
+    const out = await api.put(`/api/board/${boardId}/entry`, null, entry);
     return BoardEntry.fromJson(out);
   };
 
@@ -72,11 +72,11 @@ export class BoardService {
     boardId: string,
     entryId: string,
   ): Promise<void> => {
-    await api.delete(`/board/${boardId}/entry/${entryId}`, null, null);
+    await api.delete(`/api/board/${boardId}/entry/${entryId}`, null, null);
   };
 
   getBoardEntries = async (boardId: string): Promise<BoardEntry[]> => {
-    const out = await api.get(`/board/${boardId}/entries`, null);
+    const out = await api.get(`/api/board/${boardId}/entries`, null);
     return out.map(BoardEntry.fromJson);
   };
 
@@ -84,62 +84,68 @@ export class BoardService {
     boardId: string,
     boardEntryId: string,
   ): Promise<BoardEntry> => {
-    const out = await api.get(`/board/${boardId}/entry/${boardEntryId}`, null);
+    const out = await api.get(
+      `/api/board/${boardId}/entry/${boardEntryId}`,
+      null,
+    );
     return BoardEntry.fromJson(out);
   };
 
   getBoardUsers = async (boardId: string): Promise<Array<BoardUser>> => {
-    const out = await api.get(`/board/${boardId}/users`, null);
+    const out = await api.get(`/api/board/${boardId}/users`, null);
     return out.map(BoardUser.fromJson);
   };
   addBoardInvite = async (boardId: string): Promise<BoardInvite> => {
-    const out = await api.post(`/board/${boardId}/invite`, null, {});
+    const out = await api.post(`/api/board/${boardId}/invite`, null, {});
     return BoardInvite.fromJson(out);
   };
   useBoardInvite = async (boardId: string, invite: string): Promise<void> => {
-    await api.get(`/board/${boardId}/invite/${invite}`, null);
+    await api.get(`/api/board/${boardId}/invite/${invite}`, null);
   };
   getBoardCategories = async (boardId: string): Promise<string[]> => {
-    const out = await api.get(`/board/${boardId}/categories`, null);
+    const out = await api.get(`/api/board/${boardId}/categories`, null);
     return out.map(asString);
   };
   getBoardAnalysisMonthUser = async (
     boardId: string,
   ): Promise<MonthlyUserAnalysis[]> => {
-    const out = await api.get(`/board/${boardId}/analysis/month-user`, null);
+    const out = await api.get(
+      `/api/board/${boardId}/analysis/month-user`,
+      null,
+    );
     return out.map(MonthlyUserAnalysis.fromJson);
   };
   getBoardAnalysisMonth = async (
     boardId: string,
   ): Promise<MonthlyAnalysis[]> => {
-    const out = await api.get(`/board/${boardId}/analysis/month`, null);
+    const out = await api.get(`/api/board/${boardId}/analysis/month`, null);
     return out.map(MonthlyAnalysis.fromJson);
   };
   addBoardSplit = async (boardSplit: BoardSplit): Promise<BoardSplit> => {
     const out = await api.post(
-      `/board/${boardSplit.boardId}/split`,
+      `/api/board/${boardSplit.boardId}/split`,
       null,
       boardSplit,
     );
     return BoardSplit.fromJson(out);
   };
   getBoardSplits = async (boardId: string): Promise<BoardSplit[]> => {
-    const out = await api.get(`/board/${boardId}/splits`, null);
+    const out = await api.get(`/api/board/${boardId}/splits`, null);
     return out.map(BoardSplit.fromJson);
   };
   deleteBoardSplit = async (boardId: string, id: string): Promise<void> => {
-    await api.delete(`/board/${boardId}/split/${id}`, null, {});
+    await api.delete(`/api/board/${boardId}/split/${id}`, null, {});
   };
   updateBoardSplit = async (boardSplit: BoardSplit): Promise<BoardSplit> => {
     const out = await api.put(
-      `/board/${boardSplit.boardId}/split`,
+      `/api/board/${boardSplit.boardId}/split`,
       null,
       boardSplit,
     );
     return BoardSplit.fromJson(out);
   };
   getGrants = async (boardId: string): Promise<string[]> => {
-    const out = await api.get(`/board/${boardId}/grants`, null);
+    const out = await api.get(`/api/board/${boardId}/grants`, null);
     return out.map(asString);
   };
 }
