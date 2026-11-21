@@ -19,7 +19,7 @@ ENV VUE_APP_FIREBASE_PUBLIC_CONFIG='{"apiKey": "AIzaSyAKh-yJUoNgymQgNUaBsnc3nGjB
 RUN yarn quasar build
 
 # --- STAGE 2: Serve con Nginx ---
-FROM nginxinc/nginx-unprivileged:1.31-alpine AS runner
+FROM nginx/nginx-unprivileged:1.31-alpine AS runner
 
 # Copia la config con ownership corretta per l'utente non-root
 COPY --chown=nginx:nginx nginx.conf /etc/nginx/conf.d/default.conf
