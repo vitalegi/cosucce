@@ -1,8 +1,5 @@
 # --- STAGE 1: Build dell'applicazione ---
-FROM node:lts-alpine AS builder
-
-# Abilita pnpm tramite corepack
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -10,7 +7,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 
 # Installa le dipendenze
-RUN yarn
+RUN yarn install --frozen-lockfile
 
 # Copia il resto del codice sorgente
 COPY . .
