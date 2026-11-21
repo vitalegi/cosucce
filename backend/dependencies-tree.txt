@@ -1,4 +1,4 @@
-it.vitalegi:cosucce:jar:2.0.1
+it.vitalegi:cosucce:jar:2.0.2
 +- org.springframework.boot:spring-boot-starter-oauth2-resource-server:jar:3.5.16:compile
 |  +- org.springframework.security:spring-security-config:jar:6.5.11:compile
 |  |  +- org.springframework:spring-beans:jar:6.2.19:compile
